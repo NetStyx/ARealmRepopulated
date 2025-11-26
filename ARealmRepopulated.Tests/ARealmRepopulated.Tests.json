@@ -1,0 +1,11 @@
+{
+  "Author": "NetStyx",
+  "Name": "ARealmRepopulated",
+  "Punchline": "The realm, now with more realm in it",
+  "Description": "This plugin aims to add more flavor npcs to the common areas of the game.",
+  "ApplicableVersion": "any",
+  "Tags": [
+    "blub",
+    "plugin"    
+  ]
+}

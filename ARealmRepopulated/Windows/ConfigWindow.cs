@@ -1,0 +1,270 @@
+using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.Services.Npcs;
+using ARealmRepopulated.Core.Services.Scenarios;
+using ARealmRepopulated.Core.Services.Windows;
+using ARealmRepopulated.Data.Scenarios;
+using ARealmRepopulated.Infrastructure;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.System.File;
+using System.Diagnostics;
+using System.IO;
+using System.Numerics;
+
+namespace ARealmRepopulated.Windows;
+
+public class ConfigWindow(    
+    IPluginLog log,
+    PluginConfig _config, 
+    ScenarioFileManager _fileManager,  
+    DebugOverlay _debugOverlay,
+    ArrpDtrControl dtrControl,
+    ArrpDataCache dataCache) : ADalamudWindow("ARealmRepopulated Configuration###ARealmRepopulatedConfigWindow"), IDisposable
+{    
+
+    protected override void SetWindowOptions() {
+        Size = new Vector2(232, 90);
+        SizeCondition = ImGuiCond.FirstUseEver;
+        Flags |= ImGuiWindowFlags.NoCollapse;
+        this.AllowPinning = false;
+        this.AllowClickthrough = false;
+        this.CollapsedCondition = ImGuiCond.None;
+    }
+
+    public void Dispose() { }
+
+    public override void Draw()
+    {
+
+        if (ImGui.BeginChild("", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize))
+        {
+
+            if (ImGui.BeginTabBar("", ImGuiTabBarFlags.NoTooltip))
+            {
+                if (ImGui.BeginTabItem("Scenarios", ImGuiTabItemFlags.NoTooltip))
+                {
+
+                    try
+                    {
+                        ScenarioTab();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        ImGui.TextColored(ImGuiColors.DalamudRed, $"Error loading scenarios: {ex.Message}");
+                        log.Error(ex, "huh");
+                    }
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("Options", ImGuiTabItemFlags.NoTooltip))
+                {
+                    OptionsTab();
+                    ImGui.EndTabItem();
+                }
+
+                ImGui.EndTabBar();
+            }
+            ImGui.EndChild();
+        }
+
+
+        ImGui.Separator();
+        if (ImGui.BeginTable("##WindowControlTable", 2))
+        {
+            ImGui.TableSetupColumn("##configWindowControlStrech", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##configWindowControlClose", ImGuiTableColumnFlags.WidthFixed);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            if (ImGui.Button("Close Configuration"))
+            {
+                this.IsOpen = false;
+            }
+            ImGui.EndTable();
+        }
+
+    }
+
+    private void OptionsTab()
+    {
+        var autoLoadScenarios = _config.AutoLoadScenarios;
+        if (ImGui.Checkbox("Auto load scenarios", ref autoLoadScenarios))
+        {
+            _config.AutoLoadScenarios = autoLoadScenarios;
+            _config.Save();
+        }
+
+        var showDtrEntry = _config.ShowInDtrBar;
+        if (ImGui.Checkbox("Show DTR Entry", ref showDtrEntry))
+        {
+            _config.ShowInDtrBar = showDtrEntry;
+            _config.Save();
+
+            dtrControl.UpdateVisibility();
+        }
+
+        var scenarioDebugOverlay = _config.EnableScenarioDebugOverlay;
+        if (ImGui.Checkbox("Enable debug overlay", ref scenarioDebugOverlay))
+        {
+            if (scenarioDebugOverlay)
+            {
+                _debugOverlay.Hook();
+            } 
+            else
+            {
+                _debugOverlay.Unhook();
+            }
+
+            _config.EnableScenarioDebugOverlay = scenarioDebugOverlay;
+            _config.Save();            
+        }
+    }
+
+
+    private int _selectedScenarioLocation = -1;
+    private string _searchScenarioText = string.Empty;
+    private void ScenarioTab()
+    {        
+
+        if (ImGui.BeginTable("##SearchTable", 1))
+        {
+            // Add search box for territories when able.
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(-1);
+            ImGui.InputTextWithHint("##SearchScenarios", "Search ... ", ref _searchScenarioText);        
+            ImGui.EndTable();
+        }
+        
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(10, 5));
+        if (ImGui.BeginTable("##AvailableScenarioTable", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY))
+        {
+            ImGui.TableSetupColumn("##scenarioRefreshHeader", ImGuiTableColumnFlags.WidthFixed, 25);            
+            ImGui.TableSetupColumn("##scenarioLocationHeader", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("##scenarioTitleHeader", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##scenarioToolbarHeader", ImGuiTableColumnFlags.WidthFixed);
+            
+            ImGui.TableSetupScrollFreeze(0, 1);
+            ImGui.TableHeadersRow();
+
+
+            DrawCenteredHeaderCell(0, () => {
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Recycle))
+                {
+                    _fileManager.ScanScenarioFiles();
+                }
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Rescan the available scenario files");
+            });
+            DrawCenteredHeaderCell(1, () => ImGui.Text("Location"));
+            DrawCenteredHeaderCell(2, () => ImGui.Text("Scenario"));
+            DrawCenteredHeaderCell(3, () => {                
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus))
+                {
+                    Plugin.Services.GetService<ScenarioEditorWindow>()!.CreateScenario();                    
+                }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Add a new scenario");
+
+                ImGui.SameLine(0, 5);
+                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen))
+                {
+                    var targetPath = _fileManager.ScenarioPath;
+                    if (!Directory.Exists(targetPath))
+                        Directory.CreateDirectory(targetPath);
+
+                    Process.Start(new ProcessStartInfo { FileName = targetPath, UseShellExecute = true });
+                }
+
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Opens the scenario file folder");
+            });
+
+            var scenarioIndex = 0;
+            var scenarioFiles = _fileManager.GetScenarioFiles()
+                .Where(s => s.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
+                .OrderBy(s => s.MetaData.TerritoryId)
+                .ThenBy(s => s.MetaData.Title)
+                .ToList();
+            
+            scenarioFiles.ForEach((s) =>
+            {
+                                
+                ImGui.TableNextRow();                               
+                ImGui.TableNextColumn();
+                var scenarioEnabled = s.MetaData.Enabled;
+                if (ImGui.Checkbox($"##scenarioEnableButton{scenarioIndex}", ref scenarioEnabled))
+                {
+                    var file = _fileManager.LoadScenarioFile(s.FilePath);
+                    if (file != null)
+                    {
+                        file.Enabled = scenarioEnabled;
+                        _fileManager.StoreScenarioFile(file, s.FilePath);
+                    }
+                }
+                
+                ImGui.TableNextColumn();
+
+                var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.TerritoryId);
+                var placeName = territoryData.PlaceName.Value.Name.ToString();                
+                var zoneName = territoryData.PlaceNameZone.Value.Name.ToString();
+
+                if (zoneName.StartsWith(placeName))
+                {
+                    ImGui.Text(placeName);
+                } 
+                else
+                {                    
+                    ImGui.Text(placeName);
+                    ImGui.SameLine(0, 5);
+                    ImGuiComponents.HelpMarker(zoneName);
+                }
+                
+                ImGui.TableNextColumn();
+
+                ImGui.Text(s.MetaData.Title);
+                if (!string.IsNullOrWhiteSpace(s.MetaData.Description))
+                {
+                    ImGuiComponents.HelpMarker(s.MetaData.Description);
+                }
+
+                ImGui.TableNextColumn();
+                if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}",Dalamud.Interface.FontAwesomeIcon.Wrench))
+                {
+                    Plugin.Services.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+                }
+                ImGui.SameLine(0, 5);
+                if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Trash))
+                {
+                    _fileManager.RemoveScenarioFile(s.FilePath);
+                }
+                scenarioIndex++;
+            });
+            
+            ImGui.EndTable();
+        }
+        ImGui.PopStyleVar();
+    }
+
+    private static void DrawCenteredHeaderCell(int column, Action draw)
+    {
+        ImGui.TableSetColumnIndex(column);
+        ImGui.PushID(column);
+        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() - ImGui.GetTextLineHeight()) * 0.5f);                
+        draw();
+        ImGui.PopID();
+    }
+
+    
+}

@@ -1,0 +1,15 @@
+{
+    "Author": "NetStyx",
+    "InternalName": "ARealmRepopulated",
+    "Name": "A Realm Repopulated",
+    "Punchline": "The realm, now with more realm in it",
+    "Description": "This plugin aims to give players the ability to add more flavor npcs to the common areas of the game.",
+    "ApplicableVersion": "any",
+    "RepoUrl": "https://github.com/NetStyx/ARealmRepopulated/",
+    "IconUrl": "https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/icon.png",
+    "Tags": [
+        "npc",
+        "flavor",
+        "customizable"
+    ]
+}

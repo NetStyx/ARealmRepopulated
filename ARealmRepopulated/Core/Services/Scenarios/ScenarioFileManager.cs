@@ -1,0 +1,175 @@
+using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.Files;
+using ARealmRepopulated.Core.Json;
+using ARealmRepopulated.Data.Scenarios;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+
+namespace ARealmRepopulated.Core.Services.Scenarios;
+
+public sealed record ScenarioFileData(string FileHash, string FilePath, ScenarioFileMetaData MetaData);
+public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, PluginConfig config) : IDisposable
+{
+    private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
+    public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
+    public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } } };
+
+
+    private List<ScenarioFileData> _currentFiles = [];
+
+    public delegate void ScenarioFileChangedDelegate(ScenarioFileData metaData);
+    public event ScenarioFileChangedDelegate? OnScenarioFileChanged;
+    public event ScenarioFileChangedDelegate? OnScenarioFileRemoved;
+
+    public string ScenarioPath => Path.Combine(pluginInterface.GetPluginConfigDirectory(), "Scenarios");
+    public void StartMonitoring()
+    {
+        ScanScenarioFiles();
+
+        _fileSystemWatcher.Path = ScenarioPath;
+        _fileSystemWatcher.Filter = "*.json";
+        _fileSystemWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime | NotifyFilters.LastWrite;
+        _fileSystemWatcher.IncludeSubdirectories = false;
+        _fileSystemWatcher.EnableRaisingEvents = true;
+        _fileSystemWatcher.OnModified += _fileSystemWatcherFired;
+    }
+
+    public void StopMonitoring()
+    {
+        _fileSystemWatcher.EnableRaisingEvents = false;
+        _fileSystemWatcher.OnModified -= _fileSystemWatcherFired;
+    }
+
+    public List<ScenarioFileData> GetScenarioFiles()
+    {
+        return [.. _currentFiles];
+    }
+
+    public List<ScenarioFileData> GetScenarioFilesByTerritory(ushort territoryId)
+    {
+        return [.. _currentFiles.Where(x => x.MetaData.TerritoryId == territoryId)];
+    }
+
+    public void ScanScenarioFiles()
+    {
+        _currentFiles.Clear();
+        Directory
+            .GetFiles(ScenarioPath, "*.json", SearchOption.TopDirectoryOnly)
+            .ToList().ForEach(TryReadScenarioFile);
+    }
+
+    private void _fileSystemWatcherFired(FileSystemEventArgs e)
+        => TryReadScenarioFile(e.FullPath);
+
+    private void TryReadScenarioFile(string pathToFile)
+    {
+        var fileInfo = new FileInfo(pathToFile);
+        log.Info($"Scenario file changed: {fileInfo.Name}");
+
+        try
+        {
+            ScanScenarioFile(fileInfo);
+        }
+        catch (JsonException jex)
+        {
+            log.Warning("Could not read meta data of scenario file {FileName}. Invalid json format: {JsonError}", [fileInfo.Name, jex.Message]);
+        }
+        catch (Exception ex)
+        {
+            log.Error(ex, "Could not read meta data of scenario file {FileName}", [fileInfo.Name]);
+        }
+    }
+
+    private void ScanScenarioFile(FileInfo fileInfo)
+    {
+        if (!fileInfo.Exists)
+        {
+            _currentFiles
+                .Where(x => x.FilePath.Equals(fileInfo.FullName))
+                .ToList().ForEach(f =>
+                {
+                    _currentFiles.Remove(f);
+                    dalamudFramework.RunOnTick(() => OnScenarioFileRemoved?.Invoke(f));
+                });
+
+            return;
+        }
+
+        fileInfo.WaitForAccessibility();
+        var fileMetaData = JsonSerializer.Deserialize<ScenarioFileMetaData>(fileInfo.OpenRead(), ScenarioMetaSerializerOptions)!;
+        var fileHash = fileInfo.GetFileHash();
+        var fileData = new ScenarioFileData(fileHash, fileInfo.FullName, fileMetaData);
+
+        var loadedFileInfo = _currentFiles.FirstOrDefault(x => x.FileHash == fileHash || x.FilePath == fileInfo.FullName);
+        if (loadedFileInfo != null)
+        {
+            _currentFiles.Remove(loadedFileInfo);
+        }
+        _currentFiles.Add(fileData);
+
+        dalamudFramework.RunOnTick(() =>
+        {
+            if (loadedFileInfo != null)
+            {
+                OnScenarioFileRemoved?.Invoke(loadedFileInfo);
+            }
+            OnScenarioFileChanged?.Invoke(fileData);
+        });
+    }
+
+    public ScenarioData? LoadScenarioFile(ScenarioFileData file)
+        => LoadScenarioFile(file.FilePath);
+
+    public ScenarioData? LoadScenarioFile(string filePath)
+    {
+        var fileName = Path.GetFileName(filePath);
+        try
+        {
+            return JsonSerializer.Deserialize<ScenarioData>(File.ReadAllText(filePath), ScenarioLoadSerializerOptions);
+        }
+        catch (JsonException jex)
+        {
+            log.Warning("Could not read full scenario file {FileName}. Invalid json format: {JsonError}", [fileName, jex.Message]);
+        }
+        catch (Exception ex)
+        {
+            log.Error(ex, "Could not read full scenario file {FileName}", [fileName]);
+        }
+
+        return null;
+    }
+
+    public FileInfo StoreScenarioFile(ScenarioData data) 
+        => StoreScenarioFile(data, Path.Combine(ScenarioPath, $"{Guid.NewGuid()}.json"));    
+
+    public FileInfo StoreScenarioFile(ScenarioData scenarioData, string filePath)
+    {
+        var directory = Path.GetDirectoryName(filePath);
+        if (!Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory!);
+        }
+        var jsonString = JsonSerializer.Serialize(scenarioData, ScenarioLoadSerializerOptions);
+        File.WriteAllText(filePath, jsonString);
+
+        return new FileInfo(filePath);
+    }
+
+    public void RemoveScenarioFile(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    public void Dispose()
+    {
+        StopMonitoring();
+        _fileSystemWatcher.Dispose();
+    }
+
+}
