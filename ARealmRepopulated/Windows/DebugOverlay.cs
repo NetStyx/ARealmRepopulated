@@ -21,7 +21,7 @@ using CameraManager = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager
 
 namespace ARealmRepopulated.Windows;
 
-public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IGameGui gui, PluginConfig config) : IDisposable
+public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IClientState clientState, IGameGui gui, PluginConfig config) : IDisposable
 {
 
     private readonly object _scenarioAccessLock = new();
@@ -108,6 +108,10 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     private void DrawScenarioDebugInfo(ScenarioEditorWindow data)
     {
+
+        if (data.ScenarioObject.TerritoryId != clientState.TerritoryType)
+            return;
+
         ImDrawListPtr drawing = ImGui.GetWindowDrawList();
         foreach (var npcs in data.ScenarioObject.Npcs)
         {

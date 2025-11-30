@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
@@ -78,14 +79,16 @@ public class ConfigWindow(
 
 
         ImGui.Separator();
-        if (ImGui.BeginTable("##WindowControlTable", 2))
+        if (ImGui.BeginTable("##WindowControlTable", 3))
         {
             ImGui.TableSetupColumn("##configWindowControlStrech", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("##configWindowControlClose", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("##configWindowControlPadding", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.TableNextColumn();
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             if (ImGui.Button("Close Configuration"))
             {
                 this.IsOpen = false;
@@ -97,13 +100,17 @@ public class ConfigWindow(
 
     private void OptionsTab()
     {
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var autoLoadScenarios = _config.AutoLoadScenarios;
         if (ImGui.Checkbox("Auto load scenarios", ref autoLoadScenarios))
         {
             _config.AutoLoadScenarios = autoLoadScenarios;
             _config.Save();
         }
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped("Automatically loads available scenarios on start. Also keeps track of the file status and reloads if changes to the files are detected.");
 
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var showDtrEntry = _config.ShowInDtrBar;
         if (ImGui.Checkbox("Show DTR Entry", ref showDtrEntry))
         {
@@ -112,7 +119,10 @@ public class ConfigWindow(
 
             dtrControl.UpdateVisibility();
         }
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped("Displays a clickable entry in the DTR bar. It provides quick access to the configuration menu and displays the count of loaded scenarios in the current area.");
 
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var scenarioDebugOverlay = _config.EnableScenarioDebugOverlay;
         if (ImGui.Checkbox("Enable debug overlay", ref scenarioDebugOverlay))
         {
@@ -128,11 +138,19 @@ public class ConfigWindow(
             _config.EnableScenarioDebugOverlay = scenarioDebugOverlay;
             _config.Save();            
         }
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped("The debug overlay is used to display the scenario actor paths when editing a specific scenario. To give an example: Without it you dont have access to the drag and drop functionallities for movement nodes.\nYou can disable this option if you not plan on editing the scenarios.");
     }
 
     private string _searchScenarioText = string.Empty;
     private void ScenarioTab()
-    {        
+    {
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped("Manage your custom scenarios in this section. You can create, edit and delete scenarios as you like. Please be aware that having too many scenarios and actors at the same time in the same location might impact performance. The scenarios are stored as files in the 'scenarios' subfolder located in the plugin configuration directory.");
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        ImGui.Separator();
 
         if (ImGui.BeginTable("##SearchTable", 1))
         {
@@ -242,11 +260,43 @@ public class ConfigWindow(
                 {
                     Plugin.Services.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
                 }
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Edit this scenario");
+
                 ImGui.SameLine(0, 5);
+                string deletePopupId = $"Confirm Delete##ConfirmDelete{scenarioIndex}";
                 if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Trash))
                 {
-                    _fileManager.RemoveScenarioFile(s.FilePath);
+                    ImGui.OpenPopup(deletePopupId);                    
                 }
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Delete this scenario");
+
+                                
+                ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+                if (ImGui.BeginPopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings))
+                {
+
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+                    ImGui.TextWrapped($"Are you sure you want to delete the scenario '{s.MetaData.Title}'");
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+                    ImGui.Separator();
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+                    if (ImGui.Button("Yes", new Vector2(120, 0)))
+                    {
+                        _fileManager.RemoveScenarioFile(s.FilePath);
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.SetItemDefaultFocus();
+                    ImGui.SameLine();
+                    if (ImGui.Button("No", new Vector2(120, 0)))
+                    {
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.EndPopup();
+                }
+
                 scenarioIndex++;
             });
             
@@ -258,8 +308,8 @@ public class ConfigWindow(
     private static void DrawCenteredHeaderCell(int column, Action draw)
     {
         ImGui.TableSetColumnIndex(column);
-        ImGui.PushID(column);
-        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetFrameHeight() - ImGui.GetTextLineHeight()) * 0.5f);                
+        ImGui.PushID(column);        
+        ArrpGuiAlignment.Center();
         draw();
         ImGui.PopID();
     }
