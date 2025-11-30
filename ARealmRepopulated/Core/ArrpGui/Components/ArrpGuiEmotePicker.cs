@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
@@ -87,9 +88,8 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
                 }
             }            
             ImGui.SameLine(0, 5);
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + ((32 - ImGui.GetTextLineHeightWithSpacing()) / 2.0f));
-            ImGuiHelpers.CenterCursorForText(emoteName);
-            ImGui.Text($"{emoteName}");
+
+            ArrpGuiAlignment.CenterText(emoteName, frameHeight: 32, horizontalAlign: true);
 
             
 
