@@ -1,0 +1,128 @@
+{
+
+    "ModelType": 0,
+    "Race": 1,
+    "Sex": 1,
+    "BodyType": 1,
+    "Height": 50,
+    "Tribe": 2,
+    "Face": 1,
+    "HairStyle": 8,
+    "Highlights": 0,
+    "SkinColor": 124,
+    "EyeColorRight": 54,
+    "HairColor": 86,
+    "HighlightsColor": 0,
+    "FacialFeatures": 0,
+    "TattooColor": 0,
+    "Eyebrows": 0,
+    "EyeColorLeft": 54,
+    "EyeShape": 5,
+    "Nose": 0,
+    "Jaw": 0,
+    "Lipstick": 128,
+    "LipColorFurPattern": 172,
+    "MuscleMass": 50,
+    "TailShape": 0,
+    "BustSize": 50,
+    "FacePaint": 0,
+    "FacePaintColor": 0,
+    "Glasses": 0,
+    "MainHand": {
+        "Color": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+        },
+        "Scale": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+        },
+        "ModelSetId": 301,
+        "Base": 31,
+        "Variant": 1,
+        "StainId": 0,
+        "Stain1": 0
+    },
+    "OffHand": {
+        "Color": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+        },
+        "Scale": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+        },
+        "ModelSetId": 351,
+        "Base": 31,
+        "Variant": 1,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "HeadGear": {
+        "ModelId": 0,
+        "Variant": 0,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Body": {
+        "ModelId": 85,
+        "Variant": 2,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Hands": {
+        "ModelId": 85,
+        "Variant": 2,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Legs": {
+        "ModelId": 85,
+        "Variant": 2,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Feet": {
+        "ModelId": 85,
+        "Variant": 2,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Ears": {
+        "ModelId": 0,
+        "Variant": 0,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Neck": {
+        "ModelId": 0,
+        "Variant": 0,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "Wrists": {
+        "ModelId": 0,
+        "Variant": 0,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "LeftRing": {
+        "ModelId": 0,
+        "Variant": 0,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+    "RightRing": {
+        "ModelId": 0,
+        "Variant": 0,
+        "Stain0": 0,
+        "Stain1": 0
+    },
+
+
+    "Transparency": 1
+}
