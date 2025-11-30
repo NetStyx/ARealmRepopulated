@@ -5,6 +5,7 @@ namespace ARealmRepopulated.Infrastructure;
 public class ArrpEventService : IDisposable
 {
     private readonly IFramework _framework;
+    private readonly IObjectTable _objectTable;
     private readonly IClientState _clientState;
     private readonly ICondition _condition;
 
@@ -18,11 +19,12 @@ public class ArrpEventService : IDisposable
 
     public bool IsTerritoryReady => _isTerritoryReady;
 
-    public ArrpEventService(IFramework framework, IClientState clientState, ICondition condition)
-    {
+    public ArrpEventService(IFramework framework, IObjectTable objectTable, IClientState clientState, ICondition condition)
+    {        
         _clientState = clientState;
         _framework = framework;
         _condition = condition;
+        _objectTable = objectTable;
 
         framework.Update += Framework_Update;
         clientState.TerritoryChanged += ClientState_TerritoryChanged;
@@ -48,7 +50,7 @@ public class ArrpEventService : IDisposable
             return;
         }
 
-        if (_clientState.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones)
+        if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones)
         {
             _isTerritoryReady = true;
             OnTerritoryLoadFinished?.Invoke(_clientState.TerritoryType);

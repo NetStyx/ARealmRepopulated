@@ -3,7 +3,7 @@ using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
 
 namespace ARealmRepopulated.Core.Services;
-public class ChatCommands(Plugin plugin, ICommandManager commandManager, IPluginLog pluginLog, ScenarioOrchestrator scenarioManager) : IDisposable
+public class ChatCommands(Plugin plugin, ICommandManager commandManager, ScenarioOrchestrator scenarioManager) : IDisposable
 {
 
 

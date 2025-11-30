@@ -130,8 +130,6 @@ public class ConfigWindow(
         }
     }
 
-
-    private int _selectedScenarioLocation = -1;
     private string _searchScenarioText = string.Empty;
     private void ScenarioTab()
     {        

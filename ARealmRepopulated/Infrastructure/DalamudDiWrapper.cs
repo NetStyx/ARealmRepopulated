@@ -17,6 +17,7 @@ public class DalamudDiWrapper(
     ICondition condition,
     ITargetManager targetManager,
     IDtrBar dtrBar,
+    ITextureProvider textureProvider,
     IGameGui gui)
 {
     public IServiceCollection CreateServiceCollection()
@@ -33,6 +34,7 @@ public class DalamudDiWrapper(
             .AddSingleton(targetManager)
             .AddSingleton(dtrBar)
             .AddSingleton(gui)
+            .AddSingleton(textureProvider)
             .AddSingleton<ArrpGameHooks>()
             .AddSingleton<ArrpEventService>()
             .AddSingleton<ArrpDataCache>()

@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
@@ -7,6 +8,7 @@ using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
@@ -17,6 +19,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.Sheets;
+using Lumina.Excel.Sheets.Experimental;
 using System.Numerics;
 using CsMaths = FFXIVClientStructs.FFXIV.Common.Math;
 
@@ -28,11 +31,13 @@ public partial class ScenarioEditorWindow(
     ScenarioFileManager scenarioFileManager,
     NpcAppearanceService appearanceService,
     ArrpDataCache dataCache,
+    ArrpGuiEmotePicker emotePicker,
     IClientState _state,
+    IObjectTable objectTable,
     ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow"), IDisposable
 {
 
-    private string scenarioFilePath = string.Empty;
+    private string _scenarioFilePath = string.Empty;
     public ScenarioData ScenarioObject { get; private set; } = null!;
     public ScenarioNpcData? SelectedScenarioNpc { get; private set; } = null;
     public ScenarioNpcAction? SelectedScenarioNpcAction { get; private set; } = null!;
@@ -79,7 +84,7 @@ public partial class ScenarioEditorWindow(
 
     private void InitScenarioStructures(ScenarioData scenarioData, string filePath)
     {
-        scenarioFilePath = filePath;
+        _scenarioFilePath = filePath;
         ScenarioObject = scenarioData;
         if (ScenarioObject != null)
         {
@@ -131,7 +136,7 @@ public partial class ScenarioEditorWindow(
 
                 ImGui.Text($"{ScenarioObject.TerritoryId} - {territoryName}");
                 ImGui.SameLine(0, 5);
-                if (ImGui.SmallButton("Set to Current Location") && _state.LocalPlayer != null)
+                if (ImGui.SmallButton("Set to Current Location"))
                 {
                     ScenarioObject.TerritoryId = _state.TerritoryType;
                 }
@@ -213,7 +218,7 @@ public partial class ScenarioEditorWindow(
             {
                 if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Plus, "Add NPC"))
                 {
-                    SelectedScenarioNpc = new ScenarioNpcData { Name = "New Actor" };
+                    SelectedScenarioNpc = new ScenarioNpcData { Name = "New Actor", Position = objectTable.LocalPlayer?.Position ?? Vector3.Zero, Rotation = objectTable.LocalPlayer?.Rotation ?? 0f };
                     ScenarioObject.Npcs.Add(SelectedScenarioNpc);
                 }
             }
@@ -344,9 +349,9 @@ public partial class ScenarioEditorWindow(
                 SelectedScenarioNpc.Position = new CsMaths.Vector3(position.X, position.Y, position.Z);
             }
             ImGui.SameLine();
-            if (ImGui.SmallButton("Set Current Position") && _state.LocalPlayer != null)
+            if (ImGui.SmallButton("Set Current Position") && objectTable.LocalPlayer != null)
             {
-                SelectedScenarioNpc.Position = new CsMaths.Vector3(_state.LocalPlayer.Position.X, _state.LocalPlayer.Position.Y, _state.LocalPlayer.Position.Z);                    
+                SelectedScenarioNpc.Position = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);                    
             }
 
             ImGui.TableNextRow();
@@ -362,7 +367,7 @@ public partial class ScenarioEditorWindow(
             ImGui.SameLine();
             if (ImGui.SmallButton("Set Current Rotation"))
             {
-                SelectedScenarioNpc.Rotation = _state.LocalPlayer?.Rotation ?? 0f;
+                SelectedScenarioNpc.Rotation = objectTable.LocalPlayer?.Rotation ?? 0f;
             }
 
             ImGui.TableNextRow();
@@ -374,7 +379,8 @@ public partial class ScenarioEditorWindow(
             if (ImGui.InputText("##scenarioNpcGeneralEditAppearance", ref appearance))
             {
                 SelectedScenarioNpc.Appearance = appearance;
-            }
+            }                        
+
             ImGui.SameLine();
             if (ImGui.SmallButton("Set Current Target"))
             {
@@ -385,7 +391,79 @@ public partial class ScenarioEditorWindow(
                 }
             }
 
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PeoplePulling))
+            {
+                ImGui.OpenPopup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup");
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Pick appearance from nearby NPC");
+
+            if (ImGui.BeginPopup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup"))
+            {
+                DrawNpcPickerPopup();
+                ImGui.EndPopup();
+            }
+
         }            
+    }
+
+
+    private unsafe void DrawNpcPickerPopup()
+    {
+        using (ImRaii.Table("###ArrpNpcInspectorListTable", 1, ImGuiTableFlags.NoSavedSettings, new Vector2(200,-1)))
+        {
+            ImGui.TableSetupColumn("Closeby NPCs", ImGuiTableColumnFlags.WidthStretch, -1);
+            ImGui.TableHeadersRow();
+
+            var selectionFound = false;
+            var npcObjectList = objectTable.Where(o
+                => (o.ObjectKind == ObjectKind.BattleNpc || o.ObjectKind == ObjectKind.EventNpc)).ToList();
+            foreach (var npcObject in npcObjectList)
+            {
+
+                var characterRef = (Character*)npcObject.Address;
+                if (characterRef->DrawObject == null)
+                {
+                    continue;
+                }
+
+                if (objectTable.LocalPlayer != null && Vector3.Distance(objectTable.LocalPlayer.Position, npcObject.Position) > 10)
+                {
+                    continue;
+                }
+
+                var npcName = npcObject.Name.ToString();
+                if (string.IsNullOrWhiteSpace(npcName))
+                {
+                    npcName = $"Unnamed NPC {npcObject.ObjectIndex}";
+                }                
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+
+                if (ImGui.Selectable($"{npcName}###ArrpNpcInspectorSelectionName{npcObject.Address}", false, ImGuiSelectableFlags.None))
+                {                    
+                    var currentTargetAppearance = ExportCurrentCharacter(characterRef);
+                    if (!string.IsNullOrWhiteSpace(currentTargetAppearance))
+                    {
+                        SelectedScenarioNpc?.Appearance = currentTargetAppearance;
+                    }
+                } 
+                else if (ImGui.IsItemHovered())
+                {
+                    selectionFound = true;
+                    debugOverlay.SetNpcTrace(npcObject.Position);
+                }
+
+            }
+            
+            if (!selectionFound)
+            {                
+                debugOverlay.ClearNpcTrace();
+            }
+
+        }
     }
 
     private void DrawNpcActionTab()
@@ -532,29 +610,29 @@ public partial class ScenarioEditorWindow(
 
     private void SaveScenario()
     {
-        if (String.IsNullOrWhiteSpace(scenarioFilePath))
+        if (String.IsNullOrWhiteSpace(_scenarioFilePath))
         {
-            scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
+            _scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
              
         }
         else
         {
-            scenarioFileManager.StoreScenarioFile(ScenarioObject, scenarioFilePath);
+            scenarioFileManager.StoreScenarioFile(ScenarioObject, _scenarioFilePath);
         }
     }
 
-    private string ExportCurrentTarget()
+    private unsafe string ExportCurrentCharacter(Character* character)
+    {
+        var appearanceFile = new Data.Appearance.NpcAppearanceFile();        
+        appearanceService.Read(character, appearanceFile);        
+        return appearanceFile.ToBase64();
+    }
+
+    private unsafe string ExportCurrentTarget()
     {
         if (_targetManager.Target != null && _targetManager.Target is ICharacter c)
         {
-
-            var appearanceFile = new Data.Appearance.NpcAppearanceFile();
-            unsafe
-            {
-                appearanceService.Read((Character*)c.Address, appearanceFile);
-            }
-
-            return appearanceFile.ToBase64();
+            return ExportCurrentCharacter((Character*)c.Address);
         }
 
         return "";

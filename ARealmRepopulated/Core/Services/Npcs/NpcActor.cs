@@ -7,7 +7,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
-public unsafe class NpcActor(IFramework framework, IClientState clientState, NpcAppearanceService appearanceService)
+public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService)
 {
 
     public const float RunningSpeed = 6.3f;
@@ -21,7 +21,7 @@ public unsafe class NpcActor(IFramework framework, IClientState clientState, Npc
     {
         _actor = actorPointer;
 
-        var localPlayer = (BattleChara*)clientState.LocalPlayer!.Address;
+        var localPlayer = (BattleChara*)objectTable.LocalPlayer!.Address;
         this.SetRotationFrom(localPlayer);
         this.SetPositionFrom(localPlayer);
         appearanceService.SetName((Character*)_actor);

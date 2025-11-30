@@ -8,7 +8,7 @@ using Lumina.Excel.Sheets.Experimental;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
-public unsafe class NpcAppearanceService(IClientState clientState, ArrpDataCache dataCache)
+public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache dataCache)
 {
 
     public enum Animations : ushort
@@ -175,12 +175,12 @@ public unsafe class NpcAppearanceService(IClientState clientState, ArrpDataCache
     public void Clone(Character* chara)
     {
 
-        if (clientState.LocalPlayer == null)
+        if (objectTable.LocalPlayer == null)
         {
             return;
         }
 
-        chara->CharacterSetup.CopyFromCharacter((Character*)clientState.LocalPlayer.Address, CharacterSetupContainer.CopyFlags.ClassJob);
+        chara->CharacterSetup.CopyFromCharacter((Character*)objectTable.LocalPlayer.Address, CharacterSetupContainer.CopyFlags.ClassJob);
 
     }
 

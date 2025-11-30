@@ -23,6 +23,9 @@ public class ArrpDataCache(IDataManager dataManager)
     public Emote GetEmote(ushort emoteId)
         => _emoteTypeSheet.GetRow(emoteId);
 
+    public List<Emote> GetEmotes()
+        => [.. _emoteTypeSheet];
+
     public TerritoryType GetTerritoryType(ushort territoryTypeId)
         => _territoryTypeSheet.GetRow(territoryTypeId);
 

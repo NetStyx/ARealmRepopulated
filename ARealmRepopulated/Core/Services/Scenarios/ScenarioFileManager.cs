@@ -11,7 +11,7 @@ using System.Text.Json.Serialization.Metadata;
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
 public sealed record ScenarioFileData(string FileHash, string FilePath, ScenarioFileMetaData MetaData);
-public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, PluginConfig config) : IDisposable
+public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework) : IDisposable
 {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };

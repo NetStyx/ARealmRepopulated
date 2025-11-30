@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace ARealmRepopulated.Core.Services.Npcs;
 
 [PluginInterface]
-public unsafe class NpcServices(IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable
+public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) : IDisposable
 {
 
     public List<NpcActor> Actors { get; private set; } = [];

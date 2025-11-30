@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog pluginLog, IClientState clientState, ScenarioFileManager fileManager, PluginConfig config, NpcServices npcServices, ArrpGameHooks hooks, ArrpEventService eventService) : IDisposable
+public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog pluginLog, IObjectTable objectTable, ScenarioFileManager fileManager, PluginConfig config, NpcServices npcServices, ArrpGameHooks hooks, ArrpEventService eventService) : IDisposable
 {
 
     private readonly Lock _scenarioActionLock = new();
@@ -17,7 +17,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     private ushort _currentTerritory = 0;
 
     public List<Orchestration> Orchestrations { get; set; } = [];
-    public event Action? OrchestrationsChanged;
+    public event Action? OnOrchestrationsChanged;
 
     private void Game_CharacterDestroyed(Character* chara)
     {
@@ -72,7 +72,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         using var lockScope = _scenarioActionLock.EnterScope();
         UnloadOrchestration(orchestration);
         Orchestrations.Remove(orchestration);
-        OrchestrationsChanged?.Invoke();
+        OnOrchestrationsChanged?.Invoke();
     }
 
     private void LoadFile(ScenarioFileData data)
@@ -90,7 +90,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
             using var lockScope = _scenarioActionLock.EnterScope();
             Orchestrations.Add(new Orchestration { Scenario = ParseScenarioData(scenarioData), Hash = data.FileHash });
-            OrchestrationsChanged?.Invoke();
+            OnOrchestrationsChanged?.Invoke();
         }
     }
 
@@ -140,7 +140,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
     private void AdvanceScenarios(TimeSpan time)
     {
-        if (clientState.LocalPlayer == null)
+        if (objectTable.LocalPlayer == null)
             return;
 
         using var lockScope = _scenarioActionLock.EnterScope();
@@ -148,7 +148,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         _lastProximityCheck += (float)time.TotalSeconds;
         if (_lastProximityCheck > ProximityCheckInterval)
         {
-            Orchestrations.ForEach(s => s.Scenario.Proximity(clientState.LocalPlayer!.Position));
+            Orchestrations.ForEach(s => s.Scenario.Proximity(objectTable.LocalPlayer!.Position));
             _lastProximityCheck = 0f;
         }
 
@@ -184,7 +184,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         using var lockScope = _scenarioActionLock.EnterScope();
         Orchestrations.ForEach(UnloadOrchestration);
         Orchestrations.Clear();
-        OrchestrationsChanged?.Invoke();
+        OnOrchestrationsChanged?.Invoke();
     }
 
     private void UnloadOrchestration(Orchestration orchestration)

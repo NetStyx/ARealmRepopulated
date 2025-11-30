@@ -21,7 +21,7 @@ using CameraManager = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager
 
 namespace ARealmRepopulated.Windows;
 
-public class DebugOverlay(IDalamudPluginInterface pluginInterface, IGameGui gui, IClientState cs, PluginConfig config) : IDisposable
+public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IGameGui gui, PluginConfig config) : IDisposable
 {
 
     private readonly object _scenarioAccessLock = new();
@@ -34,8 +34,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IGameGui gui,
     private Matrix4x4 _gizmoMatrix = Matrix4x4.Identity;
     private Vector3 _gizmoScale = Vector3.One;
 
-
-
+    private Vector3 _npcTrace = Vector3.Zero;
 
     public unsafe void Initialize()
     {
@@ -82,14 +81,28 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IGameGui gui,
 
         List<ScenarioEditorWindow> snapshot;
         lock (_scenarioAccessLock)
+        {
             snapshot = _openEditors.ToList();
+        }
         snapshot.ForEach(DrawScenarioDebugInfo);
-        
+
+        DrawNpcTrace();
+
         ImGui.End();
+    }
 
+    private void DrawNpcTrace()
+    {
+        if (_npcTrace == Vector3.Zero)
+            return;
 
-
-
+        gui.WorldToScreen(_npcTrace, out Vector2 screenPosition);
+        gui.WorldToScreen(objectTable.LocalPlayer?.Position ?? Vector3.One, out var playerScreenPosition);
+        
+        var drawing = ImGui.GetWindowDrawList();
+        drawing.AddLine(playerScreenPosition, screenPosition, _imguiColorGreen, 2f);
+        drawing.AddCircle(screenPosition, 8f, _imguiColorBlack, 2f);
+        drawing.AddCircleFilled(screenPosition, 6f, _imguiColorGreen);        
     }
 
 
@@ -181,8 +194,8 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IGameGui gui,
 
         GetPatchedProjections(out var viewMatrx, out var projectionMatrxix, out var cameraPosition);
 
-        ImGuizmo.SetDrawlist();
-        
+        ImGuizmo.SetDrawlist();        
+
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetID((int)ImGui.GetID("ScenarioDebugOverlayGizmo"));
         ImGuizmo.Enable(true);
@@ -216,29 +229,14 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IGameGui gui,
 
     private unsafe bool Manipulate(ref float view, ref float proj, ImGuizmoOperation op, ImGuizmoMode mode, ref float matrix, ref float snap)
     {
-        fixed (float* native_view = &view)
+        fixed (
+            float* native_view = &view,
+            native_proj = &proj,
+            native_matrix = &matrix,
+            native_snap = &snap)
         {
-            fixed (float* native_proj = &proj)
-            {
-                fixed (float* native_matrix = &matrix)
-                {
-                    fixed (float* native_snap = &snap)
-                    {
-                        return ImGuizmo.Manipulate(
-                          native_view,
-                          native_proj,
-                          op,
-                          mode,
-                          native_matrix,
-                          null,
-                          native_snap,
-                          null,
-                          null
-                        ) != false;
-                    }
-                }
-            }
-        }
+            return ImGuizmo.Manipulate(native_view, native_proj, op, mode, native_matrix, null, native_snap, null, null);
+        }      
     }
 
     private unsafe void GetPatchedProjections(out Matrix4x4 patchedViewMatrix, out Matrix4x4 patchedProjectionMatrix, out Vector3 cameraPos)
@@ -270,4 +268,9 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IGameGui gui,
     {
         pluginInterface.UiBuilder.Draw -= Draw;
     }
+
+    internal void SetNpcTrace(Vector3 position)
+        => _npcTrace = position;
+    internal void ClearNpcTrace()
+        => _npcTrace = Vector3.Zero;
 }

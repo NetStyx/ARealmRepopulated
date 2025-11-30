@@ -21,7 +21,7 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
     {
         clientState.Logout += OnLogout;
         clientState.Login += OnLogin;
-        manager.OrchestrationsChanged += Manager_OrchestrationsChanged;
+        manager.OnOrchestrationsChanged += Manager_OrchestrationsChanged;
         if (clientState.IsLoggedIn)
         {
             OnLogin();

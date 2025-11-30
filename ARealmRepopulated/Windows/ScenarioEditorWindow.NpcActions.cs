@@ -1,5 +1,6 @@
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using System;
 using System.Collections.Generic;
@@ -38,12 +39,12 @@ public partial class ScenarioEditorWindow
 
         if (ImGui.Selectable("Move"))
         {
-            AddAction(new ScenarioNpcMovementAction { TargetPosition = _state.LocalPlayer?.Position ?? new CsMaths.Vector3() });
+            AddAction(new ScenarioNpcMovementAction { TargetPosition = objectTable.LocalPlayer?.Position ?? new CsMaths.Vector3() });
         }
 
         if (ImGui.Selectable("Rotation"))
         {
-            AddAction(new ScenarioNpcRotationAction { TargetRotation = _state.LocalPlayer?.Rotation ?? 0f });
+            AddAction(new ScenarioNpcRotationAction { TargetRotation = objectTable.LocalPlayer?.Rotation ?? 0f });
         }
 
         if (ImGui.Selectable("Sync"))
@@ -72,7 +73,7 @@ public partial class ScenarioEditorWindow
 
             ImGui.TableNextColumn();
             var talk = SelectedScenarioNpcAction.NpcTalk;
-            if (ImGui.InputText("##scenarioNpcEmoteActionTalk", ref talk))
+            if (ImGui.InputText("##scenarioNpcGeneralActionTalk", ref talk))
             {
                 SelectedScenarioNpcAction.NpcTalk = talk;
             }
@@ -83,7 +84,7 @@ public partial class ScenarioEditorWindow
 
             ImGui.TableNextColumn();
             var duration = SelectedScenarioNpcAction.Duration;
-            if (ImGui.InputFloat("s.##scenarioNpcEmoteActionDuration", ref duration, step: 0.1f))
+            if (ImGui.InputFloat("s.##scenarioNpcGeneralActionDuration", ref duration, step: 0.1f))
             {
                 SelectedScenarioNpcAction.Duration = duration;
             }
@@ -153,7 +154,7 @@ public partial class ScenarioEditorWindow
         ImGui.SameLine();
         if (ImGui.SmallButton("Set Current Rotation##scenarioNpcRotateActionCurrentRotation"))
         {
-            rotationAction.TargetRotation = _state.LocalPlayer?.Rotation ?? 0f;
+            rotationAction.TargetRotation = objectTable.LocalPlayer?.Rotation ?? 0f;
         }
     }
 
@@ -170,9 +171,9 @@ public partial class ScenarioEditorWindow
             moveAction.TargetPosition = new CsMaths.Vector3(position.X, position.Y, position.Z);
         }
         ImGui.SameLine();
-        if (ImGui.SmallButton("Set Current Position##scenarioNpcMoveActionCurrentPosition") && _state.LocalPlayer != null)
+        if (ImGui.SmallButton("Set Current Position##scenarioNpcMoveActionCurrentPosition") && objectTable.LocalPlayer != null)
         {
-            moveAction.TargetPosition = new CsMaths.Vector3(_state.LocalPlayer.Position.X, _state.LocalPlayer.Position.Y, _state.LocalPlayer.Position.Z);
+            moveAction.TargetPosition = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
         }
 
         ImGui.TableNextRow();
@@ -205,14 +206,33 @@ public partial class ScenarioEditorWindow
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text("Emote ID");
+        ImGui.Text("Emote");
 
         ImGui.TableNextColumn();
         var emoteid = emoteAction.Emote;
-        if (ImGui.InputUShort("##scenarioNpcEmoteActionEmote", ref emoteid))
+        var emoteName =  $"{emoteid} - " + dataCache.GetEmote(emoteid).Name.ToString();
+
+        ImGui.BeginDisabled(true);
+        ImGui.InputText("##scenarioNpcEmoteActionEmote", ref emoteName);        
+        ImGui.EndDisabled();
+
+        ImGui.SameLine();
+        if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.WandMagicSparkles))
         {
-            emoteAction.Emote = emoteid;
+            ImGui.OpenPopup("EmotePicker");
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Select Emote");
+
+        if (ImGui.BeginPopup("EmotePicker"))
+        {            
+            if (emotePicker.Open(out var emoteId))
+            {
+                emoteAction.Emote = emoteId;
+            }            
+            ImGui.EndPopup();
+        }
+
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();

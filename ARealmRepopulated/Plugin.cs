@@ -1,11 +1,12 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.Services;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
+using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Infrastructure;
 using ARealmRepopulated.Windows;
-using ARealmRepopulated.Core.Services.Windows;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 
@@ -16,7 +17,7 @@ public sealed class Plugin : IDalamudPlugin
     public static ServiceProvider Services { get; private set; } = null!;
 
     private WindowSystem Windows { get; init; }
-    private ConfigWindow ConfigWindow { get; init; }
+    private ConfigWindow ConfigWindow { get; init; }    
 
 
     public Plugin(IDalamudPluginInterface pluginInterface)
@@ -36,7 +37,8 @@ public sealed class Plugin : IDalamudPlugin
             .AddSingleton<ScenarioFileManager>()
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
-            .AddWindow<ConfigWindow>()
+            .AddSingleton<ArrpGuiEmotePicker>()
+            .AddWindow<ConfigWindow>()            
             .AddTransientWindow<ScenarioEditorWindow>()
             .AddTransient<NpcActor>();
 
@@ -44,7 +46,7 @@ public sealed class Plugin : IDalamudPlugin
         Services.GetRequiredService<PluginConfigMigration>().Migrate();
 
         Windows = Services.GetRequiredService<WindowSystem>();
-        ConfigWindow = Services.GetRequiredService<ConfigWindow>();
+        ConfigWindow = Services.GetRequiredService<ConfigWindow>();        
 
         pluginInterface.UiBuilder.Draw += DrawUI;
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
@@ -59,6 +61,10 @@ public sealed class Plugin : IDalamudPlugin
         Services.GetRequiredService<ChatBubbleService>();
 
         Services.GetRequiredService<DebugOverlay>().Hook();
+
+
+        //InspectorWindow.Toggle();
+
     }
 
 
