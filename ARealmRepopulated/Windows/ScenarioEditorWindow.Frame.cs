@@ -12,6 +12,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Style;
@@ -44,6 +45,9 @@ public partial class ScenarioEditorWindow(
     public ScenarioNpcData? SelectedScenarioNpc { get; private set; } = null;
     public ScenarioNpcAction? SelectedScenarioNpcAction { get; private set; } = null!;
     public Guid UniqueScenarioId { get; set; } = Guid.NewGuid();
+
+    private TransferState _importState = new() { DefaultIcon = FontAwesomeIcon.Download };
+    private TransferState _exportState = new() { DefaultIcon = FontAwesomeIcon.Upload };
 
     protected override void SetWindowOptions() {
         this.AllowPinning = false;
@@ -218,16 +222,28 @@ public partial class ScenarioEditorWindow(
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
 
-            if (ImGui.Button("Import..."))
+            _importState.CheckState(out var importIcon, out var importColor);
+            if (ImGuiComponents.IconButtonWithText(importIcon, "Import from clipboard", defaultColor: importColor, hoveredColor: importColor))
             {
-                ImGui.OpenPopup("ImportSelection");
+                _importState.SetResult(false);
+                var clipBoardText = ImGui.GetClipboardText();
+                if (!string.IsNullOrWhiteSpace(clipBoardText))
+                {
+                    var importedScenarioData = scenarioFileManager.ImportBase64Scenario(clipBoardText);
+                    if (importedScenarioData != null)
+                    {                        
+                        ScenarioObject = importedScenarioData;
+                        _importState.SetResult(true);
+                    }
+                }
             }
-                        
-            if (ImGui.BeginPopup("ImportSelection"))
+
+            ImGui.SameLine(0, 5);
+            _exportState.CheckState(out var exportIcon, out var exportColor);
+            if (ImGuiComponents.IconButtonWithText(exportIcon, "Export to clipboard", defaultColor: exportColor, hoveredColor: exportColor))
             {
-                ImGui.Selectable("Import from clipboard ...");
-                ImGui.Selectable("Import from file ...");
-                ImGui.EndPopup();
+                _exportState.SetResult(true);                
+                ImGui.SetClipboardText(scenarioFileManager.ExportBase64Scenario(ScenarioObject));
             }
 
             ImGui.TableNextColumn();
@@ -670,4 +686,37 @@ public partial class ScenarioEditorWindow(
         return "";
     }
     public void Dispose() { }
+}
+
+
+public class TransferState
+{
+    public bool? Result { get; private set; } = null;
+    public DateTime Timeout { get; private set; } = DateTime.MinValue;
+    public FontAwesomeIcon DefaultIcon { get; set; } = FontAwesomeIcon.Question;
+
+    public void CheckState(out FontAwesomeIcon stateIcon, out Vector4? stateColor)
+    {
+        if (Result == null)
+        { 
+            stateIcon = DefaultIcon;
+            stateColor = null;
+            return;
+        }
+
+        if (DateTime.Now > Timeout)
+        {
+            Result = null;
+            Timeout = DateTime.MinValue;
+        }
+
+        stateIcon = Result == null ? FontAwesomeIcon.FileUpload : Result == true ? FontAwesomeIcon.CheckCircle : FontAwesomeIcon.ExclamationCircle;
+        stateColor = Result == null ? null : Result == true ? ImGuiColors.HealerGreen : ImGuiColors.DPSRed;
+    }
+
+    public void SetResult(bool state)
+    {
+        Result = state;
+        Timeout = DateTime.Now.AddSeconds(2);
+    }
 }

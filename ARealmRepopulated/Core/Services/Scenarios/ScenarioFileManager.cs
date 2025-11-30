@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using static FFXIVClientStructs.FFXIV.Common.Component.BGCollision.MeshPCB;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
@@ -126,19 +127,49 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public ScenarioData? LoadScenarioFile(string filePath)
     {
         var fileName = Path.GetFileName(filePath);
+        string fileData = File.ReadAllText(filePath);
+
+        return DeserializeScenarioData(fileData);
+    }
+
+    public ScenarioData? ImportBase64Scenario(string base64Data)
+    {
         try
         {
-            return JsonSerializer.Deserialize<ScenarioData>(File.ReadAllText(filePath), ScenarioLoadSerializerOptions);
+            var jsonString = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64Data));
+            return DeserializeScenarioData(jsonString);
         }
-        catch (JsonException jex)
+        catch (FormatException fex)
         {
-            log.Warning("Could not read full scenario file {FileName}. Invalid json format: {JsonError}", [fileName, jex.Message]);
+            log.Warning("Could not import scenario from base64 data. Invalid base64 format: {Base64Error}", [fex.Message]);
         }
         catch (Exception ex)
         {
-            log.Error(ex, "Could not read full scenario file {FileName}", [fileName]);
+            log.Error(ex, "Could not import scenario from base64 data");
         }
+        return null;
+    }
 
+    public string ExportBase64Scenario(ScenarioData data)
+    { 
+        var jsonString = JsonSerializer.Serialize(data, ScenarioLoadSerializerOptions);
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(jsonString));
+    }
+
+    private ScenarioData? DeserializeScenarioData(string jsonString)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<ScenarioData>(jsonString, ScenarioLoadSerializerOptions);
+        }
+        catch (JsonException jex)
+        {
+            log.Warning("Could not read full scenario data. Invalid json format: {JsonError}", [jex.Message]);
+        }
+        catch (Exception ex)
+        {
+            log.Error(ex, "Could not read full scenario data");
+        }
         return null;
     }
 
