@@ -23,6 +23,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.Sheets;
 using Lumina.Excel.Sheets.Experimental;
+using System;
 using System.Numerics;
 using CsMaths = FFXIVClientStructs.FFXIV.Common.Math;
 
@@ -41,6 +42,7 @@ public partial class ScenarioEditorWindow(
 {
 
     private string _scenarioFilePath = string.Empty;
+    private NpcActionUiRegistry _actionUiRegistry = new();
     public ScenarioData ScenarioObject { get; private set; } = null!;
     public ScenarioNpcData? SelectedScenarioNpc { get; private set; } = null;
     public ScenarioNpcAction? SelectedScenarioNpcAction { get; private set; } = null!;
@@ -59,14 +61,48 @@ public partial class ScenarioEditorWindow(
             MinimumSize = new Vector2(900, 700),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
-
-        //this.PositionCondition = ImGuiCond.Once;
-        //this.Position = new Vector2(ImGui.GetMainViewport().Size.X / 2 - SizeConstraints.Value.MinimumSize.X / 2, ImGui.GetMainViewport().Size.Y / 2 - SizeConstraints.Value.MinimumSize.Y / 2);
+        
         this.OnWindowClosed += () => {            
             debugOverlay.RemoveEditor(this);
         };
-    }                
 
+        _actionUiRegistry.Register<ScenarioNpcEmoteAction>(
+            shortName: (a) => "Emote",
+            help: (a) => "Plays an emote. If the emote supports looping and no timelimit is specified, it continues to do so.",
+            draw: DrawEmoteAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcWaitingAction>(
+            shortName: (a) => "Wait",
+            help: (a) => "Justs waits at the current location and rotation for a specific time.",
+            draw: DrawWaitingAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcSpawnAction>(
+            shortName: (a) => "Spawn",
+            help: (a) => "Spawn the actor in if it was previously despawned.",
+            draw: DrawSpawnAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcDespawnAction>(
+            shortName: (a) => "Despawn",
+            help: (a) => "Despawnes the actor. This does not unload it but disables the drawing cycles.",
+            draw: DrawDespawnAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcMovementAction>(
+            shortName: (a) => "Move",
+            help: (a) => "Walks, or runs, the actor to a specific location. If the target is at a different angle than the actor is looking at, this action rotates the actor first in the correct direction.",
+            draw: DrawMovementAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcRotationAction>(
+            shortName: (a) => "Rotate",
+            help: (a) => "Rotates the actor to a given angle.",
+            draw: DrawRotationAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcSyncAction>(
+            shortName: (a) => "Sync",
+            help: (a) => "Pauses continuation of the action list until every scenario actor has reached the same sync action",
+            draw: DrawSyncAction
+        );
+    }    
+ 
     public void CreateScenario()
     {        
         InitScenarioStructures(new ScenarioData { Title = "New Scenario", TerritoryId = _state.TerritoryType }, string.Empty);        
@@ -254,7 +290,7 @@ public partial class ScenarioEditorWindow(
                 SaveScenario();
             }
 
-            using (ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.HealerGreen))
+            using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen))
             {                            
                 ImGui.SameLine(0, 5);
                 if (ImGui.Button("Save & Close"))
@@ -585,7 +621,7 @@ public partial class ScenarioEditorWindow(
                     var npcAction = scenarioNpcActions[actionIndex];
                     var npcActionSelected = npcAction == SelectedScenarioNpcAction;
 
-                    if (ImGui.Selectable($"{GetReadableActionName(npcAction)}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected))
+                    if (ImGui.Selectable($"{_actionUiRegistry.GetShortName(npcAction)}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected))
                     {
                         SelectedScenarioNpcAction = npcAction;                        
                     }

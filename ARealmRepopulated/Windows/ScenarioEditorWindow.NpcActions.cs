@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Components;
@@ -53,12 +54,20 @@ public partial class ScenarioEditorWindow
         }
     }
 
+
     private void DrawCurrentAction()
     {
         if (SelectedScenarioNpcAction == null)
         {
             return;
         }
+        
+        ImGui.Text(_actionUiRegistry.GetShortName(SelectedScenarioNpcAction));        
+        using (ImRaii.Disabled())
+        {
+            ImGui.TextWrapped(_actionUiRegistry.GetHelp(SelectedScenarioNpcAction));
+        }
+        ImGui.Separator();
 
         using (ImRaii.Table("##scenarioNpcEditorActionTable", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings))
         {
@@ -66,9 +75,9 @@ public partial class ScenarioEditorWindow
             ImGui.TableSetupColumn("##scenarioNpcEditorActionTableCap", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("##scenarioNpcEditorActionTableValue", ImGuiTableColumnFlags.WidthStretch);
 
-
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
+                        
             ImGui.Text("Npc Talk");
 
             ImGui.TableNextColumn();
@@ -88,52 +97,10 @@ public partial class ScenarioEditorWindow
             {
                 SelectedScenarioNpcAction.Duration = duration;
             }
-
-
-            switch (SelectedScenarioNpcAction)
-            {
-                case ScenarioNpcEmoteAction emoteAction:
-                    DrawEmoteAction(emoteAction);
-                    break;
-
-                case ScenarioNpcWaitingAction waitingAction:
-                    DrawWaitingAction(waitingAction);
-                    break;
-
-                case ScenarioNpcSpawnAction spawnAction:
-                    DrawSpawnAction(spawnAction);
-                    break;
-
-                case ScenarioNpcDespawnAction despawnAction:
-                    DrawDespawnAction(despawnAction);
-                    break;
-
-                case ScenarioNpcMovementAction moveAction:
-                    DrawMovementAction(moveAction);
-                    break;
-
-                case ScenarioNpcRotationAction rotationAction:
-                    DrawRotationAction(rotationAction);
-                    break;
-
-                case ScenarioNpcSyncAction syncAction:
-                    DrawSyncAction(syncAction);
-                    break;
-            }
+            
+            _actionUiRegistry.Draw(SelectedScenarioNpcAction);
         }
     }
-
-    private static string GetReadableActionName(ScenarioNpcAction action) => action switch
-    {
-        ScenarioNpcEmoteAction => "Emote",
-        ScenarioNpcWaitingAction => "Wait",
-        ScenarioNpcSpawnAction => "Spawn",
-        ScenarioNpcDespawnAction => "Despawn",
-        ScenarioNpcMovementAction => "Move",
-        ScenarioNpcRotationAction => "Rotate",
-        ScenarioNpcSyncAction => "Sync",
-        _ => "Unknown",
-    };
 
     private void DrawSyncAction(ScenarioNpcSyncAction syncAction)
     {
@@ -245,4 +212,36 @@ public partial class ScenarioEditorWindow
             emoteAction.Loop = loop;
         }        
     }
+}
+
+
+public sealed class NpcActionUiRegistry
+{
+    public class ActionTypeDisplayObject
+    {
+        public Action<ScenarioNpcAction> Draw { get; set; } = (_) => { };
+        public Func<ScenarioNpcAction, string> NameResolver { get; set; } = (_) => string.Empty;
+        public Func<ScenarioNpcAction, string> HelpResolver { get; set; } = (_) => string.Empty;
+    }
+
+    private readonly Dictionary<Type, ActionTypeDisplayObject> _handlers = [];
+
+    public void Register<T>(Func<T, string>? shortName = null, Func<T, string>? help = null, Action<T>? draw = null) where T : ScenarioNpcAction
+    {
+        _handlers[typeof(T)] = new ActionTypeDisplayObject
+        {
+            HelpResolver = a => help != null ? help((T)a) : string.Empty,
+            NameResolver = a => shortName != null ? shortName((T)a) : string.Empty,
+            Draw = a => draw?.Invoke((T)a)
+        };
+    }
+
+    public string GetShortName(ScenarioNpcAction action)            
+        => _handlers[action.GetType()].NameResolver(action);
+    
+    public string GetHelp(ScenarioNpcAction action)
+        => _handlers[action.GetType()].HelpResolver(action);
+    
+    public void Draw(ScenarioNpcAction action)    
+        => _handlers[action.GetType()].Draw(action);
 }

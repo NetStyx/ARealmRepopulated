@@ -28,11 +28,11 @@ public class ArrpEventService : IDisposable
 
         framework.Update += Framework_Update;
         clientState.TerritoryChanged += ClientState_TerritoryChanged;
-        clientState.Login += ClientState_Login;
-
-        // initiate first check
-        _isTerritoryReady = false;
+        clientState.Login += ClientState_Login;        
     }
+
+    public void Arm()
+        => _isTerritoryReady = false;    
 
     private void ClientState_Login()
         => _isTerritoryReady = false;

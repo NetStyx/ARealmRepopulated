@@ -17,6 +17,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.System.File;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -25,6 +26,7 @@ namespace ARealmRepopulated.Windows;
 
 public class ConfigWindow(    
     IPluginLog log,
+    IClientState state,
     PluginConfig _config, 
     ScenarioFileManager _fileManager,  
     DebugOverlay _debugOverlay,
@@ -210,7 +212,8 @@ public class ConfigWindow(
             var scenarioIndex = 0;
             var scenarioFiles = _fileManager.GetScenarioFiles()
                 .Where(s => s.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
-                .OrderBy(s => s.MetaData.TerritoryId)
+                .OrderBy(s => s.MetaData.TerritoryId == state.TerritoryType ? 0 : 1)
+                .ThenBy(s => s.MetaData.TerritoryId)
                 .ThenBy(s => s.MetaData.Title)
                 .ToList();
             
@@ -233,20 +236,23 @@ public class ConfigWindow(
                 ImGui.TableNextColumn();
 
                 var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.TerritoryId);
+                
                 var placeName = territoryData.PlaceName.Value.Name.ToString();                
                 var zoneName = territoryData.PlaceNameZone.Value.Name.ToString();
 
-                if (zoneName.StartsWith(placeName))
-                {
-                    ImGui.Text(placeName);
-                } 
-                else
-                {                    
-                    ImGui.Text(placeName);
-                    ImGui.SameLine(0, 5);
-                    ImGuiComponents.HelpMarker(zoneName);
-                }
                 
+                if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.MapMarker))
+                {
+                    unsafe
+                    {
+                        AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
+                    }
+                }
+                ImGui.SameLine(0,10);
+                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, s.MetaData.TerritoryId == state.TerritoryType))
+                {
+                    ImGui.Text(placeName);                                                                            
+                }
                 ImGui.TableNextColumn();
 
                 ImGui.Text(s.MetaData.Title);

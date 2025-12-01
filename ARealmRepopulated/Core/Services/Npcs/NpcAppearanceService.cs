@@ -29,7 +29,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
     {
 
         chara->Scale = 1;
-
+        chara->ModelContainer.ModelCharaId = file.ModelCharaId;
+        chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = file.Race.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = file.Sex.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = file.BodyType.GetValueOrDefault();
@@ -82,6 +83,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
     {
 
         file.AppearanceId = Guid.NewGuid();
+        file.ModelCharaId = chara->ModelContainer.ModelCharaId;
+        file.ModelSkeletonId = chara->ModelContainer.ModelSkeletonId;
         file.Race = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
         file.Sex = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
         file.BodyType = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType];
