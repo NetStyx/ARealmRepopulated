@@ -71,8 +71,8 @@ public class NpcAppearanceFile
 
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
-    public int ModelCharaId { get; set; } = -1;
-    public int ModelSkeletonId { get; set; } = -1;
+    public int ModelCharaId { get; set; } = 0;
+    public int ModelSkeletonId { get; set; } = 0;
 
     // Hyur = 1, Elezen = 2, Lalafel = 3, Miqote = 4, Roegadyn = 5, AuRa = 6, Hrothgar = 7, Viera = 8
     public byte? Race { get; set; }

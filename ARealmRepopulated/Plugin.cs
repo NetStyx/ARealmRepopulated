@@ -19,10 +19,8 @@ public sealed class Plugin : IDalamudPlugin
     private WindowSystem Windows { get; init; }
     private ConfigWindow ConfigWindow { get; init; }    
 
-
     public Plugin(IDalamudPluginInterface pluginInterface)
     {
-
         var serviceDescriptors = pluginInterface.Create<DalamudDiWrapper>()?.CreateServiceCollection()
             ?? throw new InvalidOperationException("Could not create dalamud service wrapper");
 
@@ -48,11 +46,11 @@ public sealed class Plugin : IDalamudPlugin
         Windows = Services.GetRequiredService<WindowSystem>();
         ConfigWindow = Services.GetRequiredService<ConfigWindow>();        
 
-        pluginInterface.UiBuilder.Draw += DrawUI;
+        pluginInterface.UiBuilder.Draw += () => Windows.Draw();
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
 
         Services.GetRequiredService<ArrpDataCache>().Populate();
-        Services.GetRequiredService<ArrpDtrControl>().Initialize(); 
+        Services.GetRequiredService<ArrpDtrControl>().Initialize();
         Services.GetRequiredService<ChatCommands>().Initialize();
         Services.GetRequiredService<ScenarioOrchestrator>().Initialize();
         Services.GetRequiredService<NpcServices>().Initialize();
@@ -61,18 +59,17 @@ public sealed class Plugin : IDalamudPlugin
         Services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         Services.GetRequiredService<ChatBubbleService>();
 
+        // set the event service to do a territory check cycle
+        Services.GetRequiredService<ArrpEventService>().Arm();
     }
-
 
     public void Dispose()
     {
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
-
         Services.Dispose();
     }
-
-    private void DrawUI() => Windows.Draw();
-
-    public void ToggleConfigUI() => ConfigWindow.Toggle();
+    
+    public void ToggleConfigUI() 
+        => ConfigWindow.Toggle();
 }

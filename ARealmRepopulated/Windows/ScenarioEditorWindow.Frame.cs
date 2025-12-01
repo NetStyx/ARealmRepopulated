@@ -254,7 +254,7 @@ public partial class ScenarioEditorWindow(
                 SaveScenario();
             }
 
-            using (ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.HealerGreen))
+            using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen))
             {                            
                 ImGui.SameLine(0, 5);
                 if (ImGui.Button("Save & Close"))
