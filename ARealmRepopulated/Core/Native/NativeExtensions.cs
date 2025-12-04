@@ -2,8 +2,8 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace ARealmRepopulated.Core.Native;
-public unsafe static class NativeExtensions
-{
+
+public unsafe static class NativeExtensions {
 
     public static GameObject* AsGameObject(this nint pointer)
         => (GameObject*)pointer;

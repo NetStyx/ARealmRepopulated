@@ -8,13 +8,11 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ARealmRepopulated.Tests;
 
-public class ScenarioFileTests
-{
+public class ScenarioFileTests {
 
 
     [Fact]
-    public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization()
-    {
+    public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization() {
 
         var scenario = new ScenarioData { Title = GetRandomString(), Description = GetRandomString() };
 
@@ -22,7 +20,7 @@ public class ScenarioFileTests
         npcOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = GetRandomTime() });
         npcOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3() });
         npcOne.Actions.Add(new ScenarioNpcSyncAction());
-        npcOne.Actions.Add(new ScenarioNpcEmoteAction { Duration = GetRandomTime(), Emote = (ushort)Random.Shared.Next(1,100), NpcTalk = GetRandomString() });
+        npcOne.Actions.Add(new ScenarioNpcEmoteAction { Duration = GetRandomTime(), Emote = (ushort)Random.Shared.Next(1, 100), NpcTalk = GetRandomString() });
         npcOne.Actions.Add(new ScenarioNpcSpawnAction());
         npcOne.Actions.Add(new ScenarioNpcDespawnAction());
 
@@ -31,7 +29,7 @@ public class ScenarioFileTests
         var restoredScenario = Recode(scenario);
 
         restoredScenario.Title.ShouldBe(scenario.Title);
-        restoredScenario.Description.ShouldBe(scenario.Description); 
+        restoredScenario.Description.ShouldBe(scenario.Description);
         restoredScenario.Npcs.Count.ShouldBe(scenario.Npcs.Count);
 
         var restoredNpcOne = restoredScenario.Npcs[0];
@@ -40,14 +38,12 @@ public class ScenarioFileTests
         restoredNpcOne.Position.ShouldBe(npcOne.Position);
         restoredNpcOne.Rotation.ShouldBe(npcOne.Rotation);
         restoredNpcOne.Actions.Count.ShouldBe(npcOne.Actions.Count);
-        
-        for (var i = 0; i < npcOne.Actions.Count; i++)
-        {
+
+        for (var i = 0; i < npcOne.Actions.Count; i++) {
             var originalAction = npcOne.Actions[i];
             var restoredAction = restoredNpcOne.Actions[i];
             restoredAction.GetType().ShouldBe(originalAction.GetType());
-            switch (originalAction)
-            {
+            switch (originalAction) {
                 case ScenarioNpcWaitingAction originalWaiting:
                     var restoredWaiting = (ScenarioNpcWaitingAction)restoredAction;
                     restoredWaiting.Duration.ShouldBe(originalWaiting.Duration);
@@ -64,8 +60,8 @@ public class ScenarioFileTests
                     restoredEmote.Duration.ShouldBe(originalEmote.Duration);
                     restoredEmote.NpcTalk.ShouldBe(originalEmote.NpcTalk);
                     break;
-                
-                default:                    
+
+                default:
                     break;
             }
         }
@@ -73,14 +69,13 @@ public class ScenarioFileTests
     }
 
 
-    private static ScenarioData Recode(ScenarioData data)
-    {
+    private static ScenarioData Recode(ScenarioData data) {
         var options = new JsonSerializerOptions();
         options.WriteIndented = true;
         options.Converters.Add(new Vector3Converter());
         options.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } };
         var serializedStuff = JsonSerializer.Serialize(data, options);
-        serializedStuff.ShouldNotBeNullOrEmpty();       
+        serializedStuff.ShouldNotBeNullOrEmpty();
 
         var deserialized = JsonSerializer.Deserialize<ScenarioData>(serializedStuff, options);
         deserialized.ShouldNotBeNull();

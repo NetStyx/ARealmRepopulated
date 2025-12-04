@@ -1,23 +1,17 @@
-using ARealmRepopulated.Core.Services.Scenarios;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using InteropGenerator.Runtime;
-using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Timers;
 
 namespace ARealmRepopulated.Core.Services.Chat;
-public unsafe class ChatBubbleService : IDisposable
-{
+
+public unsafe class ChatBubbleService : IDisposable {
     private readonly IPluginLog _log;
-    private readonly IClientState _state;    
+    private readonly IClientState _state;
 
     /// <summary>
     /// Client::UI::Agent::AgentScreenLog.OpenBalloon()
@@ -29,12 +23,11 @@ public unsafe class ChatBubbleService : IDisposable
     private List<ChatBubbleEntry> _npcTexts = [];
     private Timer _cleanupTimer;
 
-    public ChatBubbleService(IGameInteropProvider provider, IClientState state, IPluginLog log)
-    {
+    public ChatBubbleService(IGameInteropProvider provider, IClientState state, IPluginLog log) {
         provider.InitializeFromAttributes(this);
 
         _log = log;
-        _state = state;        
+        _state = state;
         _cleanupTimer = new Timer(TimeSpan.FromSeconds(5));
         _cleanupTimer.Elapsed += _cleanupTimer_Elapsed;
         _cleanupTimer.Enabled = true;
@@ -42,36 +35,29 @@ public unsafe class ChatBubbleService : IDisposable
         _openBalloonHook?.Enable();
     }
 
-    private void _cleanupTimer_Elapsed(object? sender, ElapsedEventArgs e)
-    {
-        lock (_npcTexts)
-        {
+    private void _cleanupTimer_Elapsed(object? sender, ElapsedEventArgs e) {
+        lock (_npcTexts) {
             var overdueNpcTexts = _npcTexts.Where(c => c.Timeout < DateTime.Now).ToList();
-            if (overdueNpcTexts.Count > 0)
-            {
+            if (overdueNpcTexts.Count > 0) {
                 overdueNpcTexts.ForEach(a => _npcTexts.Remove(a));
             }
         }
     }
 
-    private void OpenBubbleDetour(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint)
-    {        
-        if (_npcTexts.FirstOrDefault(x => x.Character == (nint)character) is var entry && entry != null)
-        {
+    private void OpenBubbleDetour(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint) {
+        if (_npcTexts.FirstOrDefault(x => x.Character == (nint)character) is var entry && entry != null) {
             using var newText = *Utf8String.FromString(entry.Text);
             _openBalloonHook?.Original(screenLog, character, newText.StringPtr, unk, attachmentPoint);
             return;
         }
         _openBalloonHook?.Original(screenLog, character, text, unk, attachmentPoint);
     }
-    
-    public void Talk(Character* character, string text, float duration)
-    {
+
+    public void Talk(Character* character, string text, float duration) {
         var characterAddress = (nint)character;
         lock (_npcTexts) {
             var existingEntry = _npcTexts.FirstOrDefault(c => c.Character == characterAddress);
-            if (existingEntry == null)
-            {                
+            if (existingEntry == null) {
                 _npcTexts.Add(existingEntry = new ChatBubbleEntry());
             }
 
@@ -85,15 +71,13 @@ public unsafe class ChatBubbleService : IDisposable
         character->Balloon.State = FFXIVClientStructs.FFXIV.Client.Game.BalloonState.Waiting;
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         _cleanupTimer?.Dispose();
         _openBalloonHook?.Dispose();
     }
 }
 
-public class ChatBubbleEntry
-{
+public class ChatBubbleEntry {
     public nint Character { get; set; } = 0;
     public string Text { get; set; } = "";
     public DateTime Timeout { get; set; } = DateTime.MinValue;

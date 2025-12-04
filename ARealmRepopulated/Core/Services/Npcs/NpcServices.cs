@@ -10,22 +10,18 @@ using System.Diagnostics.CodeAnalysis;
 namespace ARealmRepopulated.Core.Services.Npcs;
 
 [PluginInterface]
-public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) : IDisposable
-{
+public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
     private ulong _internalContentIdIndex = 0;
-    public unsafe bool TrySpawnNpc([NotNullWhen(true)] out NpcActor? character)
-    {
-        if (!TryCreateNewCharacter(out var battleCharacter))
-        {
+    public unsafe bool TrySpawnNpc([NotNullWhen(true)] out NpcActor? character) {
+        if (!TryCreateNewCharacter(out var battleCharacter)) {
             character = null;
             return false;
         }
 
-        if (!TryCreateObjectReference(battleCharacter, out var gameObjectInterface))
-        {
+        if (!TryCreateObjectReference(battleCharacter, out var gameObjectInterface)) {
             character = null;
             return false;
         }
@@ -43,8 +39,7 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
         return true;
     }
 
-    public unsafe void DespawnNpc(NpcActor npcObject)
-    {
+    public unsafe void DespawnNpc(NpcActor npcObject) {
         var go = npcObject.Address.AsGameObject();
 
         var objectManager = ClientObjectManager.Instance();
@@ -52,8 +47,7 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
         objectManager->DeleteObjectByIndex((ushort)index, 0);
     }
 
-    private bool TryCreateNewCharacter(out BattleChara* resultCharacter)
-    {
+    private bool TryCreateNewCharacter(out BattleChara* resultCharacter) {
         resultCharacter = null;
 
         var objectManager = ClientObjectManager.Instance();
@@ -72,11 +66,9 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
         return true;
     }
 
-    private bool TryCreateObjectReference(BattleChara* character, [NotNullWhen(true)] out IGameObject? gameObject)
-    {
+    private bool TryCreateObjectReference(BattleChara* character, [NotNullWhen(true)] out IGameObject? gameObject) {
         var newGameObject = objectTable.CreateObjectReference((nint)character);
-        if (newGameObject != null)
-        {
+        if (newGameObject != null) {
             gameObject = newGameObject;
             return true;
         }
@@ -85,28 +77,23 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
         return false;
     }
 
-    public void ClearNpcs()
-    {
+    public void ClearNpcs() {
         Actors.ToList().ForEach(DespawnNpc);
         Actors.Clear();
     }
 
-    public void Initialize()
-    {
+    public void Initialize() {
         hooks.CharacterDestroyed += Hooks_CharacterDestroyed;
     }
 
-    private void Hooks_CharacterDestroyed(Character* chara)
-    {
+    private void Hooks_CharacterDestroyed(Character* chara) {
         var actor = Actors.Where(x => (Character*)x.Address == chara).FirstOrDefault();
-        if (actor != null)
-        {
+        if (actor != null) {
             Actors.Remove(actor);
         }
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         hooks.CharacterDestroyed -= Hooks_CharacterDestroyed;
         ClearNpcs();
     }

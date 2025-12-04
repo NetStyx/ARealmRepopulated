@@ -12,20 +12,18 @@ using Dalamud.Plugin;
 
 namespace ARealmRepopulated;
 
-public sealed class Plugin : IDalamudPlugin
-{
+public sealed class Plugin : IDalamudPlugin {
     public static ServiceProvider Services { get; private set; } = null!;
 
     private WindowSystem Windows { get; init; }
-    private ConfigWindow ConfigWindow { get; init; }    
+    private ConfigWindow ConfigWindow { get; init; }
 
-    public Plugin(IDalamudPluginInterface pluginInterface)
-    {
+    public Plugin(IDalamudPluginInterface pluginInterface) {
         var serviceDescriptors = pluginInterface.Create<DalamudDiWrapper>()?.CreateServiceCollection()
             ?? throw new InvalidOperationException("Could not create dalamud service wrapper");
 
         serviceDescriptors
-            .AddSingleton(this)            
+            .AddSingleton(this)
             .AddSingleton(new WindowSystem("ARealmRepopulated"))
             .AddSingleton<ChatCommands>()
             .AddSingleton<ChatBubbleService>()
@@ -36,7 +34,7 @@ public sealed class Plugin : IDalamudPlugin
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
             .AddSingleton<ArrpGuiEmotePicker>()
-            .AddWindow<ConfigWindow>()            
+            .AddWindow<ConfigWindow>()
             .AddTransientWindow<ScenarioEditorWindow>()
             .AddTransient<NpcActor>();
 
@@ -44,7 +42,7 @@ public sealed class Plugin : IDalamudPlugin
         Services.GetRequiredService<PluginConfigMigration>().Migrate();
 
         Windows = Services.GetRequiredService<WindowSystem>();
-        ConfigWindow = Services.GetRequiredService<ConfigWindow>();        
+        ConfigWindow = Services.GetRequiredService<ConfigWindow>();
 
         pluginInterface.UiBuilder.Draw += () => Windows.Draw();
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
@@ -55,7 +53,7 @@ public sealed class Plugin : IDalamudPlugin
         Services.GetRequiredService<ScenarioOrchestrator>().Initialize();
         Services.GetRequiredService<NpcServices>().Initialize();
         Services.GetRequiredService<NpcAppearanceService>().Initialize();
-        Services.GetRequiredService<DebugOverlay>().Initialize();        
+        Services.GetRequiredService<DebugOverlay>().Initialize();
         Services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         Services.GetRequiredService<ChatBubbleService>();
 
@@ -63,13 +61,12 @@ public sealed class Plugin : IDalamudPlugin
         Services.GetRequiredService<ArrpEventService>().Arm();
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         Windows.RemoveAllWindows();
         ConfigWindow.Dispose();
         Services.Dispose();
     }
-    
-    public void ToggleConfigUI() 
+
+    public void ToggleConfigUI()
         => ConfigWindow.Toggle();
 }

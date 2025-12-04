@@ -1,32 +1,26 @@
 using ARealmRepopulated.Data.Appearance;
-using ARealmRepopulated.Data.Emotes;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using Lumina.Excel.Sheets;
-using Lumina.Excel.Sheets.Experimental;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
-public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache dataCache)
-{
 
-    public enum Animations : ushort
-    {
+public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache dataCache) {
+
+    public enum Animations : ushort {
         Idle = 3,
         Walking = 13,
         Running = 22,
         Turning = 13
     }
-    
-    public void Initialize()
-    {
+
+    public void Initialize() {
 
         // nothing to do here anymore
     }
 
-    public void Apply(Character* chara, NpcAppearanceFile file)
-    {
+    public void Apply(Character* chara, NpcAppearanceFile file) {
 
         chara->Scale = 1;
         chara->ModelContainer.ModelCharaId = file.ModelCharaId;
@@ -79,8 +73,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
         }*/
     }
 
-    public void Read(Character* chara, NpcAppearanceFile file)
-    {
+    public void Read(Character* chara, NpcAppearanceFile file) {
 
         file.AppearanceId = Guid.NewGuid();
         file.ModelCharaId = chara->ModelContainer.ModelCharaId;
@@ -124,32 +117,27 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
         file.Neck = EquipmentModel.Read(chara, EquipmentSlot.Neck);
         file.Wrists = EquipmentModel.Read(chara, EquipmentSlot.Wrists);
         file.LeftRing = EquipmentModel.Read(chara, EquipmentSlot.LFinger);
-        file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);        
+        file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
     }
 
-    public void PlayEmote(BattleChara* character, ushort emote)
-    {
+    public void PlayEmote(BattleChara* character, ushort emote) {
 
-        var emoteEntry = dataCache.GetEmote(emote);                
-        if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId)
-        {
-            if (emoteEntry.EmoteMode.RowId != 0)
-            {
+        var emoteEntry = dataCache.GetEmote(emote);
+        if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId) {
+            if (emoteEntry.EmoteMode.RowId != 0) {
                 character->SetMode(CharacterModes.EmoteLoop, (byte)emoteEntry.EmoteMode.RowId);
-            }            
+            }
         }
 
-        character->Timeline.PlayActionTimeline((ushort)emoteEntry.ActionTimeline[0].RowId, 0);        
+        character->Timeline.PlayActionTimeline((ushort)emoteEntry.ActionTimeline[0].RowId, 0);
     }
 
-    public bool IsRepeatingEmote(ushort emote)
-    {
+    public bool IsRepeatingEmote(ushort emote) {
         var emoteEntry = dataCache.GetEmote(emote);
         return emoteEntry.EmoteMode.RowId != 0;
     }
 
-    public void PlayTimeline(BattleChara* character, ushort timelineId)
-    {
+    public void PlayTimeline(BattleChara* character, ushort timelineId) {
         //if (character->Timeline.TimelineSequencer.TimelineIds[0] != timelineId)
         //{
         //var actionTimeline = dataManager.GetExcelSheet<ActionTimeline>();
@@ -164,22 +152,18 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
         //}
     }
 
-    public bool IsPlayingEmote(BattleChara* character, ushort emote)
-    {
+    public bool IsPlayingEmote(BattleChara* character, ushort emote) {
         return character->Timeline.TimelineSequencer.TimelineIds[0] == dataCache.GetEmote(emote).ActionTimeline[0].RowId;
     }
 
-    public void SetAnimation(BattleChara* character, Animations animation)
-    {
+    public void SetAnimation(BattleChara* character, Animations animation) {
         character->SetMode(CharacterModes.AnimLock, 0);
         character->Timeline.BaseOverride = (ushort)animation;
     }
 
-    public void Clone(Character* chara)
-    {
+    public void Clone(Character* chara) {
 
-        if (objectTable.LocalPlayer == null)
-        {
+        if (objectTable.LocalPlayer == null) {
             return;
         }
 
@@ -187,11 +171,9 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
 
     }
 
-    public void SetName(Character* chara)
-    {
+    public void SetName(Character* chara) {
         var name = $"ARRP {chara->ObjectIndex}";
-        for (var x = 0; x < name.Length; x++)
-        {
+        for (var x = 0; x < name.Length; x++) {
             chara->Name[x] = (byte)name[x];
         }
         chara->Name[name.Length] = 0;
