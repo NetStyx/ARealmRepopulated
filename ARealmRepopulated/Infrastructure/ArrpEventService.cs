@@ -2,8 +2,8 @@ using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin.Services;
 
 namespace ARealmRepopulated.Infrastructure;
-public class ArrpEventService : IDisposable
-{
+
+public class ArrpEventService : IDisposable {
     private readonly IFramework _framework;
     private readonly IObjectTable _objectTable;
     private readonly IClientState _clientState;
@@ -19,8 +19,7 @@ public class ArrpEventService : IDisposable
 
     public bool IsTerritoryReady => _isTerritoryReady;
 
-    public ArrpEventService(IFramework framework, IObjectTable objectTable, IClientState clientState, ICondition condition)
-    {        
+    public ArrpEventService(IFramework framework, IObjectTable objectTable, IClientState clientState, ICondition condition) {
         _clientState = clientState;
         _framework = framework;
         _condition = condition;
@@ -28,11 +27,11 @@ public class ArrpEventService : IDisposable
 
         framework.Update += Framework_Update;
         clientState.TerritoryChanged += ClientState_TerritoryChanged;
-        clientState.Login += ClientState_Login;        
+        clientState.Login += ClientState_Login;
     }
 
     public void Arm()
-        => _isTerritoryReady = false;    
+        => _isTerritoryReady = false;
 
     private void ClientState_Login()
         => _isTerritoryReady = false;
@@ -43,22 +42,18 @@ public class ArrpEventService : IDisposable
     private void Framework_Update(IFramework framework)
         => TerritoryCheck();
 
-    private void TerritoryCheck()
-    {
-        if (_isTerritoryReady)
-        {
+    private void TerritoryCheck() {
+        if (_isTerritoryReady) {
             return;
         }
 
-        if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones)
-        {
+        if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones) {
             _isTerritoryReady = true;
             OnTerritoryLoadFinished?.Invoke(_clientState.TerritoryType);
         }
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         _framework.Update -= Framework_Update;
         _clientState.TerritoryChanged -= ClientState_TerritoryChanged;
         _clientState.Login -= ClientState_Login;

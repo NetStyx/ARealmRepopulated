@@ -36,8 +36,7 @@ namespace ARealmRepopulated.Data.Appearance;
  */
 
 
-public enum CustomizeIndex : int
-{
+public enum CustomizeIndex : int {
     Race = 0x00,
     Sex = 0x01,
     BodyType = 0x02,
@@ -66,8 +65,7 @@ public enum CustomizeIndex : int
     FacePaintColor = 0x19
 }
 
-public class NpcAppearanceFile
-{
+public class NpcAppearanceFile {
 
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
@@ -109,10 +107,10 @@ public class NpcAppearanceFile
     public byte? FacePaintColor { get; set; }
 
     public ushort? Glasses { get; set; }
-    
+
     public WeaponModel? MainHand { get; set; }
     public WeaponModel? OffHand { get; set; }
-    
+
     public EquipmentModel? HeadGear { get; set; }
     public EquipmentModel? Body { get; set; }
     public EquipmentModel? Hands { get; set; }
@@ -126,8 +124,7 @@ public class NpcAppearanceFile
 
     public float? Transparency { get; set; }
 
-    public static NpcAppearanceFile? FromResource(string fileName)
-    {
+    public static NpcAppearanceFile? FromResource(string fileName) {
         var assembly = typeof(NpcAppearanceFile).Assembly;
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(f => f.EndsWith(fileName))
             ?? throw new InvalidOperationException($"Resource {fileName} not found");
@@ -137,8 +134,7 @@ public class NpcAppearanceFile
             ?? throw new InvalidOperationException($"Could not deserialize file {fileName}");
     }
 
-    public static NpcAppearanceFile FromBase64(string data)
-    {
+    public static NpcAppearanceFile FromBase64(string data) {
         var jsonData = Convert.FromBase64String(data);
 
         return JsonSerializer.Deserialize<NpcAppearanceFile>(jsonData)
@@ -147,30 +143,25 @@ public class NpcAppearanceFile
 
 
 
-    public string ToBase64()
-    {
+    public string ToBase64() {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this)));
     }
 
-    public void Save(SaveFormat format = SaveFormat.Json)
-    {
+    public void Save(SaveFormat format = SaveFormat.Json) {
         var filePath = Path.Combine(Plugin.Services.GetRequiredService<IDalamudPluginInterface>().GetPluginConfigDirectory(), "appearance", this.AppearanceId.ToString() + ".arrpc");
 
         var exportData = "";
-        if (format == SaveFormat.Base64)
-        {
+        if (format == SaveFormat.Base64) {
             exportData = ToBase64();
-        } 
-        else
-        {
+        }
+        else {
             exportData = JsonSerializer.Serialize(this);
 
         }
         File.WriteAllText(filePath, exportData);
     }
 
-    public enum SaveFormat
-    {
+    public enum SaveFormat {
         Json,
         Base64
     }
@@ -178,8 +169,7 @@ public class NpcAppearanceFile
 
 
 [Serializable]
-public class WeaponModel
-{
+public class WeaponModel {
     public Vector3 Color { get; set; }
     public Vector3 Scale { get; set; }
     public ushort ModelSetId { get; set; }
@@ -188,14 +178,12 @@ public class WeaponModel
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
 
-    public unsafe void Apply(Character* actor, bool isMainHand)
-    {
+    public unsafe void Apply(Character* actor, bool isMainHand) {
 
         if (ModelSetId == 0)
             return;
 
-        var wep = new WeaponModelId()
-        {
+        var wep = new WeaponModelId() {
             Id = ModelSetId,
             Type = Base,
             Variant = Variant,
@@ -206,13 +194,11 @@ public class WeaponModel
         actor->DrawData.LoadWeapon(isMainHand ? WeaponSlot.MainHand : WeaponSlot.OffHand, wep, 0, 0, 0, 0);
     }
 
-    public static unsafe WeaponModel Read(Character* actor, WeaponSlot slot)
-    {
+    public static unsafe WeaponModel Read(Character* actor, WeaponSlot slot) {
         var model = actor->DrawData.Weapon(slot);
         var weapon = (Weapon*)&model;
 
-        return new WeaponModel
-        {
+        return new WeaponModel {
             ModelSetId = weapon->ModelSetId,
             Base = 0,
             Variant = weapon->Variant,
@@ -224,18 +210,15 @@ public class WeaponModel
 
 
 [Serializable]
-public class EquipmentModel
-{
+public class EquipmentModel {
 
     public ushort ModelId { get; set; }
     public byte Variant { get; set; }
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
 
-    public unsafe void Apply(Character* actor, EquipmentSlot index)
-    {
-        var item = new EquipmentModelId()
-        {
+    public unsafe void Apply(Character* actor, EquipmentSlot index) {
+        var item = new EquipmentModelId() {
             Id = ModelId,
             Variant = Variant,
             Stain0 = Stain0,
@@ -246,11 +229,9 @@ public class EquipmentModel
         actor->DrawData.Equipment(index) = item;
     }
 
-    public static unsafe EquipmentModel Read(Character* actor, EquipmentSlot index)
-    {
+    public static unsafe EquipmentModel Read(Character* actor, EquipmentSlot index) {
         var model = actor->DrawData.Equipment(index);
-        return new EquipmentModel
-        {
+        return new EquipmentModel {
             ModelId = model.Id,
             Variant = model.Variant,
             Stain0 = model.Stain0,

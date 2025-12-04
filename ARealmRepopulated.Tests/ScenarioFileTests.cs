@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.Json;
 using ARealmRepopulated.Data.Scenarios;
+using Shouldly;
 using System;
 using System.Numerics;
 using System.Text.Json;
@@ -7,82 +8,95 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ARealmRepopulated.Tests;
 
-public class ScenarioFileTests
-{
+public class ScenarioFileTests {
 
 
     [Fact]
-    public void ValidateSingleLoopScenario()
-    {
-        var scenario = new ScenarioData();
-        var standingScenarioNpc = new ScenarioNpcData { Name = "BoredGirl", Appearance = "", Position = new Vector3(131.17422f, 40.02f, 3.1433084f), Rotation = -1.5506701f };
-        standingScenarioNpc.Actions.Add(new ScenarioNpcEmoteAction { Emote = 295 });
-        scenario.Npcs.Add(standingScenarioNpc);
+    public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization() {
 
-        var movingScenarioNpc = new ScenarioNpcData { Name = "LookoutGirl", Appearance = "", Position = new Vector3(125.87311f, 40.02f, 3.218611f), Rotation = -0.7883096f };
-        movingScenarioNpc.Actions.Add(new ScenarioNpcWaitingAction { Duration = 5f, NpcTalk = "Nothing on this side..." });
-        movingScenarioNpc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = new Vector3(107.87578f, 40.02f, -14.861387f) });
-        movingScenarioNpc.Actions.Add(new ScenarioNpcRotationAction { TargetRotation = -0.79250574f });
-        movingScenarioNpc.Actions.Add(new ScenarioNpcEmoteAction { Emote = 22, Loop = false, Duration = 10 });
-        movingScenarioNpc.Actions.Add(new ScenarioNpcWaitingAction { Duration = 5f, NpcTalk = "Just doing rounds is exhausting" });
-        movingScenarioNpc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = new Vector3(125.87311f, 40.02f, 3.218611f) });
-        movingScenarioNpc.Actions.Add(new ScenarioNpcRotationAction { TargetRotation = -0.7883096f });
-        scenario.Npcs.Add(movingScenarioNpc);
+        var scenario = new ScenarioData { Title = GetRandomString(), Description = GetRandomString() };
 
-        ValidateScenario(scenario);
-    }
+        var npcOne = new ScenarioNpcData { Name = GetRandomString(), Appearance = "", Position = GetRandomVector3(), Rotation = GetRandomRadian() };
+        npcOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = GetRandomTime() });
+        npcOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3() });
+        npcOne.Actions.Add(new ScenarioNpcSyncAction());
+        npcOne.Actions.Add(new ScenarioNpcEmoteAction { Duration = GetRandomTime(), Emote = (ushort)Random.Shared.Next(1, 100), NpcTalk = GetRandomString() });
+        npcOne.Actions.Add(new ScenarioNpcSpawnAction());
+        npcOne.Actions.Add(new ScenarioNpcDespawnAction());
 
-    [Fact]
-    public void ValidateScenarioFiles()
-    {
+        scenario.Npcs.Add(npcOne);
 
+        var restoredScenario = Recode(scenario);
 
-        var scenario = new ScenarioData { Title = "Two Girls, One Place", Description = "Two girls meet in the middle of their paths to finally figure out who was in the wrong." };
+        restoredScenario.Title.ShouldBe(scenario.Title);
+        restoredScenario.Description.ShouldBe(scenario.Description);
+        restoredScenario.Npcs.Count.ShouldBe(scenario.Npcs.Count);
 
-        var meetGirlOne = new ScenarioNpcData { Name = "MeetGirlOne", Appearance = "", Position = new Vector3(130.00665f, 40.02f, 4.126983f), Rotation = -2.3646383f };
-        meetGirlOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = 2 });
-        meetGirlOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = new Vector3(120.02116f, 40.02f, -6.0284934f) });
-        meetGirlOne.Actions.Add(new ScenarioNpcSyncAction());
+        var restoredNpcOne = restoredScenario.Npcs[0];
+        restoredNpcOne.Name.ShouldBe(npcOne.Name);
+        restoredNpcOne.Appearance.ShouldBe(npcOne.Appearance);
+        restoredNpcOne.Position.ShouldBe(npcOne.Position);
+        restoredNpcOne.Rotation.ShouldBe(npcOne.Rotation);
+        restoredNpcOne.Actions.Count.ShouldBe(npcOne.Actions.Count);
 
-        meetGirlOne.Actions.Add(new ScenarioNpcEmoteAction { Duration = 4, Emote = 3, NpcTalk = "You are late!" });
-        meetGirlOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = 2 });
-        meetGirlOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = 2, NpcTalk = "I am not standing for this!" });
-        meetGirlOne.Actions.Add(new ScenarioNpcSyncAction());
+        for (var i = 0; i < npcOne.Actions.Count; i++) {
+            var originalAction = npcOne.Actions[i];
+            var restoredAction = restoredNpcOne.Actions[i];
+            restoredAction.GetType().ShouldBe(originalAction.GetType());
+            switch (originalAction) {
+                case ScenarioNpcWaitingAction originalWaiting:
+                    var restoredWaiting = (ScenarioNpcWaitingAction)restoredAction;
+                    restoredWaiting.Duration.ShouldBe(originalWaiting.Duration);
+                    break;
+                case ScenarioNpcMovementAction originalMovement:
+                    var restoredMovement = (ScenarioNpcMovementAction)restoredAction;
+                    restoredMovement.TargetPosition.ShouldBe(originalMovement.TargetPosition);
+                    restoredMovement.IsRunning.ShouldBe(originalMovement.IsRunning);
+                    break;
+                case ScenarioNpcEmoteAction originalEmote:
+                    var restoredEmote = (ScenarioNpcEmoteAction)restoredAction;
+                    restoredEmote.Emote.ShouldBe(originalEmote.Emote);
+                    restoredEmote.Loop.ShouldBe(originalEmote.Loop);
+                    restoredEmote.Duration.ShouldBe(originalEmote.Duration);
+                    restoredEmote.NpcTalk.ShouldBe(originalEmote.NpcTalk);
+                    break;
 
-        meetGirlOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = new Vector3(130.00665f, 40.02f, 4.126983f) });
-        meetGirlOne.Actions.Add(new ScenarioNpcSyncAction());
+                default:
+                    break;
+            }
+        }
 
-
-        var meetGirlTwo = new ScenarioNpcData { Name = "MeetGirlTwo", Appearance = "", Position = new Vector3(112.723595f, 40.02f, -13.586888f), Rotation = 0.776951f };
-        meetGirlTwo.Actions.Add(new ScenarioNpcWaitingAction { Duration = 2 });
-        meetGirlTwo.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = new Vector3(118.59509f, 40.019997f, -7.478999f) });
-        meetGirlTwo.Actions.Add(new ScenarioNpcSyncAction());
-
-        meetGirlTwo.Actions.Add(new ScenarioNpcEmoteAction { Duration = 4, Emote = 171 });
-        meetGirlTwo.Actions.Add(new ScenarioNpcWaitingAction { Duration = 2, NpcTalk = "I know, sorry!" });
-        meetGirlTwo.Actions.Add(new ScenarioNpcWaitingAction { Duration = 2 });
-        meetGirlTwo.Actions.Add(new ScenarioNpcSyncAction());
-
-        meetGirlTwo.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = new Vector3(112.723595f, 40.02f, -13.586888f) });
-        meetGirlTwo.Actions.Add(new ScenarioNpcSyncAction());
-
-
-        scenario.Npcs.Add(meetGirlOne);
-        scenario.Npcs.Add(meetGirlTwo);
-
-        ValidateScenario(scenario);
     }
 
 
-    private void ValidateScenario(ScenarioData data)
-    {
+    private static ScenarioData Recode(ScenarioData data) {
         var options = new JsonSerializerOptions();
         options.WriteIndented = true;
         options.Converters.Add(new Vector3Converter());
         options.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } };
         var serializedStuff = JsonSerializer.Serialize(data, options);
+        serializedStuff.ShouldNotBeNullOrEmpty();
 
-        var deserializedObject = JsonSerializer.Deserialize<ScenarioData>(serializedStuff, options);
+        var deserialized = JsonSerializer.Deserialize<ScenarioData>(serializedStuff, options);
+        deserialized.ShouldNotBeNull();
+
+        return deserialized;
     }
+
+
+    private static string GetRandomString()
+        => Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+    private static Vector3 GetRandomVector3()
+        => new(
+            Random.Shared.NextSingle() * 1000f,
+            Random.Shared.NextSingle() * 1000f,
+            Random.Shared.NextSingle() * 1000f);
+
+    private static float GetRandomRadian()
+        => Random.Shared.NextSingle() * MathF.PI * 2f;
+
+    private static float GetRandomTime()
+        => Random.Shared.NextSingle() * 10;
 
 }

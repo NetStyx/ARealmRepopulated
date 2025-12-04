@@ -2,28 +2,19 @@ using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Windows;
 using Dalamud.Game.Gui.Dtr;
-using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ARealmRepopulated.Infrastructure;
 
-public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, IClientState clientState, IDtrBar dalamudDtrBar) : IDisposable
-{
+public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, IClientState clientState, IDtrBar dalamudDtrBar) : IDisposable {
 
     private IDtrBarEntry? _dtrBarEntry = null;
 
-    public void Initialize()
-    {
+    public void Initialize() {
         clientState.Logout += OnLogout;
         clientState.Login += OnLogin;
         manager.OnOrchestrationsChanged += Manager_OrchestrationsChanged;
-        if (clientState.IsLoggedIn)
-        {
+        if (clientState.IsLoggedIn) {
             OnLogin();
         }
 
@@ -32,15 +23,11 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
     private void Manager_OrchestrationsChanged()
         => UpdateDtrText();
 
-    private void OnLogin()
-    {        
-        if ((_dtrBarEntry = dalamudDtrBar.Get("ARealmRepopulated Scenario Entry")) != null)
-        {                        
-            _dtrBarEntry.OnClick = (e) =>
-            {
+    private void OnLogin() {
+        if ((_dtrBarEntry = dalamudDtrBar.Get("ARealmRepopulated Scenario Entry")) != null) {
+            _dtrBarEntry.OnClick = (e) => {
                 var configWindow = Plugin.Services.GetRequiredService<ConfigWindow>();
-                if (!configWindow.IsOpen)
-                {
+                if (!configWindow.IsOpen) {
                     configWindow.Toggle();
                 }
             };
@@ -49,14 +36,12 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
         UpdateVisibility();
     }
 
-    public void UpdateVisibility()
-    {
+    public void UpdateVisibility() {
         _dtrBarEntry?.Shown = config.ShowInDtrBar;
     }
 
     private void UpdateDtrText() {
-        switch (manager.Orchestrations.Count)
-        {
+        switch (manager.Orchestrations.Count) {
             case 0:
                 _dtrBarEntry?.Text = $"\uE083 \uE043";
                 break;
@@ -66,14 +51,12 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
         }
     }
 
-    private void OnLogout(int type, int code)
-    {
+    private void OnLogout(int type, int code) {
         _dtrBarEntry?.Remove();
         _dtrBarEntry = null;
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         clientState.Login -= OnLogin;
         clientState.Logout -= OnLogout;
     }

@@ -3,31 +3,27 @@ using System.IO;
 using System.Threading.Tasks;
 
 namespace ARealmRepopulated.Core.Files;
-public class FileSystemWatcherDebouncer : FileSystemWatcher
-{
+
+public class FileSystemWatcherDebouncer : FileSystemWatcher {
     public delegate void FileSystemEventDelegate(FileSystemEventArgs args);
     public event FileSystemEventDelegate? OnModified;
 
     private ConcurrentDictionary<string, FileSystemEventArgs> _eventDictionary = new();
 
-    public FileSystemWatcherDebouncer()
-    {
+    public FileSystemWatcherDebouncer() {
         this.Created += FileSystemEntryChanged;
         this.Changed += FileSystemEntryChanged;
         this.Deleted += FileSystemEntryChanged;
         this.Renamed += FileSystemEntryChanged;
     }
 
-    private void FileSystemEntryChanged(object source, FileSystemEventArgs e)
-    {
+    private void FileSystemEntryChanged(object source, FileSystemEventArgs e) {
         if (!_eventDictionary.TryAdd(e.FullPath, e))
             return;
 
-        Task.Run(async () =>
-        {
+        Task.Run(async () => {
             await Task.Delay(100);
-            if (_eventDictionary.TryRemove(e.FullPath, out var args))
-            {
+            if (_eventDictionary.TryRemove(e.FullPath, out var args)) {
                 OnModified?.Invoke(args);
             }
         });

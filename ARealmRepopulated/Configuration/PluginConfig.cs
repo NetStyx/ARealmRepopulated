@@ -5,8 +5,7 @@ using System.Text.Json.Serialization;
 namespace ARealmRepopulated.Configuration;
 
 [Serializable]
-public class PluginConfig : IPluginConfiguration
-{
+public class PluginConfig : IPluginConfiguration {
 
     public int Version { get; set; } = 0;
 
@@ -16,8 +15,7 @@ public class PluginConfig : IPluginConfiguration
 
     public bool EnableScenarioDebugOverlay { get; set; } = false;
 
-    public void Save()
-    {
+    public void Save() {
         Plugin.Services.GetRequiredService<IDalamudPluginInterface>().SavePluginConfig(this);
     }
 

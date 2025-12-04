@@ -4,8 +4,8 @@ using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
 namespace ARealmRepopulated.Infrastructure;
-public unsafe class ArrpGameHooks : IDisposable
-{
+
+public unsafe class ArrpGameHooks : IDisposable {
     public delegate void CharacterEventDelegate(Character* chara);
     public event CharacterEventDelegate? CharacterDestroyed;
 
@@ -16,24 +16,20 @@ public unsafe class ArrpGameHooks : IDisposable
     private readonly Hook<CharacterFinalizerDelegate> _characterFinalizerHook = null!;
     private delegate void CharacterFinalizerDelegate(Character* character);
 
-    public ArrpGameHooks(IGameInteropProvider interopProvider)
-    {
+    public ArrpGameHooks(IGameInteropProvider interopProvider) {
         interopProvider.InitializeFromAttributes(this);
         _characterFinalizerHook.Enable();
     }
 
-    private void CharacterFinalizerDetour(Character* character)
-    {
-        if (character != null)
-        {
+    private void CharacterFinalizerDetour(Character* character) {
+        if (character != null) {
             CharacterDestroyed?.Invoke(character);
         }
 
         _characterFinalizerHook.Original(character);
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         _characterFinalizerHook?.Dispose();
     }
 }

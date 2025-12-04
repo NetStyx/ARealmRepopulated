@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.Math;
+using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -7,8 +8,8 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
-public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService)
-{
+
+public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService, ChatBubbleService cbs) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
@@ -17,8 +18,7 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     private BattleChara* _actor = null;
     public IntPtr Address { get => new(_actor); }
 
-    public void Initialize(BattleChara* actorPointer)
-    {
+    public void Initialize(BattleChara* actorPointer) {
         _actor = actorPointer;
 
         var localPlayer = (BattleChara*)objectTable.LocalPlayer!.Address;
@@ -27,8 +27,7 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         appearanceService.SetName((Character*)_actor);
     }
 
-    public void Spawn()
-    {
+    public void Spawn() {
         _actor->Alpha = 1.0f;
         _actor->EnableDraw();
     }
@@ -49,9 +48,7 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         => SetPosition(_actor->DefaultPosition);
 
     public void Fade(float degree)
-    {
-        _actor->Alpha = System.Math.Clamp(_actor->Alpha + degree, 0, 1);
-    }
+        => _actor->Alpha = System.Math.Clamp(_actor->Alpha + degree, 0, 1);
 
     public bool IsFadedOut()
        => _actor->Alpha == 0;
@@ -59,11 +56,9 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public void SetPositionFrom(BattleChara* targetCharacter)
         => SetPosition(targetCharacter->Position);
 
-    public void SetPosition(Vector3 position, bool isDefault = false)
-    {
+    public void SetPosition(Vector3 position, bool isDefault = false) {
         _actor->SetPosition(position.X, position.Y, position.Z);
-        if (isDefault)
-        {
+        if (isDefault) {
             _actor->DefaultPosition = position;
         }
     }
@@ -71,11 +66,9 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public void SetRotationFrom(BattleChara* target)
         => SetRotation(target->Rotation);
 
-    public void SetRotation(float rotation, bool isDefault = false)
-    {
+    public void SetRotation(float rotation, bool isDefault = false) {
         _actor->SetRotation(rotation);
-        if (isDefault)
-        {
+        if (isDefault) {
             _actor->DefaultRotation = rotation;
         }
     }
@@ -103,8 +96,7 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public bool IsLoopingEmote(ushort emoteid)
         => appearanceService.IsRepeatingEmote(emoteid);
 
-    public void SetAnimation(Animations animation)
-    {
+    public void SetAnimation(Animations animation) {
         appearanceService.SetAnimation(_actor, animation);
     }
 
@@ -113,35 +105,25 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         => SetAppearance(NpcAppearanceFile.FromBase64(base64JsonData));
 
 
-    public void SetAppearance(NpcAppearanceFile appearanceFile)
-    {
+    public void SetAppearance(NpcAppearanceFile appearanceFile) {
         appearanceService.Apply((Character*)_actor, appearanceFile);
     }
 
-    public void SetDefaultAppearance()
-    {        
-        appearanceService.Apply((Character*)_actor, NpcAppearanceFile.FromResource("DefaultHumanFemale.json")!);    
+    public void SetDefaultAppearance() {
+        appearanceService.Apply((Character*)_actor, NpcAppearanceFile.FromResource("DefaultHumanFemale.json")!);
     }
 
-
-    public void ShowTalkBubble(float playTime = 3f)
-    {
-        _actor->Balloon.PlayTimer = playTime;
-        _actor->Balloon.Type = FFXIVClientStructs.FFXIV.Client.Game.BalloonType.Timer;
-        _actor->Balloon.State = FFXIVClientStructs.FFXIV.Client.Game.BalloonState.Waiting;
-    }
+    public void Talk(string text, float playTime = 3f)
+        => cbs.Talk((Character*)_actor, text, playTime);
 
 
-    public unsafe void Draw()
-    {
-        framework.RunOnTick(() =>
-        {
-            if (_actor->IsReadyToDraw())
-            {
+
+    public unsafe void Draw() {
+        framework.RunOnTick(() => {
+            if (_actor->IsReadyToDraw()) {
                 _actor->EnableDraw();
             }
-            else
-            {
+            else {
                 Draw();
             }
         });

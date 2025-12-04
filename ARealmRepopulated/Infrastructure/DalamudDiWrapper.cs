@@ -18,8 +18,7 @@ public class DalamudDiWrapper(
     ITargetManager targetManager,
     IDtrBar dtrBar,
     ITextureProvider textureProvider,
-    IGameGui gui)
-{
+    IGameGui gui) {
     public IServiceCollection CreateServiceCollection()
         => new ServiceCollection()
             .AddSingleton(log)
