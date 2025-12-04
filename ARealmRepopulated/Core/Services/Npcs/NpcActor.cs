@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.Math;
+using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -7,7 +8,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
-public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService)
+public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService, ChatBubbleService cbs)
 {
 
     public const float RunningSpeed = 6.3f;
@@ -49,10 +50,8 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         => SetPosition(_actor->DefaultPosition);
 
     public void Fade(float degree)
-    {
-        _actor->Alpha = System.Math.Clamp(_actor->Alpha + degree, 0, 1);
-    }
-
+        => _actor->Alpha = System.Math.Clamp(_actor->Alpha + degree, 0, 1);
+    
     public bool IsFadedOut()
        => _actor->Alpha == 0;
 
@@ -123,13 +122,9 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         appearanceService.Apply((Character*)_actor, NpcAppearanceFile.FromResource("DefaultHumanFemale.json")!);    
     }
 
-
-    public void ShowTalkBubble(float playTime = 3f)
-    {
-        _actor->Balloon.PlayTimer = playTime;
-        _actor->Balloon.Type = FFXIVClientStructs.FFXIV.Client.Game.BalloonType.Timer;
-        _actor->Balloon.State = FFXIVClientStructs.FFXIV.Client.Game.BalloonState.Waiting;
-    }
+    public void Talk(string text, float playTime = 3f)
+        => cbs.Talk((Character*)_actor, text, playTime);
+    
 
 
     public unsafe void Draw()

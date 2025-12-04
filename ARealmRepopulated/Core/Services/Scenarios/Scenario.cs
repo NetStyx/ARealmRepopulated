@@ -139,7 +139,8 @@ public unsafe class ScenarioNpc
 
     public void Proximity(Vector3 player)
     {
-        if (string.IsNullOrWhiteSpace(CurrentAction.Action.NpcTalk))
+        var proximityText = CurrentAction.Action.NpcTalk;
+        if (string.IsNullOrWhiteSpace(proximityText))
         {
             return;
         }
@@ -167,13 +168,13 @@ public unsafe class ScenarioNpc
         CurrentAction.ProximityExecuted = true;
 
         float wordsPerMinute = 150;
-        float wordsInText = CurrentAction.Action.NpcTalk.Split(' ').Length + 1;
+        float wordsInText = proximityText.Split(' ').Length + 1;
 
         var duration = wordsInText / wordsPerMinute * 60;
         if (duration < 1)
             duration = 1;
 
-        Actor.ShowTalkBubble(duration);
+        Actor.Talk(proximityText, duration);
         CurrentAction.LastProximityAction = DateTime.Now;
 
     }
