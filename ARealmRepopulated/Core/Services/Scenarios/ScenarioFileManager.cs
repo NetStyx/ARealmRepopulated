@@ -1,6 +1,7 @@
 using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.Json;
 using ARealmRepopulated.Data.Scenarios;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
@@ -43,8 +44,8 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         return [.. _currentFiles];
     }
 
-    public List<ScenarioFileData> GetScenarioFilesByTerritory(ushort territoryId) {
-        return [.. _currentFiles.Where(x => x.MetaData.TerritoryId == territoryId)];
+    public List<ScenarioFileData> GetScenarioFilesByTerritory(LocationData location) {
+        return [.. _currentFiles.Where(x => x.MetaData.TerritoryId == location.TerritoryType)];
     }
 
     public void ScanScenarioFiles() {
@@ -63,11 +64,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
 
         try {
             ScanScenarioFile(fileInfo);
-        }
-        catch (JsonException jex) {
+        } catch (JsonException jex) {
             log.Warning("Could not read meta data of scenario file {FileName}. Invalid json format: {JsonError}", [fileInfo.Name, jex.Message]);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.Error(ex, "Could not read meta data of scenario file {FileName}", [fileInfo.Name]);
         }
     }
@@ -117,11 +116,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         try {
             var jsonString = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64Data));
             return DeserializeScenarioData(jsonString);
-        }
-        catch (FormatException fex) {
+        } catch (FormatException fex) {
             log.Warning("Could not import scenario from base64 data. Invalid base64 format: {Base64Error}", [fex.Message]);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.Error(ex, "Could not import scenario from base64 data");
         }
         return null;
@@ -135,11 +132,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     private ScenarioData? DeserializeScenarioData(string jsonString) {
         try {
             return JsonSerializer.Deserialize<ScenarioData>(jsonString, ScenarioLoadSerializerOptions);
-        }
-        catch (JsonException jex) {
+        } catch (JsonException jex) {
             log.Warning("Could not read full scenario data. Invalid json format: {JsonError}", [jex.Message]);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.Error(ex, "Could not read full scenario data");
         }
         return null;

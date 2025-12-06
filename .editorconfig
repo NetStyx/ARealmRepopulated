@@ -15,19 +15,15 @@ indent_size = 4
 
 # Microsoft .NET properties
 csharp_indent_braces = false
-csharp_new_line_before_catch = true
-csharp_new_line_before_else = true
-csharp_new_line_before_finally = true
-csharp_new_line_before_members_in_object_initializers = false
 
 # K&R
 csharp_new_line_before_open_brace = none
-csharp_new_line_before_else = false:suggestion
-csharp_new_line_before_catch = false:suggestion
-csharp_new_line_before_finally = false:suggestion
-csharp_new_line_before_members_in_object_initializers = false:suggestion
-csharp_new_line_before_members_in_anonymous_types = false:suggestion
-csharp_new_line_between_query_expression_clauses = false:suggestion
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+csharp_new_line_before_members_in_object_initializers = false
+csharp_new_line_before_members_in_anonymous_types = false
+csharp_new_line_between_query_expression_clauses = false
 
 csharp_preferred_modifier_order = public, private, protected, internal, new, abstract, virtual, sealed, override, static, readonly, extern, unsafe, volatile, async:suggestion
 csharp_style_var_elsewhere = true:suggestion

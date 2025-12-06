@@ -13,7 +13,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     private readonly Lock _scenarioActionLock = new();
     private const float ProximityCheckInterval = 0.5f;
     private float _lastProximityCheck = 0f;
-    private ushort _currentTerritory = 0;
+    private LocationData _currentTerritory = new(0, 0, -1, -1);
 
     public List<Orchestration> Orchestrations { get; set; } = [];
     public event Action? OnOrchestrationsChanged;
@@ -29,12 +29,12 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         }
     }
 
-    private void EventService_OnTerritoryReady(ushort territoryId) {
-        pluginLog.Info($"Territory {territoryId} ready");
-        if (_currentTerritory != territoryId) {
-            _currentTerritory = territoryId;
+    private void EventService_OnTerritoryReady(LocationData territory) {
+        pluginLog.Info($"Territory {territory.TerritoryType} ready");
+        if (_currentTerritory != territory) {
+            _currentTerritory = territory;
             if (config.AutoLoadScenarios) {
-                Load(territoryId);
+                Load(_currentTerritory);
             }
         }
     }
@@ -48,11 +48,11 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     private void Framework_Update(IFramework framework)
         => AdvanceScenarios(framework.UpdateDelta);
 
-    private void Load(ushort territoryId) {
+    private void Load(LocationData locationData) {
         Unload();
 
-        pluginLog.Info($"Loading scenarios for territory {territoryId}");
-        fileManager.GetScenarioFilesByTerritory(territoryId).ForEach(LoadFile);
+        pluginLog.Info($"Loading scenarios for territory {locationData.TerritoryType}");
+        fileManager.GetScenarioFilesByTerritory(locationData).ForEach(LoadFile);
     }
 
     private void UnloadFile(ScenarioFileData data) {
@@ -67,7 +67,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     }
 
     private void LoadFile(ScenarioFileData data) {
-        if (data.MetaData.TerritoryId != _currentTerritory)
+        if (data.MetaData.TerritoryId != _currentTerritory.TerritoryType)
             return;
 
         UnloadFile(data);
@@ -96,8 +96,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
             npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
             if (!string.IsNullOrEmpty(scenarioNpc.Appearance)) {
                 npc.SetAppearance(scenarioNpc.Appearance);
-            }
-            else {
+            } else {
                 npc.SetDefaultAppearance();
 
             }
