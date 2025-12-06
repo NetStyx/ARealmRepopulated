@@ -457,8 +457,7 @@ public partial class ScenarioEditorWindow(
                     if (!string.IsNullOrWhiteSpace(currentTargetAppearance)) {
                         SelectedScenarioNpc?.Appearance = currentTargetAppearance;
                     }
-                }
-                else if (ImGui.IsItemHovered()) {
+                } else if (ImGui.IsItemHovered()) {
                     selectionFound = true;
                     debugOverlay.SetNpcTrace(npcObject.Position);
                 }
@@ -550,8 +549,7 @@ public partial class ScenarioEditorWindow(
         if (SelectedScenarioNpcAction != null) {
             var currentIndex = SelectedScenarioNpc.Actions.IndexOf(SelectedScenarioNpcAction);
             SelectedScenarioNpc.Actions.Insert(currentIndex + 1, action);
-        }
-        else {
+        } else {
             SelectedScenarioNpc.Actions.Add(action);
         }
 
@@ -598,8 +596,7 @@ public partial class ScenarioEditorWindow(
         if (String.IsNullOrWhiteSpace(_scenarioFilePath)) {
             _scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
 
-        }
-        else {
+        } else {
             scenarioFileManager.StoreScenarioFile(ScenarioObject, _scenarioFilePath);
         }
     }

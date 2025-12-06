@@ -44,8 +44,7 @@ public class ConfigWindow(
 
                     try {
                         ScenarioTab();
-                    }
-                    catch (System.Exception ex) {
+                    } catch (System.Exception ex) {
                         ImGui.TextColored(ImGuiColors.DalamudRed, $"Error loading scenarios: {ex.Message}");
                         log.Error(ex, "huh");
                     }
@@ -107,8 +106,7 @@ public class ConfigWindow(
         if (ImGui.Checkbox("Enable debug overlay", ref scenarioDebugOverlay)) {
             if (scenarioDebugOverlay) {
                 _debugOverlay.Hook();
-            }
-            else {
+            } else {
                 _debugOverlay.Unhook();
             }
 

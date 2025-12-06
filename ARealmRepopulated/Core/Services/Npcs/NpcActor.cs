@@ -122,8 +122,7 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         framework.RunOnTick(() => {
             if (_actor->IsReadyToDraw()) {
                 _actor->EnableDraw();
-            }
-            else {
+            } else {
                 Draw();
             }
         });

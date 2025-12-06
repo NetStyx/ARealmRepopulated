@@ -135,8 +135,7 @@ public unsafe class ScenarioNpc {
                 return;
             }
             CurrentAction.ProximityExecuted = false;
-        }
-        else if (CurrentAction.ProximityExecuted) {
+        } else if (CurrentAction.ProximityExecuted) {
             return;
         }
 
@@ -184,8 +183,7 @@ public unsafe class ScenarioNpc {
             if (!Actor.IsPlayingEmote(action.Emote) || (Actor.IsLoopingEmote(action.Emote) && CurrentAction.IsDurationExeeded)) {
                 CurrentAction.IsFinished = true;
             }
-        }
-        else {
+        } else {
             if (CurrentAction.IsDurationExeeded) {
                 CurrentAction.IsFinished = true;
             }
@@ -229,8 +227,7 @@ public unsafe class ScenarioNpc {
                 Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
             }
             CurrentAction.IsFinished = true;
-        }
-        else {
+        } else {
             Actor.SetPosition(newPosition);
         }
     }
@@ -321,8 +318,7 @@ public unsafe class ScenarioNpc {
 
         if (_scenarioActions.TryDequeue(out var action)) {
             return action;
-        }
-        else {
+        } else {
             return ScenarioNpcEmptyAction.Default;
         }
     }
