@@ -2,6 +2,7 @@ using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
+using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
@@ -21,6 +22,7 @@ public class ConfigWindow(
     PluginConfig _config,
     ScenarioFileManager _fileManager,
     DebugOverlay _debugOverlay,
+    ArrpEventService eventService,
     ArrpDtrControl dtrControl,
     ArrpDataCache dataCache) : ADalamudWindow("ARealmRepopulated Configuration###ARealmRepopulatedConfigWindow"), IDisposable {
 
@@ -41,7 +43,6 @@ public class ConfigWindow(
 
             if (ImGui.BeginTabBar("", ImGuiTabBarFlags.NoTooltip)) {
                 if (ImGui.BeginTabItem("Scenarios", ImGuiTabItemFlags.NoTooltip)) {
-
                     try {
                         ScenarioTab();
                     } catch (System.Exception ex) {
@@ -179,8 +180,8 @@ public class ConfigWindow(
             var scenarioIndex = 0;
             var scenarioFiles = _fileManager.GetScenarioFiles()
                 .Where(s => s.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
-                .OrderBy(s => s.MetaData.TerritoryId == state.TerritoryType ? 0 : 1)
-                .ThenBy(s => s.MetaData.TerritoryId)
+                .OrderBy(s => s.MetaData.Location.Territory == state.TerritoryType ? 0 : 1)
+                .ThenBy(s => s.MetaData.Location.Territory)
                 .ThenBy(s => s.MetaData.Title)
                 .ToList();
 
@@ -199,11 +200,10 @@ public class ConfigWindow(
 
                 ImGui.TableNextColumn();
 
-                var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.TerritoryId);
-
+                var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.Location.Territory);
                 var placeName = territoryData.PlaceName.Value.Name.ToString();
                 var zoneName = territoryData.PlaceNameZone.Value.Name.ToString();
-
+                var isInCorrectLocation = eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location);
 
                 if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.MapMarker)) {
                     unsafe {
@@ -211,7 +211,7 @@ public class ConfigWindow(
                     }
                 }
                 ImGui.SameLine(0, 10);
-                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, s.MetaData.TerritoryId == state.TerritoryType)) {
+                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, isInCorrectLocation)) {
                     ImGui.Text(placeName);
                 }
                 ImGui.TableNextColumn();

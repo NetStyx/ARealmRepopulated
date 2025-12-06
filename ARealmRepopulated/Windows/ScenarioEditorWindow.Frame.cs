@@ -15,6 +15,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using System.IO;
 using System.Numerics;
 using CsMaths = FFXIVClientStructs.FFXIV.Common.Math;
 
@@ -26,8 +27,8 @@ public partial class ScenarioEditorWindow(
     ScenarioFileManager scenarioFileManager,
     NpcAppearanceService appearanceService,
     ArrpDataCache dataCache,
+    ArrpEventService eventService,
     ArrpGuiEmotePicker emotePicker,
-    IClientState _state,
     IObjectTable objectTable,
     ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow"), IDisposable {
 
@@ -51,6 +52,7 @@ public partial class ScenarioEditorWindow(
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
 
+        this.TitleBarButtons.Add(new TitleBarButton { Icon = FontAwesomeIcon.InfoCircle, ShowTooltip = DrawFrameTooltip });
         this.OnWindowClosed += () => {
             debugOverlay.RemoveEditor(this);
         };
@@ -93,7 +95,16 @@ public partial class ScenarioEditorWindow(
     }
 
     public void CreateScenario() {
-        InitScenarioStructures(new ScenarioData { Title = "New Scenario", TerritoryId = _state.TerritoryType }, string.Empty);
+        var location = eventService.CurrentLocation;
+        InitScenarioStructures(new ScenarioData {
+            Title = "New Scenario", Location = new ScenarioLocation {
+                Territory = location.TerritoryType,
+                Server = location.Server,
+                HousingDivision = location.HousingDivision,
+                HousingPlot = location.HousingPlot,
+                HousingWard = location.HousingWard
+            }
+        }, string.Empty);
     }
 
     public void EditScenario(string filePath) {
@@ -128,6 +139,25 @@ public partial class ScenarioEditorWindow(
         this.WindowName = $"Scenario Editor - {ScenarioObject.Title}###{UniqueScenarioId}";
     }
 
+    private void DrawFrameTooltip() {
+        using var tooltip = ImRaii.Tooltip();
+        using var table = ImRaii.Table("##ScenarioEditFrameTooltipTable", 1, ImGuiTableFlags.NoSavedSettings);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        using (ImRaii.Disabled())
+            ImGui.Text("Scenario File Name");
+
+        string fileName = string.IsNullOrWhiteSpace(_scenarioFilePath) ? "not yet saved" : Path.GetFileName(_scenarioFilePath);
+        ImGui.Text($"{fileName}");
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        using (ImRaii.Disabled())
+            ImGui.Text("Scenario Location");
+        ImGui.Text($"Server {ScenarioObject.Location.Server} / Territory {ScenarioObject.Location.Territory} / Division {ScenarioObject.Location.HousingDivision} / Ward {ScenarioObject.Location.HousingWard} / Plot {ScenarioObject.Location.HousingPlot}");
+
+    }
     public override void Draw() {
 
         using (ImRaii.Child("##scenarioEditorMainArea", new Vector2(0, -50))) {
@@ -287,14 +317,20 @@ public partial class ScenarioEditorWindow(
         ImGui.TableNextColumn();
 
         var territoryName = "Undefined";
-        if (ScenarioObject.TerritoryId != 0) {
-            territoryName = dataCache.GetTerritoryType((ushort)ScenarioObject.TerritoryId).PlaceName.Value.Name.ToString();
+        if (ScenarioObject.Location.Territory > 0) {
+            territoryName = dataCache.GetTerritoryType((ushort)ScenarioObject.Location.Territory).PlaceName.Value.Name.ToString();
         }
 
-        ImGui.Text($"{ScenarioObject.TerritoryId} - {territoryName}");
+        ImGui.Text($"{ScenarioObject.Location.Territory} - {territoryName}");
         ImGui.SameLine(0, 5);
         if (ImGui.SmallButton("Set to Current Location")) {
-            ScenarioObject.TerritoryId = _state.TerritoryType;
+            var currentLocation = eventService.CurrentLocation;
+            ScenarioObject.Location.Server = currentLocation.Server;
+            ScenarioObject.Location.Territory = currentLocation.TerritoryType;
+            ScenarioObject.Location.HousingDivision = currentLocation.HousingDivision;
+            ScenarioObject.Location.HousingWard = currentLocation.HousingWard;
+            ScenarioObject.Location.HousingPlot = currentLocation.HousingPlot;
+            ScenarioObject.Location.Server = currentLocation.Server;
         }
 
         ImGui.TableNextRow();

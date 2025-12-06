@@ -1,3 +1,4 @@
+using ARealmRepopulated.Data.Location;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -7,6 +8,7 @@ namespace ARealmRepopulated.Infrastructure;
 public class ArrpEventService : IDisposable {
     private readonly IFramework _framework;
     private readonly IObjectTable _objectTable;
+    private readonly IPlayerState _playerState;
     private readonly IClientState _clientState;
     private readonly ICondition _condition;
     private readonly IPluginLog _log;
@@ -14,18 +16,19 @@ public class ArrpEventService : IDisposable {
     private bool _isTerritoryReady = true;
 
     public event Action<LocationData>? OnTerritoryLoadFinished;
-
     private bool IsBetweenZones =>
         _condition[ConditionFlag.BetweenAreas] ||
         _condition[ConditionFlag.BetweenAreas51];
 
     public bool IsTerritoryReady => _isTerritoryReady;
+    public LocationData CurrentLocation { get; private set; } = new LocationData();
 
-    public ArrpEventService(IFramework framework, IObjectTable objectTable, IClientState clientState, ICondition condition, IPluginLog log) {
+    public ArrpEventService(IFramework framework, IObjectTable objectTable, IClientState clientState, ICondition condition, IPlayerState player, IPluginLog log) {
         _clientState = clientState;
         _framework = framework;
         _condition = condition;
         _objectTable = objectTable;
+        _playerState = player;
         _log = log;
 
         framework.Update += Framework_Update;
@@ -53,30 +56,23 @@ public class ArrpEventService : IDisposable {
         if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones) {
             _isTerritoryReady = true;
             _log.Debug($"Territory changed to {_clientState.TerritoryType}. Zone ready.");
-
-
-            LocationData zoneData;
-            var housingManager = HousingManager.Instance();
-            if (housingManager != null) {
-                zoneData = new LocationData(_clientState.TerritoryType, housingManager->GetCurrentDivision(), housingManager->GetCurrentWard(), housingManager->GetCurrentPlot());
-            } else {
-                zoneData = new LocationData(_clientState.TerritoryType, 0, -1, -1);
-            }
-
-            /*
-            if (HousingManager.Instance()->IsInside()) {
-            _log.Debug("Ward " + housingManager->);
-            _log.Debug("Ward " + );
-            _log.Debug("Plot " + );
-            _log.Debug("Division " + );
-            _log.Debug("HouseId " + housingManager->GetCurrentHouseId().);
-            _log.Debug("Indoor HID " + housingManager->GetCurrentIndoorHouseId().Id);
-            }
-            */
-
-            OnTerritoryLoadFinished?.Invoke(zoneData);
+            CurrentLocation = RetrieveCurrentLocation();
+            OnTerritoryLoadFinished?.Invoke(CurrentLocation);
         }
     }
+
+    private unsafe LocationData RetrieveCurrentLocation() {
+        LocationData zoneData;
+        var housingManager = HousingManager.Instance();
+        var serverId = (int)_playerState.CurrentWorld.RowId;
+        if (housingManager != null) {
+            zoneData = new LocationData(serverId, _clientState.TerritoryType, housingManager->GetCurrentDivision(), housingManager->GetCurrentWard(), housingManager->GetCurrentPlot(), housingManager->IsInside());
+        } else {
+            zoneData = new LocationData(serverId, _clientState.TerritoryType, -1, -1, -1, false);
+        }
+        return zoneData;
+    }
+
 
     public void Dispose() {
         _framework.Update -= Framework_Update;
@@ -84,6 +80,3 @@ public class ArrpEventService : IDisposable {
         _clientState.Login -= ClientState_Login;
     }
 }
-
-
-public record LocationData(ushort TerritoryType, byte HousingDivision, sbyte HousingWard, sbyte HousingPlot);

@@ -9,6 +9,7 @@ public class DalamudDiWrapper(
     IDalamudPluginInterface pluginInterface,
     ICommandManager commandManager,
     IClientState clientState,
+    IPlayerState playerState,
     IDataManager dataManager,
     IPluginLog log,
     IObjectTable objectTable,
@@ -34,6 +35,7 @@ public class DalamudDiWrapper(
             .AddSingleton(dtrBar)
             .AddSingleton(gui)
             .AddSingleton(textureProvider)
+            .AddSingleton(playerState)
             .AddSingleton<ArrpGameHooks>()
             .AddSingleton<ArrpEventService>()
             .AddSingleton<ArrpDataCache>()

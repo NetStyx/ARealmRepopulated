@@ -31,6 +31,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<NpcAppearanceService>()
             .AddSingleton<ScenarioOrchestrator>()
             .AddSingleton<ScenarioFileManager>()
+            .AddSingleton<ScenarioMigrator>()
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
             .AddSingleton<ArrpGuiEmotePicker>()
@@ -48,6 +49,7 @@ public sealed class Plugin : IDalamudPlugin {
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
 
         Services.GetRequiredService<ArrpDataCache>().Populate();
+        Services.GetRequiredService<ScenarioMigrator>().Initialize();
         Services.GetRequiredService<ArrpDtrControl>().Initialize();
         Services.GetRequiredService<ChatCommands>().Initialize();
         Services.GetRequiredService<ScenarioOrchestrator>().Initialize();

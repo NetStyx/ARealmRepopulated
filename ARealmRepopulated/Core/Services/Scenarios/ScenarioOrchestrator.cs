@@ -1,5 +1,6 @@
 using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.Services.Npcs;
+using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
@@ -13,7 +14,6 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     private readonly Lock _scenarioActionLock = new();
     private const float ProximityCheckInterval = 0.5f;
     private float _lastProximityCheck = 0f;
-    private LocationData _currentTerritory = new(0, 0, -1, -1);
 
     public List<Orchestration> Orchestrations { get; set; } = [];
     public event Action? OnOrchestrationsChanged;
@@ -23,19 +23,15 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         foreach (var orchestration in Orchestrations) {
             var scenarioNpc = orchestration.Scenario.Npcs.FirstOrDefault(n => (Character*)n.Actor.Address == chara);
             if (scenarioNpc != null) {
-                pluginLog.Debug($"Character finalization in progress. Removing character {scenarioNpc.Actor.Address:X} from scenario");
+                pluginLog.Verbose($"Character finalization in progress. Removing character {scenarioNpc.Actor.Address:X} from scenario");
                 orchestration.Scenario.Npcs.Remove(scenarioNpc);
             }
         }
     }
 
     private void EventService_OnTerritoryReady(LocationData territory) {
-        pluginLog.Info($"Territory {territory.TerritoryType} ready");
-        if (_currentTerritory != territory) {
-            _currentTerritory = territory;
-            if (config.AutoLoadScenarios) {
-                Load(_currentTerritory);
-            }
+        if (config.AutoLoadScenarios) {
+            Load(eventService.CurrentLocation);
         }
     }
 
@@ -67,7 +63,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     }
 
     private void LoadFile(ScenarioFileData data) {
-        if (data.MetaData.TerritoryId != _currentTerritory.TerritoryType)
+
+        if (!eventService.CurrentLocation.IsInSameLocation(data.MetaData.Location))
             return;
 
         UnloadFile(data);
@@ -81,6 +78,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
             Orchestrations.Add(new Orchestration { Scenario = ParseScenarioData(scenarioData), Hash = data.FileHash });
             OnOrchestrationsChanged?.Invoke();
         }
+
+        pluginLog.Info($"Loaded Scenario {data.FileName}");
     }
 
     private Scenario ParseScenarioData(ScenarioData data) {
@@ -142,11 +141,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 removableList.Add(orchestration);
                 continue;
             }
-
             orchestration.Scenario.WaitForNextRun(time);
-
         }
-
         removableList.ForEach(UnloadOrchestration);
     }
 
@@ -154,7 +150,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         if (Orchestrations.Count == 0)
             return;
 
-        pluginLog.Info("Unloading scenarios");
+        pluginLog.Info("Unloading current scenarios");
 
         using var lockScope = _scenarioActionLock.EnterScope();
         Orchestrations.ForEach(UnloadOrchestration);
@@ -171,7 +167,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     }
 
     public void Reload() {
-        Load(_currentTerritory);
+        Load(eventService.CurrentLocation);
     }
 
     public void Initialize() {

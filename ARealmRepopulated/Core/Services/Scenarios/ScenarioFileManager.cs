@@ -1,7 +1,7 @@
 using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.Json;
+using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
-using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
@@ -10,8 +10,8 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public sealed record ScenarioFileData(string FileHash, string FilePath, ScenarioFileMetaData MetaData);
-public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework) : IDisposable {
+public sealed record ScenarioFileData(string FileHash, string FileName, string FilePath, ScenarioFileMetaData MetaData);
+public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, ScenarioMigrator migrator) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
     public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } } };
@@ -25,7 +25,6 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
 
     public string ScenarioPath => Path.Combine(pluginInterface.GetPluginConfigDirectory(), "Scenarios");
     public void StartMonitoring() {
-        ScanScenarioFiles();
 
         _fileSystemWatcher.Path = ScenarioPath;
         _fileSystemWatcher.Filter = "*.json";
@@ -33,6 +32,8 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         _fileSystemWatcher.IncludeSubdirectories = false;
         _fileSystemWatcher.EnableRaisingEvents = true;
         _fileSystemWatcher.OnModified += _fileSystemWatcherFired;
+
+        ScanScenarioFiles();
     }
 
     public void StopMonitoring() {
@@ -45,14 +46,17 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     }
 
     public List<ScenarioFileData> GetScenarioFilesByTerritory(LocationData location) {
-        return [.. _currentFiles.Where(x => x.MetaData.TerritoryId == location.TerritoryType)];
+        return [.. _currentFiles.Where(x => x.MetaData.Location.Territory == location.TerritoryType)];
     }
 
     public void ScanScenarioFiles() {
+
+        _fileSystemWatcher.EnableRaisingEvents = false;
         _currentFiles.Clear();
         Directory
             .GetFiles(ScenarioPath, "*.json", SearchOption.TopDirectoryOnly)
             .ToList().ForEach(TryReadScenarioFile);
+        _fileSystemWatcher.EnableRaisingEvents = true;
     }
 
     private void _fileSystemWatcherFired(FileSystemEventArgs e)
@@ -84,9 +88,12 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         }
 
         fileInfo.WaitForAccessibility();
-        var fileMetaData = JsonSerializer.Deserialize<ScenarioFileMetaData>(fileInfo.OpenRead(), ScenarioMetaSerializerOptions)!;
+        if (!migrator.Migrate(fileInfo, out var fileMetaData)) {
+            return;
+        }
+
         var fileHash = fileInfo.GetFileHash();
-        var fileData = new ScenarioFileData(fileHash, fileInfo.FullName, fileMetaData);
+        var fileData = new ScenarioFileData(fileHash, fileInfo.Name, fileInfo.FullName, fileMetaData);
 
         var loadedFileInfo = _currentFiles.FirstOrDefault(x => x.FileHash == fileHash || x.FilePath == fileInfo.FullName);
         if (loadedFileInfo != null) {

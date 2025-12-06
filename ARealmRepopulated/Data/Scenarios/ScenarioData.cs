@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.Services.Scenarios;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
@@ -5,9 +6,10 @@ using System.Text.Json.Serialization;
 namespace ARealmRepopulated.Data.Scenarios;
 
 public class ScenarioData : IScenarioMetaData {
+    public int Version { get; set; } = ScenarioMigrator.CurrentScenarioVersion;
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
-    public int TerritoryId { get; set; }
+    public ScenarioLocation Location { get; set; } = new();
     public List<ScenarioNpcData> Npcs { get; set; } = [];
     public bool Looping { get; set; } = true;
     public float LoopDelay { get; set; } = 0f;
@@ -15,19 +17,28 @@ public class ScenarioData : IScenarioMetaData {
 }
 
 public class ScenarioFileMetaData : IScenarioMetaData {
+    public int Version { get; set; } = 1;
     public bool Enabled { get; set; } = true;
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
-    public int TerritoryId { get; set; }
+    public ScenarioLocation Location { get; set; } = new();
+}
+
+public class ScenarioLocation {
+    public int Territory { get; set; }
+    public int Server { get; set; }
+    public int HousingDivision { get; set; }
+    public int HousingWard { get; set; }
+    public int HousingPlot { get; set; }
 }
 
 public interface IScenarioMetaData {
+    int Version { get; }
     string Title { get; }
     string Description { get; }
-    int TerritoryId { get; }
+    ScenarioLocation Location { get; }
     bool Enabled { get; }
 }
-
 
 public class ScenarioNpcData {
     public string Name { get; set; } = "";
