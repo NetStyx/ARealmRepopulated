@@ -22,8 +22,7 @@ public static class FileExtensions {
     public static bool IsAccessible(this FileInfo fileInfo) {
         try {
             using var _ = fileInfo.OpenRead();
-        }
-        catch (Exception) {
+        } catch (Exception) {
             return false;
         }
 

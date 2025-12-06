@@ -21,6 +21,6 @@ public class PluginConfig : IPluginConfiguration {
 
 
     [JsonExtensionData]
-    public Dictionary<string, object> AdditionalData { get; set; } = new();
+    internal Dictionary<string, object> AdditionalData { get; set; } = new();
 
 }

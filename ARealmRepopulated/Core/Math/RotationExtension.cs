@@ -9,8 +9,7 @@ public static class RotationExtension {
         var deltaRotation = targetRotation - currentRotation;
         if (deltaRotation <= -MathF.PI) {
             deltaRotation += MathF.Tau;
-        }
-        else if (deltaRotation > MathF.PI) {
+        } else if (deltaRotation > MathF.PI) {
             deltaRotation -= MathF.Tau;
         }
 

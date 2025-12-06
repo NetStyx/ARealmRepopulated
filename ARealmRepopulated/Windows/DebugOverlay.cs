@@ -91,7 +91,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     private void DrawScenarioDebugInfo(ScenarioEditorWindow data) {
 
-        if (data.ScenarioObject.TerritoryId != clientState.TerritoryType)
+        if (data.ScenarioObject.Location.Territory != clientState.TerritoryType)
             return;
 
         ImDrawListPtr drawing = ImGui.GetWindowDrawList();

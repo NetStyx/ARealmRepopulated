@@ -153,8 +153,7 @@ public class NpcAppearanceFile {
         var exportData = "";
         if (format == SaveFormat.Base64) {
             exportData = ToBase64();
-        }
-        else {
+        } else {
             exportData = JsonSerializer.Serialize(this);
 
         }
