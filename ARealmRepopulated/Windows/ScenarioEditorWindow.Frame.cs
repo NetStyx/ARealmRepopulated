@@ -33,14 +33,16 @@ public partial class ScenarioEditorWindow(
     ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow"), IDisposable {
 
     private string _scenarioFilePath = string.Empty;
-    private NpcActionUiRegistry _actionUiRegistry = new();
+    private readonly NpcActionUiRegistry _actionUiRegistry = new();
     public ScenarioData ScenarioObject { get; private set; } = null!;
     public ScenarioNpcData? SelectedScenarioNpc { get; private set; } = null;
     public ScenarioNpcAction? SelectedScenarioNpcAction { get; private set; } = null!;
+    public PathMovementPoint? SelectedPathMovementPoint { get; private set; } = null;
+
     public Guid UniqueScenarioId { get; set; } = Guid.NewGuid();
 
-    private TransferState _importState = new() { DefaultIcon = FontAwesomeIcon.Download };
-    private TransferState _exportState = new() { DefaultIcon = FontAwesomeIcon.Upload };
+    private readonly TransferState _importState = new() { DefaultIcon = FontAwesomeIcon.Download };
+    private readonly TransferState _exportState = new() { DefaultIcon = FontAwesomeIcon.Upload };
 
     protected override void SetWindowOptions() {
         this.AllowPinning = false;
@@ -48,9 +50,11 @@ public partial class ScenarioEditorWindow(
 
         Flags = ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoCollapse;
         SizeConstraints = new WindowSizeConstraints {
-            MinimumSize = new Vector2(900, 700),
+            MinimumSize = new Vector2(400, 400),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
+        this.Size = new Vector2(800, 900);
+        this.SizeCondition = ImGuiCond.Appearing;
 
         this.TitleBarButtons.Add(new TitleBarButton { Icon = FontAwesomeIcon.InfoCircle, ShowTooltip = DrawFrameTooltip });
         this.OnWindowClosed += () => {
@@ -92,6 +96,12 @@ public partial class ScenarioEditorWindow(
             help: (a) => "Pauses continuation of the action list until every scenario actor has reached the same sync action",
             draw: DrawSyncAction
         );
+        _actionUiRegistry.Register<ScenarioNpcPathAction>(
+            shortName: (a) => "Path",
+            help: (a) => "Moves based on a point list",
+            draw: DrawPathAction
+        );
+
     }
 
     public void CreateScenario() {
@@ -148,7 +158,7 @@ public partial class ScenarioEditorWindow(
         using (ImRaii.Disabled())
             ImGui.Text("Scenario File Name");
 
-        string fileName = string.IsNullOrWhiteSpace(_scenarioFilePath) ? "not yet saved" : Path.GetFileName(_scenarioFilePath);
+        var fileName = string.IsNullOrWhiteSpace(_scenarioFilePath) ? "not yet saved" : Path.GetFileName(_scenarioFilePath);
         ImGui.Text($"{fileName}");
 
         ImGui.TableNextRow();
@@ -555,6 +565,8 @@ public partial class ScenarioEditorWindow(
                     }
                 }
             }
+            ImGui.TableNextColumn();
+            DrawCurrentActionBar();
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();

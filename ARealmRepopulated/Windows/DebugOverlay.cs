@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Bindings.ImGuizmo;
@@ -79,7 +80,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         if (_npcTrace == Vector3.Zero)
             return;
 
-        gui.WorldToScreen(_npcTrace, out Vector2 screenPosition);
+        gui.WorldToScreen(_npcTrace, out var screenPosition);
         gui.WorldToScreen(objectTable.LocalPlayer?.Position ?? Vector3.One, out var playerScreenPosition);
 
         var drawing = ImGui.GetWindowDrawList();
@@ -94,13 +95,13 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         if (data.ScenarioObject.Location.Territory != clientState.TerritoryType)
             return;
 
-        ImDrawListPtr drawing = ImGui.GetWindowDrawList();
+        var drawing = ImGui.GetWindowDrawList();
         foreach (var npcs in data.ScenarioObject.Npcs) {
 
             if (data.SelectedScenarioNpc != npcs)
                 continue;
 
-            bool renderStartPosition = gui.WorldToScreen(npcs.Position, out Vector2 startingPosition);
+            var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
             if (renderStartPosition) {
                 var rotation = npcs.Rotation;
 
@@ -113,7 +114,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                     var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
                     var npcRotation = npcs.Rotation;
 
-                    if (DrawGizmo(ref npcPosition, ref npcRotation)) {
+                    if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
                         npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
                         npcs.Rotation = npcRotation;
                     }
@@ -126,20 +127,45 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
             foreach (var action in npcs.Actions) {
 
+                var isSelectedAction = data.SelectedScenarioNpcAction == action;
+                var targetColor = isSelectedAction ? _imguiColorGreen : _imguiColorBlack;
+
+                if (action is ScenarioNpcPathAction pathAction) {
+                    foreach (var target in pathAction.Points) {
+                        var renderMoveTarget = gui.WorldToScreen(target.Point, out var moveTarget);
+                        if (renderMoveTarget) {
+                            drawing.AddCircleFilled(moveTarget, 5f, targetColor);
+
+                            if (data.SelectedPathMovementPoint == target) {
+                                var movePosition = target.Point.AsVector();
+                                var moveRotation = 0f;
+                                if (DrawGizmo($"##DebugPathGizmo{target.GetHashCode()}", ref movePosition, ref moveRotation, ImGuizmoOperation.Translate)) {
+                                    target.Point = movePosition.AsCsVector();
+                                }
+                            }
+                        }
+
+                        if (fromPoint != Vector2.Zero) {
+                            drawing.AddLine(fromPoint, moveTarget, targetColor);
+                        }
+                        fromPoint = moveTarget;
+                    }
+
+                }
+
 
                 if (action is ScenarioNpcMovementAction moveAction) {
-                    bool isSelectedAction = data.SelectedScenarioNpcAction == moveAction;
-                    var targetColor = isSelectedAction ? _imguiColorGreen : _imguiColorBlack;
 
 
-                    bool renderMoveTarget = gui.WorldToScreen(moveAction.TargetPosition, out Vector2 moveTarget);
+
+                    var renderMoveTarget = gui.WorldToScreen(moveAction.TargetPosition, out var moveTarget);
                     if (renderMoveTarget) {
                         drawing.AddCircleFilled(moveTarget, 5f, targetColor);
 
                         if (isSelectedAction) {
                             var movePosition = new Vector3(moveAction.TargetPosition.X, moveAction.TargetPosition.Y, moveAction.TargetPosition.Z);
                             var moveRotation = 0f;
-                            if (DrawGizmo(ref movePosition, ref moveRotation, ImGuizmoOperation.Translate)) {
+                            if (DrawGizmo($"##DebugMoveGizmo{moveAction.GetHashCode()}", ref movePosition, ref moveRotation, ImGuizmoOperation.Translate)) {
                                 moveAction.TargetPosition = new(movePosition.X, movePosition.Y, movePosition.Z);
                             }
                         }
@@ -160,7 +186,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     }
 
-    private unsafe bool DrawGizmo(ref Vector3 position, ref float roation, ImGuizmoOperation mode = ImGuizmoOperation.RotateY | ImGuizmoOperation.Translate) {
+    private unsafe bool DrawGizmo(string id, ref Vector3 position, ref float roation, ImGuizmoOperation mode = ImGuizmoOperation.RotateY | ImGuizmoOperation.Translate, float controlScale = 1.5f) {
         var wasModified = false;
         var pos = ImGui.GetWindowPos();
         var size = new Vector2(ImGui.GetIO().DisplaySize.X, ImGui.GetIO().DisplaySize.Y);
@@ -172,13 +198,11 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         ImGuizmo.SetDrawlist();
 
         ImGuizmo.SetOrthographic(false);
-        ImGuizmo.SetID((int)ImGui.GetID("ScenarioDebugOverlayGizmo"));
+        ImGuizmo.SetID((int)ImGui.GetID(id));
         ImGuizmo.Enable(true);
 
-        const float baseClipSize = 1.5f;
-        float distance = MathF.Max(Vector3.Distance(cameraPosition, position), baseClipSize);
-        ImGuizmo.SetGizmoSizeClipSpace(baseClipSize / distance);
-
+        var distance = MathF.Max(Vector3.Distance(cameraPosition, position), controlScale);
+        ImGuizmo.SetGizmoSizeClipSpace(controlScale / distance);
 
         ImGuizmo.SetRect(pos.X, pos.Y, size.X, size.Y);
 

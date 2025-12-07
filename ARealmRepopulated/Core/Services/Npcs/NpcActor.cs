@@ -1,5 +1,5 @@
-using ARealmRepopulated.Core.Math;
 using ARealmRepopulated.Core.Services.Chat;
+using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -96,14 +96,14 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public bool IsLoopingEmote(ushort emoteid)
         => appearanceService.IsRepeatingEmote(emoteid);
 
-    public void SetAnimation(Animations animation) {
-        appearanceService.SetAnimation(_actor, animation);
-    }
+    public void SetAnimation(Animations animation)
+        => appearanceService.SetAnimation(_actor, animation);
 
+    public Animations GetAnimation()
+        => appearanceService.GetAnimation(_actor);
 
     public void SetAppearance(string base64JsonData)
         => SetAppearance(NpcAppearanceFile.FromBase64(base64JsonData));
-
 
     public void SetAppearance(NpcAppearanceFile appearanceFile) {
         appearanceService.Apply((Character*)_actor, appearanceFile);
@@ -115,8 +115,6 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
 
     public void Talk(string text, float playTime = 3f)
         => cbs.Talk((Character*)_actor, text, playTime);
-
-
 
     public unsafe void Draw() {
         framework.RunOnTick(() => {

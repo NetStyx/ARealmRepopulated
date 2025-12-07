@@ -54,6 +54,7 @@ public class ScenarioNpcData {
 [JsonDerivedType(typeof(ScenarioNpcDespawnAction), typeDiscriminator: "Despawn")]
 [JsonDerivedType(typeof(ScenarioNpcWaitingAction), typeDiscriminator: "Waiting")]
 [JsonDerivedType(typeof(ScenarioNpcMovementAction), typeDiscriminator: "Movement")]
+[JsonDerivedType(typeof(ScenarioNpcPathAction), typeDiscriminator: "Path")]
 [JsonDerivedType(typeof(ScenarioNpcRotationAction), typeDiscriminator: "Rotation")]
 [JsonDerivedType(typeof(ScenarioNpcEmoteAction), typeDiscriminator: "Emote")]
 [JsonDerivedType(typeof(ScenarioNpcSyncAction), typeDiscriminator: "Sync")]
@@ -66,6 +67,24 @@ public abstract class ScenarioNpcAction {
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public float Duration { get; set; } = 0f;
+}
+
+public class ScenarioNpcPathAction : ScenarioNpcAction {
+
+    public float Tension { get; set; } = 0.5f;
+    public List<PathMovementPoint> Points { get; set; } = [];
+}
+
+public class PathMovementPoint {
+    public Vector3 Point { get; set; }
+    public NpcSpeed Speed { get; set; }
+    public float CustomSpeed { get; set; } = 0f;
+}
+
+public enum NpcSpeed {
+    Walking, // = 2.5f
+    Running, // = 6.3f
+    Custom // use CustomSpeed
 }
 
 public class ScenarioNpcWaitingAction : ScenarioNpcAction {
