@@ -171,6 +171,8 @@ public partial class ScenarioEditorWindow {
             SelectedPathMovementPoint = point;
 
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Add a new point to the collection. If one was previously selected in the list, the new point is inserted below your selection.");
 
         ImGui.TableNextColumn();
 
@@ -191,10 +193,14 @@ public partial class ScenarioEditorWindow {
             if (ImGuiComponents.IconButton($"##scenarioNpcPathActionPointsTableRemoveEntry{i}", Dalamud.Interface.FontAwesomeIcon.Trash)) {
                 moveAction.Points.Remove(point);
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Remove this point from the collection");
             ImGui.SameLine();
             if (ImGuiComponents.IconButton($"##scenarioNpcPathActionPointsTableSelectRowEntry{i}", Dalamud.Interface.FontAwesomeIcon.LocationArrow)) {
                 SelectedPathMovementPoint = point;
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set this point as active for display in the debugger. Also determines the insert point for new points.");
 
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(-1);
