@@ -417,9 +417,12 @@ public partial class ScenarioEditorWindow(
                 SelectedScenarioNpc.Position = new CsMaths.Vector3(position.X, position.Y, position.Z);
             }
             ImGui.SameLine();
-            if (ImGui.SmallButton("Set Current Position") && objectTable.LocalPlayer != null) {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
                 SelectedScenarioNpc.Position = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set to current location");
+
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
@@ -431,9 +434,11 @@ public partial class ScenarioEditorWindow(
                 SelectedScenarioNpc.Rotation = rotation;
             }
             ImGui.SameLine();
-            if (ImGui.SmallButton("Set Current Rotation")) {
-                SelectedScenarioNpc.Rotation = objectTable.LocalPlayer?.Rotation ?? 0f;
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin) && objectTable.LocalPlayer != null) {
+                SelectedScenarioNpc.Rotation = objectTable.LocalPlayer.Rotation;
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set to current rotation");
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
@@ -446,17 +451,7 @@ public partial class ScenarioEditorWindow(
             }
 
             ImGui.SameLine();
-            using (ImRaii.Disabled(_targetManager.Target == null)) {
-                if (ImGui.SmallButton("From Current Target")) {
-                    var currentTargetAppearance = ExportCurrentTarget();
-                    if (!string.IsNullOrWhiteSpace(currentTargetAppearance)) {
-                        SelectedScenarioNpc.Appearance = currentTargetAppearance;
-                    }
-                }
-            }
-
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.PeoplePulling)) {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.PeoplePulling)) {
                 ImGui.OpenPopup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup");
             }
             if (ImGui.IsItemHovered())
@@ -466,6 +461,20 @@ public partial class ScenarioEditorWindow(
                 DrawNpcPickerPopup();
                 ImGui.EndPopup();
             }
+
+            ImGui.SameLine();
+            using (ImRaii.Disabled(_targetManager.Target == null)) {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.UsersRays)) {
+                    var currentTargetAppearance = ExportCurrentTarget();
+                    if (!string.IsNullOrWhiteSpace(currentTargetAppearance)) {
+                        SelectedScenarioNpc.Appearance = currentTargetAppearance;
+                    }
+                }
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Pick appearance from target");
+
+
 
         }
     }

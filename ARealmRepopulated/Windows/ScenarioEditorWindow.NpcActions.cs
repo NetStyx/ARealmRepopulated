@@ -1,6 +1,7 @@
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using System.Numerics;
@@ -122,9 +123,11 @@ public partial class ScenarioEditorWindow {
             moveAction.TargetPosition = new CsMaths.Vector3(position.X, position.Y, position.Z);
         }
         ImGui.SameLine();
-        if (ImGui.SmallButton("Set Current Position##scenarioNpcMoveActionCurrentPosition") && objectTable.LocalPlayer != null) {
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
             moveAction.TargetPosition = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Set to current location");
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -195,6 +198,7 @@ public partial class ScenarioEditorWindow {
             }
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Remove this point from the collection");
+
             ImGui.SameLine();
             if (ImGuiComponents.IconButton($"##scenarioNpcPathActionPointsTableSelectRowEntry{i}", Dalamud.Interface.FontAwesomeIcon.LocationArrow)) {
                 SelectedPathMovementPoint = point;
@@ -223,9 +227,11 @@ public partial class ScenarioEditorWindow {
 
 
             ImGui.SameLine();
-            if (ImGui.SmallButton($"Set Current Position##scenarioNpcPathActionPointsTableSetPointToPlayer{i}") && objectTable.LocalPlayer != null) {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
                 point.Point = objectTable.LocalPlayer.Position.AsCsVector();
             }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set to current location");
 
 
             ImGui.SameLine();
