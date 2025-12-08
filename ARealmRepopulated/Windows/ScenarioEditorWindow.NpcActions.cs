@@ -1,5 +1,8 @@
+using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using System.Numerics;
@@ -30,6 +33,10 @@ public partial class ScenarioEditorWindow {
             AddAction(new ScenarioNpcMovementAction { TargetPosition = objectTable.LocalPlayer?.Position ?? new CsMaths.Vector3() });
         }
 
+        if (ImGui.Selectable("Path")) {
+            AddAction(new ScenarioNpcPathAction { Points = [new() { Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? new CsMaths.Vector3(), Speed = NpcSpeed.Running }] });
+        }
+
         if (ImGui.Selectable("Rotation")) {
             AddAction(new ScenarioNpcRotationAction { TargetRotation = objectTable.LocalPlayer?.Rotation ?? 0f });
         }
@@ -39,6 +46,12 @@ public partial class ScenarioEditorWindow {
         }
     }
 
+    private void DrawCurrentActionBar() {
+        if (SelectedScenarioNpcAction == null) {
+            return;
+        }
+
+    }
 
     private void DrawCurrentAction() {
         if (SelectedScenarioNpcAction == null) {
@@ -111,18 +124,133 @@ public partial class ScenarioEditorWindow {
             moveAction.TargetPosition = new CsMaths.Vector3(position.X, position.Y, position.Z);
         }
         ImGui.SameLine();
-        if (ImGui.SmallButton("Set Current Position##scenarioNpcMoveActionCurrentPosition") && objectTable.LocalPlayer != null) {
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
             moveAction.TargetPosition = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Set to current location");
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text("Speed");
+        ImGui.TableNextColumn();
+
+        if (ImGui.BeginCombo($"##scenarioNpcMoveActionPositionSpeedSelection", moveAction.Speed.ToString())) {
+            if (ImGui.Selectable($"Walking##scenarioNpcMoveActionPositionSpeedSelectionWalking", moveAction.Speed == NpcSpeed.Walking)) {
+                moveAction.Speed = NpcSpeed.Walking;
+            }
+            if (ImGui.Selectable($"Running##scenarioNpcMoveActionPositionSpeedSelectionRunning", moveAction.Speed == NpcSpeed.Running)) {
+                moveAction.Speed = NpcSpeed.Running;
+            }
+            ImGui.EndCombo();
+        }
+
+    }
+
+    private void DrawPathAction(ScenarioNpcPathAction moveAction) {
+
+
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text("Tension");
+        ImGui.SameLine();
+        ImGuiComponents.HelpMarker("Defines how 'curvy' the npc will move along the path. A value of 0 equals drunk, a value of 1 means thunder. A value between 0.25 and 0.5 yields a natural response in normal circumstances.");
+        ImGui.TableNextColumn();
+        var tensionRef = moveAction.Tension;
+        if (ImGui.SliderFloat("##scenarioNpcPathInputTension", ref tensionRef, 0f, 1f)) {
+            moveAction.Tension = tensionRef;
         }
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TableNextColumn();
+        ImGui.Separator();
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add Point##scenarioNpcPathActionPointsTableAddEntry")) {
 
-        var isRunning = moveAction.IsRunning;
-        if (ImGui.Checkbox("Running? ##scenarioNpcMoveActionIsRunning", ref isRunning)) {
-            moveAction.IsRunning = isRunning;
+            var point = new PathMovementPoint { Speed = SelectedPathMovementPoint != null ? SelectedPathMovementPoint.Speed : NpcSpeed.Walking, Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? Vector3.Zero };
+
+            if (SelectedPathMovementPoint != null) {
+                var index = moveAction.Points.IndexOf(SelectedPathMovementPoint);
+                if (index >= 0) {
+                    moveAction.Points.Insert(index + 1, point);
+                } else {
+                    moveAction.Points.Add(point);
+                }
+            } else {
+                moveAction.Points.Add(point);
+            }
+
+            SelectedPathMovementPoint = point;
+
         }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Add a new point to the collection. If one was previously selected in the list, the new point is inserted below your selection.");
+
+        ImGui.TableNextColumn();
+        ImGui.Separator();
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+        using var child = ImRaii.Child("##scenarioNpcPathActionPointsChild", new Vector2(0, -20));
+        using var table = ImRaii.Table("##scenarioNpcPathActionPointsTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.NoBordersInBody);
+
+        ImGui.TableSetupColumn("##scenarioNpcPathActionPointsTableActionCol", ImGuiTableColumnFlags.WidthFixed, 50);
+        ImGui.TableSetupColumn("##scenarioNpcPathActionPointsTableSpeedCol", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("##scenarioNpcPathActionPointsTablePointCol", ImGuiTableColumnFlags.WidthStretch);
+
+        for (var i = 0; i < moveAction.Points.Count; i++) {
+            var point = moveAction.Points[i];
+
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+
+            if (ImGuiComponents.IconButton($"##scenarioNpcPathActionPointsTableRemoveEntry{i}", Dalamud.Interface.FontAwesomeIcon.Trash)) {
+                moveAction.Points.Remove(point);
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Remove this point from the collection");
+
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton($"##scenarioNpcPathActionPointsTableSelectRowEntry{i}", Dalamud.Interface.FontAwesomeIcon.LocationArrow)) {
+                SelectedPathMovementPoint = point;
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set this point as active for display in the debugger. Also determines the insert point for new points.");
+
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(-1);
+            if (ImGui.BeginCombo($"##scenarioNpcPathActionPointsTableSpeedSelection{i}", point.Speed.ToString())) {
+                if (ImGui.Selectable($"Walking##scenarioNpcPathActionPointsTableSpeedSelectionWalking{i}", point.Speed == NpcSpeed.Walking)) {
+                    point.Speed = NpcSpeed.Walking;
+                }
+                if (ImGui.Selectable($"Running##scenarioNpcPathActionPointsTableSpeedSelectionRunning{i}", point.Speed == NpcSpeed.Running)) {
+                    point.Speed = NpcSpeed.Running;
+                }
+                ImGui.EndCombo();
+            }
+
+            ImGui.TableNextColumn();
+
+            var pointPos = point.Point.AsVector();
+            if (ImGui.InputFloat3($"##scenarioNpcPathActionPointsTablePoint{i}", ref pointPos)) {
+                point.Point = pointPos;
+            }
+
+
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
+                point.Point = objectTable.LocalPlayer.Position.AsCsVector();
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Set to current location");
+
+
+            ImGui.SameLine();
+            ImGui.Selectable($"##scenarioNpcPathActionPointsTableSelectable{i}", SelectedPathMovementPoint == point, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.Disabled);
+
+        }
+
     }
 
     private void DrawDespawnAction(ScenarioNpcDespawnAction despawnAction) {

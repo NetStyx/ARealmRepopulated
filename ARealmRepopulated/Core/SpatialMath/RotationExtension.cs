@@ -1,4 +1,4 @@
-namespace ARealmRepopulated.Core.Math;
+namespace ARealmRepopulated.Core.SpatialMath;
 
 public static class RotationExtension {
     public static bool AlmostEqual(float currentRotation, float targetRotation, float epsilon = .0001f)

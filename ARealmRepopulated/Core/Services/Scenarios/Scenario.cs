@@ -1,5 +1,7 @@
-using ARealmRepopulated.Core.Math;
 using ARealmRepopulated.Core.Services.Npcs;
+using ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing;
+using ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing.Segments;
+using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using FFXIVClientStructs.FFXIV.Common.Math;
 
@@ -10,7 +12,7 @@ public unsafe class Scenario {
     public bool IsLooping { get; set; } = false;
     public TimeSpan DelayBetweenRuns { get; set; } = TimeSpan.Zero;
 
-    private ScenarioState _state = new();
+    private readonly ScenarioState _state = new();
     private double _currentDelay = 0;
 
     public bool IsFinished
@@ -62,12 +64,12 @@ public unsafe class ScenarioNpc {
 
     private List<ScenarioNpcAction> _actions { get; set; } = [];
 
-    private Queue<ScenarioNpcAction> _scenarioActions = new();
+    private readonly Queue<ScenarioNpcAction> _scenarioActions = new();
 
     public ScenarioNpcActionExecution CurrentAction { get; private set; } = ScenarioNpcActionExecution.Default;
 
-    private TimeSpan _proximityTimeout = TimeSpan.FromSeconds(15);
-    private float _proximityDistance = 10f;
+    private readonly TimeSpan _proximityTimeout = TimeSpan.FromSeconds(15);
+    private readonly float _proximityDistance = 10f;
 
     public void AddAction(params ScenarioNpcAction[] actions) {
         var scenarioKey = 1;
@@ -90,7 +92,11 @@ public unsafe class ScenarioNpc {
 
         switch (CurrentAction.Action) {
             case ScenarioNpcMovementAction movement:
-                AdvanceMovement(movement, time);
+                AdvanceSimpleMovement(movement, time);
+                break;
+
+            case ScenarioNpcPathAction pathMovement:
+                AdvancePathMovement(pathMovement, time);
                 break;
 
             case ScenarioNpcRotationAction rotation:
@@ -159,12 +165,12 @@ public unsafe class ScenarioNpc {
 
     }
 
-    private void AdvanceSpawn(ScenarioNpcSpawnAction action) {
+    private void AdvanceSpawn(ScenarioNpcSpawnAction _) {
         Actor.Spawn();
         CurrentAction.IsFinished = true;
     }
 
-    private void AdvanceDespawn(ScenarioNpcDespawnAction action) {
+    private void AdvanceDespawn(ScenarioNpcDespawnAction _) {
         Actor.Fade(-0.10f);
         if (Actor.IsFadedOut()) {
             Actor.Despawn();
@@ -190,17 +196,51 @@ public unsafe class ScenarioNpc {
         }
     }
 
-    private void AdvanceTimeline(ScenarioNpcTimelineAction action, TimeSpan delta) {
+    private void AdvanceTimeline(ScenarioNpcTimelineAction action, TimeSpan _) {
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration = 0.1f;
             Actor.PlayTimeline(action.TimelineId);
         }
     }
 
-    private void AdvanceMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
+    private void AdvancePathMovement(ScenarioNpcPathAction action, TimeSpan delta) {
+
+        if (!CurrentAction.Pathfinder.IsPathReady)
+            return;
+
+        Actor.SetAnimation(CurrentAction.Pathfinder.CurrentSpeed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
+
+        if (!CurrentAction.Pathfinder.IsUserReady) {
+            var currentRotation = Actor.GetRotation();
+            var targetRotation = Actor.GetPosition().DirectionTo(action.Points.First().Point);
+            if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
+                var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
+                var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);
+
+                Actor.SetRotation(newRotation);
+                return;
+            }
+
+            CurrentAction.Pathfinder.IsUserReady = true;
+        }
+
+        CurrentAction.Pathfinder.Update((float)delta.TotalSeconds, out var nextPos, out var yaw);
+        if (CurrentAction.Pathfinder.IsFinished) {
+            if (_scenarioActions.TryPeek(out var nextAction) && nextAction is not ScenarioNpcMovementAction) {
+                Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
+            }
+            CurrentAction.IsFinished = true;
+        } else {
+            Actor.SetPosition(nextPos);
+            Actor.SetRotation(yaw);
+        }
+
+    }
+
+    private void AdvanceSimpleMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration = 0.1f;
-            Actor.SetAnimation(action.IsRunning ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
+            Actor.SetAnimation(action.Speed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
         }
 
         var currentRotation = Actor.GetRotation();
@@ -213,11 +253,9 @@ public unsafe class ScenarioNpc {
             return;
         }
 
-
         var currentPosition = Actor.GetPosition();
         var targetPosition = action.TargetPosition;
-        var speeds = action.IsRunning ? NpcActor.RunningSpeed : NpcActor.WalkingSpeed;
-
+        var speeds = action.Speed == NpcSpeed.Running ? NpcActor.RunningSpeed : NpcActor.WalkingSpeed;
         var distanceStep = speeds * (float)delta.TotalSeconds / Vector3.Distance(currentPosition, targetPosition);
         var newPosition = Vector3.Lerp(currentPosition, targetPosition, distanceStep);
 
@@ -252,7 +290,7 @@ public unsafe class ScenarioNpc {
         }
     }
 
-    private void AdvanceSync(ScenarioState state, ScenarioNpcSyncAction action, TimeSpan delta) {
+    private void AdvanceSync(ScenarioState state, ScenarioNpcSyncAction _, TimeSpan __) {
         if (CurrentAction == null)
             return;
 
@@ -270,16 +308,35 @@ public unsafe class ScenarioNpc {
     }
 
     private ScenarioNpcActionExecution SetupNextAction() {
+
         var execution = new ScenarioNpcActionExecution { Action = GetNextAction() };
         if (execution.IsEmpty) {
             return execution;
         }
 
         switch (execution.Action) {
-            case ScenarioNpcMovementAction movement:
+            case ScenarioNpcMovementAction:
                 execution.IsInfinite = false;
                 break;
-            case ScenarioNpcRotationAction rotation:
+
+            case ScenarioNpcPathAction pathAction:
+                execution.IsInfinite = false;
+                execution.Pathfinder.Reset();
+
+                var firstPoint = pathAction.Points.FirstOrDefault();
+                if (firstPoint != null) {
+                    // add the current actor position to the point iteration to not "warp" around                    
+                    var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s.Speed) }).ToList();
+                    pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint.Speed) });
+
+                    execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
+                } else {
+                    execution.Action.NpcTalk = "\uE040 Tell the scenario writer that there is a problem with my path \uE041";
+                }
+
+                break;
+
+            case ScenarioNpcRotationAction:
                 execution.IsInfinite = false;
                 break;
 
@@ -288,15 +345,15 @@ public unsafe class ScenarioNpc {
                 execution.TargetDuration = emote.Duration;
                 break;
 
-            case ScenarioNpcTimelineAction timeline:
+            case ScenarioNpcTimelineAction:
                 execution.IsInfinite = false;
                 break;
 
-            case ScenarioNpcSpawnAction spawn:
+            case ScenarioNpcSpawnAction:
                 execution.IsInfinite = false;
                 break;
 
-            case ScenarioNpcDespawnAction despawn:
+            case ScenarioNpcDespawnAction:
                 execution.IsInfinite = false;
                 break;
 
@@ -305,6 +362,7 @@ public unsafe class ScenarioNpc {
                 execution.TargetDuration = t.Duration;
                 break;
         }
+
 
         return execution;
     }
@@ -326,8 +384,7 @@ public unsafe class ScenarioNpc {
 }
 
 public class ScenarioNpcActionExecution {
-
-    public static ScenarioNpcActionExecution Default => new() { Action = new ScenarioNpcEmptyAction() };
+    public static ScenarioNpcActionExecution Default => new ScenarioNpcActionExecution() { Action = new ScenarioNpcEmptyAction() };
 
     public float TargetDuration { get; set; }
     public float CurrentDuration { get; set; }
@@ -344,6 +401,8 @@ public class ScenarioNpcActionExecution {
     public DateTime LastProximityAction { get; set; } = DateTime.MinValue;
     public bool ProximityExecuted { get; set; } = false;
     public bool IsInProximity { get; set; } = false;
-
     public required ScenarioNpcAction Action { get; set; }
+
+    public PathMovementRuntime Pathfinder { get; set; } = new PathMovementRuntime();
+
 }

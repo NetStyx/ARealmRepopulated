@@ -9,6 +9,7 @@ namespace ARealmRepopulated.Core.Services.Npcs;
 public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache dataCache) {
 
     public enum Animations : ushort {
+        None = 0,
         Idle = 3,
         Walking = 13,
         Running = 22,
@@ -157,8 +158,16 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
     }
 
     public void SetAnimation(BattleChara* character, Animations animation) {
-        character->SetMode(CharacterModes.AnimLock, 0);
-        character->Timeline.BaseOverride = (ushort)animation;
+        var animationCode = (ushort)animation;
+        if (character->Timeline.BaseOverride != animationCode) {
+            character->SetMode(CharacterModes.AnimLock, 0);
+            character->Timeline.BaseOverride = (ushort)animation;
+        }
+    }
+
+    public Animations GetAnimation(BattleChara* character) {
+        var animation = (Animations)character->Timeline.BaseOverride;
+        return Enum.IsDefined(animation) ? Animations.None : animation;
     }
 
     public void Clone(Character* chara) {
