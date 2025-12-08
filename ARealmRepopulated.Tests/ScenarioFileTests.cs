@@ -18,7 +18,7 @@ public class ScenarioFileTests {
 
         var npcOne = new ScenarioNpcData { Name = GetRandomString(), Appearance = "", Position = GetRandomVector3(), Rotation = GetRandomRadian() };
         npcOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = GetRandomTime() });
-        npcOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3() });
+        npcOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Running });
         npcOne.Actions.Add(new ScenarioNpcSyncAction());
         npcOne.Actions.Add(new ScenarioNpcEmoteAction { Duration = GetRandomTime(), Emote = (ushort)Random.Shared.Next(1, 100), NpcTalk = GetRandomString() });
         npcOne.Actions.Add(new ScenarioNpcSpawnAction());
@@ -51,7 +51,7 @@ public class ScenarioFileTests {
                 case ScenarioNpcMovementAction originalMovement:
                     var restoredMovement = (ScenarioNpcMovementAction)restoredAction;
                     restoredMovement.TargetPosition.ShouldBe(originalMovement.TargetPosition);
-                    restoredMovement.IsRunning.ShouldBe(originalMovement.IsRunning);
+                    restoredMovement.Speed.ShouldBe(NpcSpeed.Running);
                     break;
                 case ScenarioNpcEmoteAction originalEmote:
                     var restoredEmote = (ScenarioNpcEmoteAction)restoredAction;
