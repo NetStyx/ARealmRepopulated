@@ -5,13 +5,18 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing;
 
-public class PathMovementRuntime {
+public enum PathMovementIntegrationMode {
+    FastSingleSegment = 0,   // default: never cross a segment boundary in one update
+    CrossSingleBoundary = 1  // can cross at most one segment per update
+}
 
+public class PathMovementRuntime {
     private PathMovementIntegrationMode _integrationMode = PathMovementIntegrationMode.FastSingleSegment;
     private readonly PathMovementComposer _path = new();
 
     private float _currentDistanceAlongPath = 0f;
     private int _currentSegmentIndex = 0;
+
     public bool IsReady
         => _path.TotalLength > 0;
 
@@ -21,7 +26,7 @@ public class PathMovementRuntime {
     public NpcSpeed CurrentSpeed
         => !IsFinished ? ResolveSpeed(_path.GetSegmentSpeed(_currentSegmentIndex)) : NpcSpeed.Walking;
 
-    public void Compile(List<PathSegmentPoint> points, float tension = 0f, PathMovementIntegrationMode integrationMode = PathMovementIntegrationMode.FastSingleSegment) {
+    public void Compile(List<PathSegmentPoint> points, float tension = 0f, PathMovementIntegrationMode integrationMode = PathMovementIntegrationMode.CrossSingleBoundary) {
         if (points is null || points.Count < 2)
             throw new ArgumentException("Path movement requires at least 2 points.");
 
@@ -35,34 +40,40 @@ public class PathMovementRuntime {
 
         _integrationMode = integrationMode;
         _currentDistanceAlongPath = 0f;
+        _currentSegmentIndex = 0;
     }
 
     public void SyncToCurrentPosition(Vector3 currentPosition) {
         _currentDistanceAlongPath = ProjectPositionToPath(currentPosition);
+        _currentSegmentIndex = _path.FindSegmentIndexByDistance(_currentDistanceAlongPath);
     }
 
     public void Reset() {
         _currentDistanceAlongPath = 0f;
+        _currentSegmentIndex = 0;
     }
 
     /// <summary>
     /// Advance along the precompiled path and get the next position and yaw.
     /// </summary>
-    public void Update(float deltaTimeMs, out Vector3 nextPosition, out float yaw) {
+    public void Update(float deltaTime, out Vector3 nextPosition, out float yaw) {
         switch (_integrationMode) {
+            default:
             case PathMovementIntegrationMode.CrossSingleBoundary:
-                UpdateCrossSingleBoundary(deltaTimeMs);
+                UpdateCrossSingleBoundary(deltaTime);
                 break;
 
-            default:
             case PathMovementIntegrationMode.FastSingleSegment:
-                UpdateFastSingleSegment(deltaTimeMs);
+                UpdateFastSingleSegment(deltaTime);
                 break;
         }
 
-        _path.Evaluate(_currentDistanceAlongPath, out nextPosition, out var tan);
+        var sample = _path.EvaluateSample(_currentDistanceAlongPath);
 
-        yaw = ComputeYawFromDirection(tan);
+        nextPosition = sample.Position;
+        _currentSegmentIndex = sample.SegmentIndex;
+
+        yaw = ComputeYawFromDirection(sample.Tangent);
     }
 
     private void UpdateFastSingleSegment(float deltaTime) {
@@ -70,7 +81,6 @@ public class PathMovementRuntime {
             return;
 
         var segIndex = _path.FindSegmentIndexByDistance(_currentDistanceAlongPath);
-
         var speed = _path.GetSegmentSpeed(segIndex);
         if (speed <= 1e-6f)
             return;
@@ -102,12 +112,13 @@ public class PathMovementRuntime {
             return;
 
         var maxStep = speed * deltaTime;
+
         if (maxStep <= distToSegEnd) {
-            // Stay within current segment
+            // stay within current segment
             _currentDistanceAlongPath += maxStep;
             _currentSegmentIndex = segIndex;
         } else {
-            // Reach end of current segment
+            // reach end of current segment
             var timeToSegEnd = distToSegEnd / speed;
             var remainingTime = deltaTime - timeToSegEnd;
 
@@ -115,6 +126,7 @@ public class PathMovementRuntime {
 
             if (remainingTime <= 0f || segIndex == _path.SegmentCount - 1) {
                 _currentDistanceAlongPath = dAtBoundary;
+                _currentSegmentIndex = segIndex;
             } else {
                 var nextSegIndex = segIndex + 1;
                 var nextSegStart = _path.GetSegmentStartDistance(nextSegIndex);
@@ -124,6 +136,7 @@ public class PathMovementRuntime {
 
                 if (nextSpeed <= 1e-6f) {
                     _currentDistanceAlongPath = dAtBoundary;
+                    _currentSegmentIndex = nextSegIndex;
                 } else {
                     var stepNext = nextSpeed * remainingTime;
                     if (stepNext > nextSegLen)
@@ -138,6 +151,8 @@ public class PathMovementRuntime {
         if (_currentDistanceAlongPath > _path.TotalLength)
             _currentDistanceAlongPath = _path.TotalLength;
     }
+
+
 
     public static float ResolveSpeed(NpcSpeed opt) => opt switch {
         NpcSpeed.Walking => NpcActor.WalkingSpeed,
@@ -164,7 +179,8 @@ public class PathMovementRuntime {
             var t = (float)i / sampleCount;
             var d = t * _path.TotalLength;
 
-            _path.Evaluate(d, out var p, out _);
+            var sample = _path.EvaluateSample(d);
+            var p = sample.Position;
 
             var distSq = Vector3.DistanceSquared(p, position);
             if (distSq < bestDistSq) {

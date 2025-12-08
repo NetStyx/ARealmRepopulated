@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing.Segments;
 
-public class CatmullRomPathSegment : IPathSegment {
+public class CardinalSegment : IPathSegment {
     private readonly Vector3 _p0;
     private readonly Vector3 _p1;
     private readonly Vector3 _p2;
@@ -16,7 +16,7 @@ public class CatmullRomPathSegment : IPathSegment {
     public float Length { get; }
     public float Speed { get; }
 
-    public CatmullRomPathSegment(float speed, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples, float tension) {
+    public CardinalSegment(float speed, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples, float tension) {
         Speed = speed;
         _p0 = p0;
         _p1 = p1;
@@ -88,25 +88,79 @@ public class CatmullRomPathSegment : IPathSegment {
         var t2 = t * t;
         var t3 = t2 * t;
 
-        return 0.5f * (
-            (2f * _p1) +
-            ((-_p0 + _p2) * t) +
-            (((2f * _p0) - (5f * _p1) + (4f * _p2) - _p3) * t2) +
-            ((-_p0 + (3f * _p1) - (3f * _p2) + _p3) * t3)
-        );
+        // Cardinal spline via Hermite form:        
+        var s = _tension;
+        var k = (1f - s) * 0.5f;
+
+        var m1 = k * (_p2 - _p0);
+        var m2 = k * (_p3 - _p1);
+
+        var h00 = (2f * t3) - (3f * t2) + 1f;
+        var h10 = t3 - (2f * t2) + t;
+        var h01 = (-2f * t3) + (3f * t2);
+        var h11 = t3 - t2;
+
+        return (h00 * _p1) + (h10 * m1) + (h01 * _p2) + (h11 * m2);
     }
 
     private Vector3 EvaluateTangent(float t) {
         var t2 = t * t;
 
-        var term1 = -_p0 + _p2;
-        var term2 = (2f * _p0) - (5f * _p1) + (4f * _p2) - _p3;
-        var term3 = -_p0 + (3f * _p1) - (3f * _p2) + _p3;
+        var s = _tension;
+        var k = (1f - s) * 0.5f;
 
-        return 0.5f * (
-            term1 +
-            (2f * term2 * t) +
-            (3f * term3 * t2)
-        );
+        var m1 = k * (_p2 - _p0);
+        var m2 = k * (_p3 - _p1);
+
+        // Derivatives of the Hermite basis functions
+        var dh00 = (6f * t2) - (6f * t);
+        var dh10 = (3f * t2) - (4f * t) + 1f;
+        var dh01 = (-6f * t2) + (6f * t);
+        var dh11 = (3f * t2) - (2f * t);
+
+        return (dh00 * _p1) + (dh10 * m1) + (dh01 * _p2) + (dh11 * m2);
     }
+
+
+    /*
+    private Vector3 EvaluatePosition(float t) {
+        var t2 = t * t;
+        var t3 = t2 * t;
+
+        // Cardinal spline via Hermite form:
+        // Tension: 0 = Catmull-Rom (smooth), 1 = linear-ish (sharper)
+        var s = _tension;
+        var k = (1f - s) * 0.5f;
+
+        var m1 = k * (_p2 - _p0);
+        var m2 = k * (_p3 - _p1);
+
+        var h00 = (2f * t3) - (3f * t2) + 1f;
+        var h10 = t3 - (2f * t2) + t;
+        var h01 = (-2f * t3) + (3f * t2);
+        var h11 = t3 - t2;
+
+        return (h00 * _p1) + (h10 * m1) + (h01 * _p2) + (h11 * m2);
+    }
+
+    private Vector3 EvaluateTangent(float t) {
+        var t2 = t * t;
+
+        var s = _tension;
+        var k = (1f - s) * 0.5f;
+
+        var m1 = k * (_p2 - _p0);
+        var m2 = k * (_p3 - _p1);
+
+        // Derivatives of the Hermite basis functions
+        var dh00 = (6f * t2) - (6f * t);
+        var dh10 = (3f * t2) - (4f * t) + 1f;
+        var dh01 = (-6f * t2) + (6f * t);
+        var dh11 = (3f * t2) - (2f * t);
+
+        return (dh00 * _p1) + (dh10 * m1) + (dh01 * _p2) + (dh11 * m2);
+    }     
+     
+     */
+
 }

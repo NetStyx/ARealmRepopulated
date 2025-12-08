@@ -314,10 +314,11 @@ public unsafe class ScenarioNpc {
                 var firstPoint = pathAction.Points.FirstOrDefault();
                 if (firstPoint != null) {
 
+                    // add the current actor position to the point iteration to not "warp" around                    
                     var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s.Speed) }).ToList();
                     pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint.Speed) });
 
-                    execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.FastSingleSegment);
+                    execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
                 }
 
                 break;
