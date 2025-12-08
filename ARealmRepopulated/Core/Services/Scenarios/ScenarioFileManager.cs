@@ -6,6 +6,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
@@ -14,10 +15,10 @@ public sealed record ScenarioFileData(string FileHash, string FileName, string F
 public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, ScenarioMigrator migrator) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
-    public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } } };
+    public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter(), new JsonStringEnumConverter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } } };
 
 
-    private List<ScenarioFileData> _currentFiles = [];
+    private readonly List<ScenarioFileData> _currentFiles = [];
 
     public delegate void ScenarioFileChangedDelegate(ScenarioFileData metaData);
     public event ScenarioFileChangedDelegate? OnScenarioFileChanged;
@@ -114,7 +115,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
 
     public ScenarioData? LoadScenarioFile(string filePath) {
         var fileName = Path.GetFileName(filePath);
-        string fileData = File.ReadAllText(filePath);
+        var fileData = File.ReadAllText(filePath);
 
         return DeserializeScenarioData(fileData);
     }

@@ -71,13 +71,15 @@ public abstract class ScenarioNpcAction {
 
 public class ScenarioNpcPathAction : ScenarioNpcAction {
 
-    public float Tension { get; set; } = 0.5f;
+    public float Tension { get; set; } = 0.3f;
     public List<PathMovementPoint> Points { get; set; } = [];
 }
 
 public class PathMovementPoint {
     public Vector3 Point { get; set; }
     public NpcSpeed Speed { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public float CustomSpeed { get; set; } = 0f;
 }
 
@@ -101,7 +103,7 @@ public class ScenarioNpcDespawnAction : ScenarioNpcAction {
 
 public class ScenarioNpcMovementAction : ScenarioNpcAction {
     public Vector3 TargetPosition { get; set; }
-    public bool IsRunning { get; set; } = false;
+    public NpcSpeed Speed { get; set; }
 }
 
 public class ScenarioNpcRotationAction : ScenarioNpcAction {

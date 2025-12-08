@@ -205,14 +205,26 @@ public unsafe class ScenarioNpc {
 
     private void AdvancePathMovement(ScenarioNpcPathAction action, TimeSpan delta) {
 
-        if (!CurrentAction.Pathfinder.IsReady)
+        if (!CurrentAction.Pathfinder.IsPathReady)
             return;
 
-        var currentNpcPosition = Actor.GetPosition();
-
-        CurrentAction.Pathfinder.Update((float)delta.TotalSeconds, out var nextPos, out var yaw);
         Actor.SetAnimation(CurrentAction.Pathfinder.CurrentSpeed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
 
+        if (!CurrentAction.Pathfinder.IsUserReady) {
+            var currentRotation = Actor.GetRotation();
+            var targetRotation = Actor.GetPosition().DirectionTo(action.Points.First().Point);
+            if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
+                var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
+                var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);
+
+                Actor.SetRotation(newRotation);
+                return;
+            }
+
+            CurrentAction.Pathfinder.IsUserReady = true;
+        }
+
+        CurrentAction.Pathfinder.Update((float)delta.TotalSeconds, out var nextPos, out var yaw);
         if (CurrentAction.Pathfinder.IsFinished) {
             if (_scenarioActions.TryPeek(out var nextAction) && nextAction is not ScenarioNpcMovementAction) {
                 Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
@@ -228,7 +240,7 @@ public unsafe class ScenarioNpc {
     private void AdvanceSimpleMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration = 0.1f;
-            Actor.SetAnimation(action.IsRunning ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
+            Actor.SetAnimation(action.Speed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
         }
 
         var currentRotation = Actor.GetRotation();
@@ -243,7 +255,7 @@ public unsafe class ScenarioNpc {
 
         var currentPosition = Actor.GetPosition();
         var targetPosition = action.TargetPosition;
-        var speeds = action.IsRunning ? NpcActor.RunningSpeed : NpcActor.WalkingSpeed;
+        var speeds = action.Speed == NpcSpeed.Running ? NpcActor.RunningSpeed : NpcActor.WalkingSpeed;
         var distanceStep = speeds * (float)delta.TotalSeconds / Vector3.Distance(currentPosition, targetPosition);
         var newPosition = Vector3.Lerp(currentPosition, targetPosition, distanceStep);
 
@@ -313,12 +325,13 @@ public unsafe class ScenarioNpc {
 
                 var firstPoint = pathAction.Points.FirstOrDefault();
                 if (firstPoint != null) {
-
                     // add the current actor position to the point iteration to not "warp" around                    
                     var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s.Speed) }).ToList();
                     pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint.Speed) });
 
                     execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
+                } else {
+                    execution.Action.NpcTalk = "\uE040 Tell the scenario writer that there is a problem with my path \uE041";
                 }
 
                 break;

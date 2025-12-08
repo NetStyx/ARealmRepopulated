@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
@@ -33,7 +34,7 @@ public partial class ScenarioEditorWindow {
         }
 
         if (ImGui.Selectable("Path")) {
-            AddAction(new ScenarioNpcPathAction());
+            AddAction(new ScenarioNpcPathAction { Points = [new() { Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? new CsMaths.Vector3(), Speed = NpcSpeed.Running }] });
         }
 
         if (ImGui.Selectable("Rotation")) {
@@ -131,12 +132,19 @@ public partial class ScenarioEditorWindow {
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
+        ImGui.Text("Speed");
         ImGui.TableNextColumn();
 
-        var isRunning = moveAction.IsRunning;
-        if (ImGui.Checkbox("Running? ##scenarioNpcMoveActionIsRunning", ref isRunning)) {
-            moveAction.IsRunning = isRunning;
+        if (ImGui.BeginCombo($"##scenarioNpcMoveActionPositionSpeedSelection", moveAction.Speed.ToString())) {
+            if (ImGui.Selectable($"Walking##scenarioNpcMoveActionPositionSpeedSelectionWalking", moveAction.Speed == NpcSpeed.Walking)) {
+                moveAction.Speed = NpcSpeed.Walking;
+            }
+            if (ImGui.Selectable($"Running##scenarioNpcMoveActionPositionSpeedSelectionRunning", moveAction.Speed == NpcSpeed.Running)) {
+                moveAction.Speed = NpcSpeed.Running;
+            }
+            ImGui.EndCombo();
         }
+
     }
 
     private void DrawPathAction(ScenarioNpcPathAction moveAction) {
@@ -146,6 +154,8 @@ public partial class ScenarioEditorWindow {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.Text("Tension");
+        ImGui.SameLine();
+        ImGuiComponents.HelpMarker("Defines how 'curvy' the npc will move along the path. A value of 0 equals drunk, a value of 1 means thunder. A value between 0.25 and 0.5 yields a natural response in normal circumstances.");
         ImGui.TableNextColumn();
         var tensionRef = moveAction.Tension;
         if (ImGui.SliderFloat("##scenarioNpcPathInputTension", ref tensionRef, 0f, 1f)) {
@@ -154,11 +164,11 @@ public partial class ScenarioEditorWindow {
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text("Points");
+        ImGui.Separator();
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add Point##scenarioNpcPathActionPointsTableAddEntry")) {
 
-        if (ImGuiComponents.IconButton("##scenarioNpcPathActionPointsTableAddEntry", Dalamud.Interface.FontAwesomeIcon.Plus)) {
-
-            var point = new PathMovementPoint { Speed = NpcSpeed.Walking, Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? Vector3.Zero };
+            var point = new PathMovementPoint { Speed = SelectedPathMovementPoint != null ? SelectedPathMovementPoint.Speed : NpcSpeed.Walking, Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? Vector3.Zero };
 
             if (SelectedPathMovementPoint != null) {
                 var index = moveAction.Points.IndexOf(SelectedPathMovementPoint);
@@ -178,9 +188,11 @@ public partial class ScenarioEditorWindow {
             ImGui.SetTooltip("Add a new point to the collection. If one was previously selected in the list, the new point is inserted below your selection.");
 
         ImGui.TableNextColumn();
+        ImGui.Separator();
 
+        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
         using var child = ImRaii.Child("##scenarioNpcPathActionPointsChild", new Vector2(0, -20));
-        using var table = ImRaii.Table("##scenarioNpcPathActionPointsTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersH);
+        using var table = ImRaii.Table("##scenarioNpcPathActionPointsTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.NoBordersInBody);
 
         ImGui.TableSetupColumn("##scenarioNpcPathActionPointsTableActionCol", ImGuiTableColumnFlags.WidthFixed, 50);
         ImGui.TableSetupColumn("##scenarioNpcPathActionPointsTableSpeedCol", ImGuiTableColumnFlags.WidthFixed, 100);

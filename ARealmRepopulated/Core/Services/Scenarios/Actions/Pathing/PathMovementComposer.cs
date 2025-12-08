@@ -7,6 +7,7 @@ namespace ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing;
 public readonly struct PathSample {
     public Vector3 Position { get; init; }
     public Vector3 Tangent { get; init; }
+    public float Yaw { get; init; }
     public int SegmentIndex { get; init; }
     public float LocalT { get; init; }
     public float Speed { get; init; }
@@ -78,25 +79,14 @@ public class PathMovementComposer {
                 Tangent = Vector3.UnitZ,
                 SegmentIndex = 0,
                 LocalT = 0f,
-                Speed = 0f
+                Speed = 0f,
+                Yaw = 0f,
             };
         }
 
-        // Clamp distance
-        if (distance <= 0f)
-            distance = 0f;
-        else if (distance >= TotalLength)
-            distance = TotalLength;
+        distance = Math.Clamp(distance, 0f, TotalLength);
 
-        // Find segment
-        var segIndex = 0;
-        for (var i = 0; i < _cumulativeLengths.Count; i++) {
-            if (distance <= _cumulativeLengths[i]) {
-                segIndex = i;
-                break;
-            }
-        }
-
+        var segIndex = FindSegmentIndexByDistance(distance);
         var segStart = GetSegmentStartDistance(segIndex);
         var segLen = GetSegmentLength(segIndex);
         var localDist = distance - segStart;
@@ -112,18 +102,20 @@ public class PathMovementComposer {
 
         seg.Evaluate(t, out var pos, out var tan);
 
-        // pos is in flattened space (Y=0); now restore Y from original points
         var (y0, y1) = GetSegmentHeights(segIndex);
         pos.Y = float.Lerp(y0, y1, localT);
 
         // horizontal tangent only
         tan.Y = 0f;
 
+        var dir = Vector3.Normalize(tan);
+        var yaw = (float)Math.Atan2(dir.X, dir.Z); // [-pi, +pi], 0 = +Z
         var speed = seg.Speed;
 
         return new PathSample {
             Position = pos,
             Tangent = tan,
+            Yaw = yaw,
             SegmentIndex = segIndex,
             LocalT = localT,
             Speed = speed

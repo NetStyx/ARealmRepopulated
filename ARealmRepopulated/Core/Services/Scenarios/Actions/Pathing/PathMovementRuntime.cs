@@ -17,11 +17,13 @@ public class PathMovementRuntime {
     private float _currentDistanceAlongPath = 0f;
     private int _currentSegmentIndex = 0;
 
-    public bool IsReady
+    public bool IsPathReady
         => _path.TotalLength > 0;
 
     public bool IsFinished =>
         _currentDistanceAlongPath >= _path.TotalLength - 1e-4f;
+
+    public bool IsUserReady { get; set; } = false;
 
     public NpcSpeed CurrentSpeed
         => !IsFinished ? ResolveSpeed(_path.GetSegmentSpeed(_currentSegmentIndex)) : NpcSpeed.Walking;
@@ -33,22 +35,10 @@ public class PathMovementRuntime {
         _path.Calculate(points, tension);
 
         if (_path.SegmentCount != points.Count - 1) {
-            throw new InvalidOperationException(
-                $"PathMovementRuntime.SegmentCount ({_path.SegmentCount}) != Points.Count - 1 ({points.Count - 1}). " +
-                "Check for duplicate consecutive points or zero-length segments.");
+            throw new InvalidOperationException($"SegmentCount does not match point count ({_path.SegmentCount} | {points.Count - 1}). Double point entries or zero-length segments?");
         }
 
         _integrationMode = integrationMode;
-        _currentDistanceAlongPath = 0f;
-        _currentSegmentIndex = 0;
-    }
-
-    public void SyncToCurrentPosition(Vector3 currentPosition) {
-        _currentDistanceAlongPath = ProjectPositionToPath(currentPosition);
-        _currentSegmentIndex = _path.FindSegmentIndexByDistance(_currentDistanceAlongPath);
-    }
-
-    public void Reset() {
         _currentDistanceAlongPath = 0f;
         _currentSegmentIndex = 0;
     }
@@ -71,9 +61,19 @@ public class PathMovementRuntime {
         var sample = _path.EvaluateSample(_currentDistanceAlongPath);
 
         nextPosition = sample.Position;
+        yaw = sample.Yaw;
         _currentSegmentIndex = sample.SegmentIndex;
+    }
 
-        yaw = ComputeYawFromDirection(sample.Tangent);
+    public void SyncToCurrentPosition(Vector3 currentPosition) {
+        _currentDistanceAlongPath = ProjectPositionToPath(currentPosition);
+        _currentSegmentIndex = _path.FindSegmentIndexByDistance(_currentDistanceAlongPath);
+    }
+
+    public void Reset() {
+        IsUserReady = false;
+        _currentDistanceAlongPath = 0f;
+        _currentSegmentIndex = 0;
     }
 
     private void UpdateFastSingleSegment(float deltaTime) {
@@ -192,8 +192,4 @@ public class PathMovementRuntime {
         return bestPathDistance;
     }
 
-    private static float ComputeYawFromDirection(Vector3 dir) {
-        dir = Vector3.Normalize(dir);
-        return (float)Math.Atan2(dir.X, dir.Z); // [-pi, +pi], 0 = +Z
-    }
 }
