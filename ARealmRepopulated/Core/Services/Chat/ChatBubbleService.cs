@@ -17,11 +17,11 @@ public unsafe class ChatBubbleService : IDisposable {
     /// Client::UI::Agent::AgentScreenLog.OpenBalloon()
     /// </summary>
     [Signature("E8 ?? ?? ?? ?? F6 86 ?? ?? ?? ?? ?? C7 46", DetourName = nameof(OpenBubbleDetour))]
-    private Hook<OpenBubbleDelegate> _openBalloonHook = null!;
+    private readonly Hook<OpenBubbleDelegate> _openBalloonHook = null!;
     private delegate void OpenBubbleDelegate(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint);
 
-    private List<ChatBubbleEntry> _npcTexts = [];
-    private Timer _cleanupTimer;
+    private readonly List<ChatBubbleEntry> _npcTexts = [];
+    private readonly Timer _cleanupTimer;
 
     public ChatBubbleService(IGameInteropProvider provider, IClientState state, IPluginLog log) {
         provider.InitializeFromAttributes(this);
