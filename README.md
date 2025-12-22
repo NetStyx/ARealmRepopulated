@@ -20,4 +20,4 @@ This plugin aims to enhance the gameplay experience in Final Fantasy XIV by prov
 The plugin is intended for client side only interactions and does not modify any server-side data. It is designed to be aligned (in the broader sense) with the terms of service of Final Fantasy XIV and does not facilitate cheating or unfair advantages in multiplayer aspects of the game.
 
 ## Contributing
-Contributions to the project are welcome. If you have ideas for new features, improvements, or bug fixes, please feel free to submit a pull request or open an issue on the project's GitHub repository.
+Contributions to the project are welcome. If you have ideas for new features, improvements, or bug fixes, please feel free to submit a pull request or open an issue.
