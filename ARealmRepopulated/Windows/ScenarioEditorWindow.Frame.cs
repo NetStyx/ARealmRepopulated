@@ -29,7 +29,7 @@ public partial class ScenarioEditorWindow(
     ArrpEventService eventService,
     ArrpGuiEmotePicker emotePicker,
     IObjectTable objectTable,
-    ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow"), IDisposable {
+    ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow") {
 
     private string _scenarioFilePath = string.Empty;
     private readonly NpcActionUiRegistry _actionUiRegistry = new();
@@ -277,7 +277,7 @@ public partial class ScenarioEditorWindow(
             _exportState.CheckState(out var exportIcon, out var exportColor);
             if (ImGuiComponents.IconButtonWithText(exportIcon, "Export to clipboard", defaultColor: exportColor, hoveredColor: exportColor)) {
                 _exportState.SetResult(true);
-                ImGui.SetClipboardText(scenarioFileManager.ExportBase64Scenario(ScenarioObject));
+                ImGui.SetClipboardText(ScenarioFileManager.ExportBase64Scenario(ScenarioObject));
             }
 
             ImGui.TableNextColumn();
@@ -649,7 +649,7 @@ public partial class ScenarioEditorWindow(
     }
 
     private void SaveScenario() {
-        if (String.IsNullOrWhiteSpace(_scenarioFilePath)) {
+        if (string.IsNullOrWhiteSpace(_scenarioFilePath)) {
             _scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
 
         } else {
@@ -670,7 +670,6 @@ public partial class ScenarioEditorWindow(
 
         return "";
     }
-    public void Dispose() { }
 }
 
 

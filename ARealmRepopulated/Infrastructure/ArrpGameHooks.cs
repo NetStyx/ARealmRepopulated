@@ -31,5 +31,6 @@ public unsafe class ArrpGameHooks : IDisposable {
 
     public void Dispose() {
         _characterFinalizerHook?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

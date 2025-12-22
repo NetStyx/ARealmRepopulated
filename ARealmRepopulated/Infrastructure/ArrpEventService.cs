@@ -78,5 +78,7 @@ public class ArrpEventService : IDisposable {
         _framework.Update -= Framework_Update;
         _clientState.TerritoryChanged -= ClientState_TerritoryChanged;
         _clientState.Login -= ClientState_Login;
+
+        GC.SuppressFinalize(this);
     }
 }

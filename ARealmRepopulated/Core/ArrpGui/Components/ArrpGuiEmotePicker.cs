@@ -58,7 +58,7 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
 
             ImGui.SetCursorPos(cursor);
 
-            uint iconId = (uint)emoteRow.Icon;
+            var iconId = emoteRow.Icon;
             if (iconId == 0) {
                 iconId = emoteFilter.Where(e => e.Icon > 0 && e.Name == emoteRow.Name).FirstOrDefault().Icon;
                 if (iconId != 0) {

@@ -16,7 +16,7 @@ public static class RotationExtension {
         if (MathF.Abs(deltaRotation) <= distance)
             return targetRotation;
 
-        return currentRotation + MathF.Sign(deltaRotation) * distance;
+        return currentRotation + (MathF.Sign(deltaRotation) * distance);
     }
 
 }

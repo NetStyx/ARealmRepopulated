@@ -23,9 +23,9 @@ public class ChatCommands(Plugin plugin, ICommandManager commandManager, Scenari
         plugin.ToggleConfigUI();
     }
 
-
     public void Dispose() {
         commandManager.RemoveHandler(OpenArrpCommand);
         commandManager.RemoveHandler(ReloadScenarioCommand);
+        GC.SuppressFinalize(this);
     }
 }

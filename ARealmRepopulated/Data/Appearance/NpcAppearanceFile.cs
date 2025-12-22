@@ -150,7 +150,7 @@ public class NpcAppearanceFile {
     public void Save(SaveFormat format = SaveFormat.Json) {
         var filePath = Path.Combine(Plugin.Services.GetRequiredService<IDalamudPluginInterface>().GetPluginConfigDirectory(), "appearance", this.AppearanceId.ToString() + ".arrpc");
 
-        var exportData = "";
+        string exportData;
         if (format == SaveFormat.Base64) {
             exportData = ToBase64();
         } else {

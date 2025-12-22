@@ -6,23 +6,16 @@ using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache dataCache) {
+public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog log, ArrpDataCache dataCache) {
 
     public enum Animations : ushort {
         None = 0,
         Idle = 3,
         Walking = 13,
-        Running = 22,
-        Turning = 13
-    }
-
-    public void Initialize() {
-
-        // nothing to do here anymore
+        Running = 22
     }
 
     public void Apply(Character* chara, NpcAppearanceFile file) {
-
         chara->Scale = 1;
         chara->ModelContainer.ModelCharaId = file.ModelCharaId;
         chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
@@ -139,6 +132,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
     }
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
+        log.Verbose($"Playing timeline {timelineId} on character {character->GetName()}");
         //if (character->Timeline.TimelineSequencer.TimelineIds[0] != timelineId)
         //{
         //var actionTimeline = dataManager.GetExcelSheet<ActionTimeline>();

@@ -114,9 +114,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         => LoadScenarioFile(file.FilePath);
 
     public ScenarioData? LoadScenarioFile(string filePath) {
-        var fileName = Path.GetFileName(filePath);
-        var fileData = File.ReadAllText(filePath);
 
+        log.Debug($"Loading scenario file {filePath}");
+        var fileData = File.ReadAllText(filePath);
         return DeserializeScenarioData(fileData);
     }
 
@@ -132,7 +132,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         return null;
     }
 
-    public string ExportBase64Scenario(ScenarioData data) {
+    public static string ExportBase64Scenario(ScenarioData data) {
         var jsonString = JsonSerializer.Serialize(data, ScenarioLoadSerializerOptions);
         return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(jsonString));
     }
@@ -154,8 +154,10 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public FileInfo StoreScenarioFile(ScenarioData scenarioData, string filePath) {
         var directory = Path.GetDirectoryName(filePath);
         if (!Directory.Exists(directory)) {
+            log.Info($"Scenario directory does not exist. Creating '{directory}'");
             Directory.CreateDirectory(directory!);
         }
+        log.Info($"Storing scenario file '{filePath}'");
         var jsonString = JsonSerializer.Serialize(scenarioData, ScenarioLoadSerializerOptions);
         File.WriteAllText(filePath, jsonString);
 
@@ -163,6 +165,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     }
 
     public void RemoveScenarioFile(string filePath) {
+        log.Info($"Removing scenario file: {filePath}");
         if (File.Exists(filePath)) {
             File.Delete(filePath);
         }
@@ -171,6 +174,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public void Dispose() {
         StopMonitoring();
         _fileSystemWatcher.Dispose();
+        GC.SuppressFinalize(this);
     }
 
 }

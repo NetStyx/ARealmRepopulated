@@ -8,7 +8,7 @@ public class FileSystemWatcherDebouncer : FileSystemWatcher {
     public delegate void FileSystemEventDelegate(FileSystemEventArgs args);
     public event FileSystemEventDelegate? OnModified;
 
-    private ConcurrentDictionary<string, FileSystemEventArgs> _eventDictionary = new();
+    private readonly ConcurrentDictionary<string, FileSystemEventArgs> _eventDictionary = new();
 
     public FileSystemWatcherDebouncer() {
         this.Created += FileSystemEntryChanged;

@@ -276,7 +276,7 @@ public unsafe class ScenarioNpc {
 
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration = 0.1f;
-            Actor.SetAnimation(NpcAppearanceService.Animations.Turning);
+            Actor.SetAnimation(NpcAppearanceService.Animations.Walking);
         }
 
         var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
@@ -384,7 +384,7 @@ public unsafe class ScenarioNpc {
 }
 
 public class ScenarioNpcActionExecution {
-    public static ScenarioNpcActionExecution Default => new ScenarioNpcActionExecution() { Action = new ScenarioNpcEmptyAction() };
+    public static ScenarioNpcActionExecution Default => new() { Action = new ScenarioNpcEmptyAction() };
 
     public float TargetDuration { get; set; }
     public float CurrentDuration { get; set; }

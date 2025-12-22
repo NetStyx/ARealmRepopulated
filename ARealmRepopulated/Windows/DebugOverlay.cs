@@ -6,15 +6,15 @@ using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.Numerics;
-
+using System.Threading;
 using CameraManager = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager;
 
 namespace ARealmRepopulated.Windows;
 
 public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IClientState clientState, IGameGui gui) : IDisposable {
 
-    private readonly object _scenarioAccessLock = new();
-    private readonly List<ScenarioEditorWindow> _openEditors = new();
+    private readonly Lock _scenarioAccessLock = new();
+    private readonly List<ScenarioEditorWindow> _openEditors = [];
 
     private uint? _imguiColorBlack = null!;
     private uint? _imguiColorRed = null!;
@@ -26,13 +26,13 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
     private Vector3 _npcTrace = Vector3.Zero;
 
     public void AddEditor(ScenarioEditorWindow scenarioObject) {
-        lock (_scenarioAccessLock)
-            _openEditors.Add(scenarioObject);
+        using var _ = _scenarioAccessLock.EnterScope();
+        _openEditors.Add(scenarioObject);
     }
 
     public void RemoveEditor(ScenarioEditorWindow scenarioObject) {
-        lock (_scenarioAccessLock)
-            _openEditors.Remove(scenarioObject);
+        using var _ = _scenarioAccessLock.EnterScope();
+        _openEditors.Remove(scenarioObject);
     }
 
     public void Hook()
@@ -63,8 +63,8 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         _imguiColorGreen ??= ImGui.GetColorU32(new Vector4(0, 255, 0, 255));
 
         List<ScenarioEditorWindow> snapshot;
-        lock (_scenarioAccessLock) {
-            snapshot = _openEditors.ToList();
+        using (var _ = _scenarioAccessLock.EnterScope()) {
+            snapshot = [.. _openEditors];
         }
         snapshot.ForEach(DrawScenarioDebugInfo);
 
@@ -81,9 +81,9 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         gui.WorldToScreen(objectTable.LocalPlayer?.Position ?? Vector3.One, out var playerScreenPosition);
 
         var drawing = ImGui.GetWindowDrawList();
-        drawing.AddLine(playerScreenPosition, screenPosition, (uint)_imguiColorGreen, 2f);
-        drawing.AddCircle(screenPosition, 8f, (uint)_imguiColorBlack, (float)2f);
-        drawing.AddCircleFilled(screenPosition, 6f, (uint)_imguiColorGreen);
+        drawing.AddLine(playerScreenPosition, screenPosition, GetFinishColor(), 2f);
+        drawing.AddCircle(screenPosition, 8f, GetDefaultColor(), (float)2f);
+        drawing.AddCircleFilled(screenPosition, 6f, GetFinishColor());
     }
 
 
@@ -100,11 +100,8 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
             var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
             if (renderStartPosition) {
-                var rotation = npcs.Rotation;
-
-                drawing.AddCircle(startingPosition, 8f, (uint)_imguiColorRed, (float)3f);
-                drawing.AddCircleFilled(startingPosition, 5f, (uint)_imguiColorBlack);
-
+                drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
+                drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
 
                 //DrawGizmo(npcs);
                 if (data.SelectedScenarioNpcAction == null) {
@@ -125,13 +122,13 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
             foreach (var action in npcs.Actions) {
 
                 var isSelectedAction = data.SelectedScenarioNpcAction == action;
-                var targetColor = isSelectedAction ? _imguiColorGreen : _imguiColorBlack;
+                var targetColor = isSelectedAction ? GetFinishColor() : GetDefaultColor();
 
                 if (action is ScenarioNpcPathAction pathAction) {
                     foreach (var target in pathAction.Points) {
                         var renderMoveTarget = gui.WorldToScreen(target.Point, out var moveTarget);
                         if (renderMoveTarget) {
-                            drawing.AddCircleFilled(moveTarget, 5f, (uint)targetColor);
+                            drawing.AddCircleFilled(moveTarget, 5f, targetColor);
 
                             if (data.SelectedPathMovementPoint == target) {
                                 var movePosition = target.Point.AsVector();
@@ -143,7 +140,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                         }
 
                         if (fromPoint != Vector2.Zero) {
-                            drawing.AddLine(fromPoint, moveTarget, (uint)targetColor);
+                            drawing.AddLine(fromPoint, moveTarget, targetColor);
                         }
                         fromPoint = moveTarget;
                     }
@@ -157,7 +154,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
                     var renderMoveTarget = gui.WorldToScreen(moveAction.TargetPosition, out var moveTarget);
                     if (renderMoveTarget) {
-                        drawing.AddCircleFilled(moveTarget, 5f, (uint)targetColor);
+                        drawing.AddCircleFilled(moveTarget, 5f, targetColor);
 
                         if (isSelectedAction) {
                             var movePosition = new Vector3(moveAction.TargetPosition.X, moveAction.TargetPosition.Y, moveAction.TargetPosition.Z);
@@ -170,14 +167,14 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                     }
 
                     if (fromPoint != Vector2.Zero) {
-                        drawing.AddLine(fromPoint, moveTarget, (uint)targetColor);
+                        drawing.AddLine(fromPoint, moveTarget, targetColor);
                     }
                     fromPoint = moveTarget;
                 }
             }
 
             if (startingPosition != fromPoint) {
-                drawing.AddCircle(fromPoint, 8f, (uint)_imguiColorGreen, (float)3f);
+                drawing.AddCircle(fromPoint, 8f, GetFinishColor(), (float)3f);
             }
         }
 
@@ -258,10 +255,18 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     public void Dispose() {
         pluginInterface.UiBuilder.Draw -= Draw;
+        GC.SuppressFinalize(this);
     }
 
     internal void SetNpcTrace(Vector3 position)
         => _npcTrace = position;
     internal void ClearNpcTrace()
         => _npcTrace = Vector3.Zero;
+
+    internal uint GetFinishColor()
+        => _imguiColorRed.GetValueOrDefault(0);
+    internal uint GetStartColor()
+        => _imguiColorGreen.GetValueOrDefault(0);
+    internal uint GetDefaultColor()
+        => _imguiColorBlack.GetValueOrDefault(0);
 }

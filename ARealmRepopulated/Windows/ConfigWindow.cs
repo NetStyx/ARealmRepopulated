@@ -24,7 +24,7 @@ public class ConfigWindow(
     DebugOverlay _debugOverlay,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
-    ArrpDataCache dataCache) : ADalamudWindow("ARealmRepopulated Configuration###ARealmRepopulatedConfigWindow"), IDisposable {
+    ArrpDataCache dataCache) : ADalamudWindow("ARealmRepopulated Configuration###ARealmRepopulatedConfigWindow") {
 
     protected override void SetWindowOptions() {
         Size = new Vector2(232, 90);
@@ -45,11 +45,8 @@ public class ConfigWindow(
 
     public override void OnClose() {
         base.OnClose();
-
         _debugOverlay.Unhook();
     }
-
-    public void Dispose() { }
 
     public override void Draw() {
 
@@ -289,6 +286,4 @@ public class ConfigWindow(
         draw();
         ImGui.PopID();
     }
-
-
 }

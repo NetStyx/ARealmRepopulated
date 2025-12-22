@@ -74,6 +74,7 @@ public unsafe class ChatBubbleService : IDisposable {
     public void Dispose() {
         _cleanupTimer?.Dispose();
         _openBalloonHook?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 

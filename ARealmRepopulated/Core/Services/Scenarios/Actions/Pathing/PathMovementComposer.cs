@@ -14,9 +14,9 @@ public readonly struct PathSample {
 }
 
 public class PathMovementComposer {
-    private readonly List<IPathSegment> _segments = new();
-    private readonly List<float> _cumulativeLengths = new();
-    private List<PathSegmentPoint> _sourcePoints = new();
+    private readonly List<IPathSegment> _segments = [];
+    private readonly List<float> _cumulativeLengths = [];
+    private List<PathSegmentPoint> _sourcePoints = [];
 
     public float TotalLength { get; private set; }
     public int SegmentCount => _segments.Count;
