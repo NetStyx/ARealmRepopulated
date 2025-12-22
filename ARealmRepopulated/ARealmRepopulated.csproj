@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/14.0.0">
+<Project Sdk="Dalamud.NET.Sdk/14.0.1">
     <PropertyGroup>
         <Author>NetStyx</Author>
         <Name>A Realm Repopulated</Name>
         <InternalName>ARealmRepopulated</InternalName>
         <Version>0.1.0.0</Version>
-        <MinimumDalamudVersion>14.0.0</MinimumDalamudVersion>
+        <MinimumDalamudVersion>14.0.0.1</MinimumDalamudVersion>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <Punchline>The realm, now with more realm in it</Punchline>
         <Description>This plugin aims to give players the ability to add more flavor npcs to the common areas of the game.</Description>
@@ -16,8 +16,8 @@
         <DalamudApiLevel>14</DalamudApiLevel>
         <LoadRequiredState>1</LoadRequiredState>
         <LoadSync>true</LoadSync>
-        <CanUnloadAsync>true</CanUnloadAsync>        
-        <ImageUrls>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image1.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image2.png</ImageUrls>
+        <CanUnloadAsync>false</CanUnloadAsync>        
+        <ImageUrls>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image1.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image2.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image3.png</ImageUrls>
         <IconUrl>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/icon.png</IconUrl>        
         <AcceptsFeedback>false</AcceptsFeedback>                
     </PropertyGroup>

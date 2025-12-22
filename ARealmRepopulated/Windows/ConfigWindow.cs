@@ -35,6 +35,20 @@ public class ConfigWindow(
         this.CollapsedCondition = ImGuiCond.None;
     }
 
+    public override void OnOpen() {
+        base.OnOpen();
+
+        if (_config.EnableScenarioDebugOverlay)
+            _debugOverlay.Hook();
+
+    }
+
+    public override void OnClose() {
+        base.OnClose();
+
+        _debugOverlay.Unhook();
+    }
+
     public void Dispose() { }
 
     public override void Draw() {
@@ -157,8 +171,10 @@ public class ConfigWindow(
             DrawCenteredHeaderCell(1, () => ImGui.Text("Location"));
             DrawCenteredHeaderCell(2, () => ImGui.Text("Scenario"));
             DrawCenteredHeaderCell(3, () => {
-                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
-                    Plugin.Services.GetService<ScenarioEditorWindow>()!.CreateScenario();
+                using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
+                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
+                        Plugin.Services.GetService<ScenarioEditorWindow>()!.CreateScenario();
+                    }
                 }
 
                 if (ImGui.IsItemHovered())
@@ -229,7 +245,7 @@ public class ConfigWindow(
                     ImGui.SetTooltip("Edit this scenario");
 
                 ImGui.SameLine(0, 5);
-                string deletePopupId = $"Confirm Delete##ConfirmDelete{scenarioIndex}";
+                var deletePopupId = $"Confirm Delete##ConfirmDelete{scenarioIndex}";
                 if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Trash)) {
                     ImGui.OpenPopup(deletePopupId);
                 }

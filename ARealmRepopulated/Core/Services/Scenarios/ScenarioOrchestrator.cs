@@ -171,7 +171,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     }
 
     public void Initialize() {
-        hooks.CharacterDestroyed += Game_CharacterDestroyed;
+        hooks.OnCharacterDestroyed += Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished += EventService_OnTerritoryReady;
         framework.Update += Framework_Update;
         fileManager.OnScenarioFileChanged += ScenarioFileManager_ScenarioFileChanged;
@@ -180,7 +180,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
 
     public void Dispose() {
-        hooks.CharacterDestroyed -= Game_CharacterDestroyed;
+        hooks.OnCharacterDestroyed -= Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished -= EventService_OnTerritoryReady;
         framework.Update -= Framework_Update;
         fileManager.OnScenarioFileRemoved -= ScenarioFileManager_ScenarioFileRemoved;

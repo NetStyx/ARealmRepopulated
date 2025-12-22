@@ -55,7 +55,6 @@ public sealed class Plugin : IDalamudPlugin {
         Services.GetRequiredService<ScenarioOrchestrator>().Initialize();
         Services.GetRequiredService<NpcServices>().Initialize();
         Services.GetRequiredService<NpcAppearanceService>().Initialize();
-        Services.GetRequiredService<DebugOverlay>().Initialize();
         Services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         Services.GetRequiredService<ChatBubbleService>();
 

@@ -7,7 +7,7 @@ namespace ARealmRepopulated.Infrastructure;
 
 public unsafe class ArrpGameHooks : IDisposable {
     public delegate void CharacterEventDelegate(Character* chara);
-    public event CharacterEventDelegate? CharacterDestroyed;
+    public event CharacterEventDelegate? OnCharacterDestroyed;
 
     /// <summary>
     /// Client::Game::Character::Character.Finalizer()
@@ -23,7 +23,7 @@ public unsafe class ArrpGameHooks : IDisposable {
 
     private void CharacterFinalizerDetour(Character* character) {
         if (character != null) {
-            CharacterDestroyed?.Invoke(character);
+            OnCharacterDestroyed?.Invoke(character);
         }
 
         _characterFinalizerHook.Original(character);
