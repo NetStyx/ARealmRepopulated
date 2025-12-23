@@ -76,13 +76,9 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
 
             ArrpGuiAlignment.CenterText(emoteName, frameHeight: 32, horizontalAlign: true);
 
-
-
         }
-
 
         return false;
     }
-
 
 }

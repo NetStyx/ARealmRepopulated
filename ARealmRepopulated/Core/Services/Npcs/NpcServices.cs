@@ -7,7 +7,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
-
 namespace ARealmRepopulated.Core.Services.Npcs;
 
 [PluginInterface]
@@ -53,7 +52,7 @@ public unsafe class NpcServices(IObjectTable objectTable, IPluginLog log, ArrpGa
         var objectManager = ClientObjectManager.Instance();
         var index = objectManager->GetIndexByObject(go);
         if (index >= 0) {
-            log.Warning($"Deleting gameobject at index {index}");
+            log.Debug($"Deleting gameobject at index {index}");
             objectManager->DeleteObjectByIndex((ushort)index, 0);
         } else {
             log.Warning($"Failed to find index for {go->GetName()}");

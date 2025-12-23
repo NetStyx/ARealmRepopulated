@@ -84,7 +84,6 @@ public class ChatBubbleEntry {
     public DateTime Timeout { get; set; } = DateTime.MinValue;
 }
 
-
 /*
  * 
 

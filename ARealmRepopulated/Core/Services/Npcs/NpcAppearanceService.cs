@@ -19,8 +19,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         chara->Scale = 1;
         chara->ModelContainer.ModelCharaId = file.ModelCharaId;
         chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = file.Race.GetValueOrDefault();
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = file.Sex.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = (byte)file.Race;
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = (byte)file.Sex;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = file.BodyType.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height] = file.Height.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe] = file.Tribe.GetValueOrDefault();
@@ -72,8 +72,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.AppearanceId = Guid.NewGuid();
         file.ModelCharaId = chara->ModelContainer.ModelCharaId;
         file.ModelSkeletonId = chara->ModelContainer.ModelSkeletonId;
-        file.Race = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
-        file.Sex = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
+        file.Race = (NpcRace)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
+        file.Sex = (NpcSex)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
         file.BodyType = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType];
         file.Height = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height];
         file.Tribe = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe];

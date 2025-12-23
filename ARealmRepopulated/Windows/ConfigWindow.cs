@@ -73,7 +73,6 @@ public class ConfigWindow(
             ImGui.EndChild();
         }
 
-
         ImGui.Separator();
         if (ImGui.BeginTable("##WindowControlTable", 3)) {
             ImGui.TableSetupColumn("##configWindowControlStrech", ImGuiTableColumnFlags.WidthStretch);
@@ -156,7 +155,6 @@ public class ConfigWindow(
 
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableHeadersRow();
-
 
             DrawCenteredHeaderCell(0, () => {
                 if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Recycle)) {
@@ -248,7 +246,6 @@ public class ConfigWindow(
                 }
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Delete this scenario");
-
 
                 ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
                 if (ImGui.BeginPopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings)) {

@@ -149,8 +149,6 @@ public partial class ScenarioEditorWindow {
 
     private void DrawPathAction(ScenarioNpcPathAction moveAction) {
 
-
-
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.Text("Tension");
@@ -201,7 +199,6 @@ public partial class ScenarioEditorWindow {
         for (var i = 0; i < moveAction.Points.Count; i++) {
             var point = moveAction.Points[i];
 
-
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
 
@@ -237,14 +234,12 @@ public partial class ScenarioEditorWindow {
                 point.Point = pointPos;
             }
 
-
             ImGui.SameLine();
             if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
                 point.Point = objectTable.LocalPlayer.Position.AsCsVector();
             }
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("Set to current location");
-
 
             ImGui.SameLine();
             ImGui.Selectable($"##scenarioNpcPathActionPointsTableSelectable{i}", SelectedPathMovementPoint == point, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.Disabled);
@@ -292,7 +287,6 @@ public partial class ScenarioEditorWindow {
             ImGui.EndPopup();
         }
 
-
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.Text("Loop");
@@ -304,7 +298,6 @@ public partial class ScenarioEditorWindow {
         }
     }
 }
-
 
 public sealed class NpcActionUiRegistry {
     public class ActionTypeDisplayObject {

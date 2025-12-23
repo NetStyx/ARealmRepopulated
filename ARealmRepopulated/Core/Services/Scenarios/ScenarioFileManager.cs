@@ -17,7 +17,6 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
     public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter(), new JsonStringEnumConverter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } } };
 
-
     private readonly List<ScenarioFileData> _currentFiles = [];
 
     public delegate void ScenarioFileChangedDelegate(ScenarioFileData metaData);

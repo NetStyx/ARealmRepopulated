@@ -3,7 +3,6 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing;
 
-
 public readonly struct PathSample {
     public Vector3 Position { get; init; }
     public Vector3 Tangent { get; init; }

@@ -86,7 +86,6 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         drawing.AddCircleFilled(screenPosition, 6f, GetFinishColor());
     }
 
-
     private void DrawScenarioDebugInfo(ScenarioEditorWindow data) {
 
         if (data.ScenarioObject.Location.Territory != clientState.TerritoryType)
@@ -113,7 +112,6 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                         npcs.Rotation = npcRotation;
                     }
                 }
-
 
             }
 
@@ -147,11 +145,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
                 }
 
-
                 if (action is ScenarioNpcMovementAction moveAction) {
-
-
-
                     var renderMoveTarget = gui.WorldToScreen(moveAction.TargetPosition, out var moveTarget);
                     if (renderMoveTarget) {
                         drawing.AddCircleFilled(moveTarget, 5f, targetColor);
@@ -264,9 +258,9 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         => _npcTrace = Vector3.Zero;
 
     internal uint GetFinishColor()
-        => _imguiColorRed.GetValueOrDefault(0);
-    internal uint GetStartColor()
         => _imguiColorGreen.GetValueOrDefault(0);
+    internal uint GetStartColor()
+        => _imguiColorRed.GetValueOrDefault(0);
     internal uint GetDefaultColor()
         => _imguiColorBlack.GetValueOrDefault(0);
 }

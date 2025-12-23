@@ -363,7 +363,6 @@ public unsafe class ScenarioNpc {
                 break;
         }
 
-
         return execution;
     }
     private ScenarioNpcAction GetNextAction() {
