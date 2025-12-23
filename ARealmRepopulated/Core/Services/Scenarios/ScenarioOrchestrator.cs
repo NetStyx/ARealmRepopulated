@@ -171,16 +171,15 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     }
 
     public void Initialize() {
-        hooks.CharacterDestroyed += Game_CharacterDestroyed;
+        hooks.OnCharacterDestroyed += Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished += EventService_OnTerritoryReady;
         framework.Update += Framework_Update;
         fileManager.OnScenarioFileChanged += ScenarioFileManager_ScenarioFileChanged;
         fileManager.OnScenarioFileRemoved += ScenarioFileManager_ScenarioFileRemoved;
     }
 
-
     public void Dispose() {
-        hooks.CharacterDestroyed -= Game_CharacterDestroyed;
+        hooks.OnCharacterDestroyed -= Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished -= EventService_OnTerritoryReady;
         framework.Update -= Framework_Update;
         fileManager.OnScenarioFileRemoved -= ScenarioFileManager_ScenarioFileRemoved;
@@ -195,7 +194,6 @@ public class Orchestration {
     public required string Hash { get; set; }
     public required Scenario Scenario { get; set; }
 }
-
 
 public static unsafe class ScenarioManagerExtensions {
     public static ScenarioNpc? GetScenarioNpcByAddress(this ScenarioOrchestrator manager, Character* actor) {

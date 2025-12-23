@@ -1,6 +1,5 @@
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using System.IO;
 using System.Numerics;
 using System.Text;
@@ -8,7 +7,6 @@ using System.Text.Json;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Data.Appearance;
-
 
 /*
  Offset	Field Name	Type	Meaning
@@ -34,7 +32,6 @@ namespace ARealmRepopulated.Data.Appearance;
 0x13	FacePaint
 0x14	FacePaintColor
  */
-
 
 public enum CustomizeIndex : int {
     Race = 0x00,
@@ -65,6 +62,22 @@ public enum CustomizeIndex : int {
     FacePaintColor = 0x19
 }
 
+public enum NpcRace : byte {
+    Unknown = 0,
+    Hyur = 1,
+    Elezen = 2,
+    Lalafel = 3,
+    Miqote = 4,
+    Roegadyn = 5,
+    AuRa = 6,
+    Hrothgar = 7,
+    Viera = 8
+}
+public enum NpcSex : byte {
+    Male = 0,
+    Female = 1
+}
+
 public class NpcAppearanceFile {
 
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
@@ -73,10 +86,10 @@ public class NpcAppearanceFile {
     public int ModelSkeletonId { get; set; } = 0;
 
     // Hyur = 1, Elezen = 2, Lalafel = 3, Miqote = 4, Roegadyn = 5, AuRa = 6, Hrothgar = 7, Viera = 8
-    public byte? Race { get; set; }
+    public NpcRace Race { get; set; }
 
     // Male = 0, Female = 1,
-    public byte? Sex { get; set; }
+    public NpcSex Sex { get; set; }
 
     // Normal = 1, Old = 3, Young = 4,
     public byte? BodyType { get; set; }
@@ -124,6 +137,8 @@ public class NpcAppearanceFile {
 
     public float? Transparency { get; set; }
 
+    public bool HideWeapons { get; set; } = true;
+
     public static NpcAppearanceFile? FromResource(string fileName) {
         var assembly = typeof(NpcAppearanceFile).Assembly;
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(f => f.EndsWith(fileName))
@@ -141,8 +156,6 @@ public class NpcAppearanceFile {
             ?? throw new InvalidOperationException($"Could not deserialize file ");
     }
 
-
-
     public string ToBase64() {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this)));
     }
@@ -150,7 +163,7 @@ public class NpcAppearanceFile {
     public void Save(SaveFormat format = SaveFormat.Json) {
         var filePath = Path.Combine(Plugin.Services.GetRequiredService<IDalamudPluginInterface>().GetPluginConfigDirectory(), "appearance", this.AppearanceId.ToString() + ".arrpc");
 
-        var exportData = "";
+        string exportData;
         if (format == SaveFormat.Base64) {
             exportData = ToBase64();
         } else {
@@ -166,7 +179,6 @@ public class NpcAppearanceFile {
     }
 }
 
-
 [Serializable]
 public class WeaponModel {
     public Vector3 Color { get; set; }
@@ -177,7 +189,7 @@ public class WeaponModel {
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
 
-    public unsafe void Apply(Character* actor, bool isMainHand) {
+    public unsafe void Apply(Character* actor, bool isMainHand, bool hideWhenSheathed) {
 
         if (ModelSetId == 0)
             return;
@@ -191,22 +203,22 @@ public class WeaponModel {
         };
 
         actor->DrawData.LoadWeapon(isMainHand ? WeaponSlot.MainHand : WeaponSlot.OffHand, wep, 0, 0, 0, 0);
+        actor->DrawData.HideWeapons(hideWhenSheathed);
     }
 
     public static unsafe WeaponModel Read(Character* actor, WeaponSlot slot) {
         var model = actor->DrawData.Weapon(slot);
-        var weapon = (Weapon*)&model;
+        var weapon = (WeaponModelId*)&model;
 
         return new WeaponModel {
-            ModelSetId = weapon->ModelSetId,
-            Base = 0,
+            ModelSetId = weapon->Id,
+            Base = weapon->Type,
             Variant = weapon->Variant,
             Stain0 = weapon->Stain0,
             Stain1 = weapon->Stain1
         };
     }
 }
-
 
 [Serializable]
 public class EquipmentModel {
@@ -223,7 +235,6 @@ public class EquipmentModel {
             Stain0 = Stain0,
             Stain1 = Stain1
         };
-
 
         actor->DrawData.Equipment(index) = item;
     }

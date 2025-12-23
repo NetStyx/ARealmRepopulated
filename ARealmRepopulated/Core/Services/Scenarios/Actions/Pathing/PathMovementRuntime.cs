@@ -152,8 +152,6 @@ public class PathMovementRuntime {
             _currentDistanceAlongPath = _path.TotalLength;
     }
 
-
-
     public static float ResolveSpeed(NpcSpeed opt) => opt switch {
         NpcSpeed.Walking => NpcActor.WalkingSpeed,
         NpcSpeed.Running => NpcActor.RunningSpeed,

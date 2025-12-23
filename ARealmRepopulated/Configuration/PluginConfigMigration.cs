@@ -13,9 +13,8 @@ public class PluginConfigMigration(PluginConfig config, IPluginLog log) {
         log.Debug("Enumerating available version migrations");
         var migrationTypes = currentAssembly.GetTypes().Where(t => t.IsAssignableTo(migrationInterface) && t != migrationInterface);
         foreach (var migrationType in migrationTypes) {
-            var migrationInstance = Activator.CreateInstance(migrationType) as IConfigMigration;
-            var migrationAttribute = Attribute.GetCustomAttribute(migrationType, typeof(ConfigMigrationAttribute)) as ConfigMigrationAttribute;
-            if (migrationInstance != null && migrationAttribute != null) {
+            if (Activator.CreateInstance(migrationType) is IConfigMigration migrationInstance &&
+                Attribute.GetCustomAttribute(migrationType, typeof(ConfigMigrationAttribute)) is ConfigMigrationAttribute migrationAttribute) {
                 log.Debug($"Found {migrationInstance.GetType().Name} for version {migrationAttribute.Version}");
                 migrationDictionary.Add(migrationAttribute.Version, migrationInstance);
             }
@@ -33,6 +32,7 @@ public class PluginConfigMigration(PluginConfig config, IPluginLog log) {
 
 }
 
+[AttributeUsage(AttributeTargets.Class)]
 public class ConfigMigrationAttribute : Attribute {
     public int Version { get; set; }
 }

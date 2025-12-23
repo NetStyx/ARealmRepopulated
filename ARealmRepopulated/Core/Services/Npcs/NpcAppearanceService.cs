@@ -6,28 +6,21 @@ using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache dataCache) {
+public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog log, ArrpDataCache dataCache) {
 
     public enum Animations : ushort {
         None = 0,
         Idle = 3,
         Walking = 13,
-        Running = 22,
-        Turning = 13
-    }
-
-    public void Initialize() {
-
-        // nothing to do here anymore
+        Running = 22
     }
 
     public void Apply(Character* chara, NpcAppearanceFile file) {
-
         chara->Scale = 1;
         chara->ModelContainer.ModelCharaId = file.ModelCharaId;
         chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = file.Race.GetValueOrDefault();
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = file.Sex.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = (byte)file.Race;
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = (byte)file.Sex;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = file.BodyType.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height] = file.Height.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe] = file.Tribe.GetValueOrDefault();
@@ -53,8 +46,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaint] = file.FacePaint.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaintColor] = file.FacePaintColor.GetValueOrDefault();
 
-        file.MainHand?.Apply(chara, true);
-        file.OffHand?.Apply(chara, false);
+        file.MainHand?.Apply(chara, isMainHand: true, hideWhenSheathed: file.HideWeapons);
+        file.OffHand?.Apply(chara, isMainHand: false, hideWhenSheathed: file.HideWeapons);
 
         file.HeadGear?.Apply(chara, EquipmentSlot.Head);
         file.Body?.Apply(chara, EquipmentSlot.Body);
@@ -79,8 +72,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
         file.AppearanceId = Guid.NewGuid();
         file.ModelCharaId = chara->ModelContainer.ModelCharaId;
         file.ModelSkeletonId = chara->ModelContainer.ModelSkeletonId;
-        file.Race = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
-        file.Sex = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
+        file.Race = (NpcRace)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
+        file.Sex = (NpcSex)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
         file.BodyType = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType];
         file.Height = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height];
         file.Tribe = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe];
@@ -106,6 +99,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
         file.FacePaint = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaint];
         file.FacePaintColor = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaintColor];
 
+        file.HideWeapons = chara->DrawData.IsWeaponHidden;
         file.MainHand = WeaponModel.Read(chara, WeaponSlot.MainHand);
         file.OffHand = WeaponModel.Read(chara, WeaponSlot.OffHand);
 
@@ -139,6 +133,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, ArrpDataCache
     }
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
+        log.Verbose($"Playing timeline {timelineId} on character {character->GetName()}");
         //if (character->Timeline.TimelineSequencer.TimelineIds[0] != timelineId)
         //{
         //var actionTimeline = dataManager.GetExcelSheet<ActionTimeline>();

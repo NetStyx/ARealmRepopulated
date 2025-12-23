@@ -3,8 +3,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace ARealmRepopulated.Core.Native;
 
-public unsafe static class NativeExtensions {
-
+public static unsafe class NativeExtensions {
     public static GameObject* AsGameObject(this nint pointer)
         => (GameObject*)pointer;
 
@@ -13,6 +12,4 @@ public unsafe static class NativeExtensions {
 
     public static Character* AsCharacter(this nint pointer)
         => (Character*)pointer;
-
-
 }

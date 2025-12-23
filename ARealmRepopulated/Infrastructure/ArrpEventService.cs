@@ -73,10 +73,11 @@ public class ArrpEventService : IDisposable {
         return zoneData;
     }
 
-
     public void Dispose() {
         _framework.Update -= Framework_Update;
         _clientState.TerritoryChanged -= ClientState_TerritoryChanged;
         _clientState.Login -= ClientState_Login;
+
+        GC.SuppressFinalize(this);
     }
 }

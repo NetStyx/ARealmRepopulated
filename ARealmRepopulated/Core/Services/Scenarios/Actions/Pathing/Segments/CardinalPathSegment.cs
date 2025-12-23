@@ -121,7 +121,6 @@ public class CardinalSegment : IPathSegment {
         return (dh00 * _p1) + (dh10 * m1) + (dh01 * _p2) + (dh11 * m2);
     }
 
-
     /*
     private Vector3 EvaluatePosition(float t) {
         var t2 = t * t;

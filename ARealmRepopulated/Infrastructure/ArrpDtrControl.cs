@@ -59,5 +59,7 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
     public void Dispose() {
         clientState.Login -= OnLogin;
         clientState.Logout -= OnLogout;
+
+        GC.SuppressFinalize(this);
     }
 }

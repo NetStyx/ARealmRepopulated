@@ -19,8 +19,7 @@ public class PluginConfig : IPluginConfiguration {
         Plugin.Services.GetRequiredService<IDalamudPluginInterface>().SavePluginConfig(this);
     }
 
-
     [JsonExtensionData]
-    internal Dictionary<string, object> AdditionalData { get; set; } = new();
+    internal Dictionary<string, object> AdditionalData { get; set; } = [];
 
 }

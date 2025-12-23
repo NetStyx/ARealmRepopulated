@@ -5,17 +5,21 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Diagnostics.CodeAnalysis;
-
+using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
 [PluginInterface]
-public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) : IDisposable {
+public unsafe class NpcServices(IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
-    private ulong _internalContentIdIndex = 0;
+    private readonly Lock _npcServicesLock = new();
+
     public unsafe bool TrySpawnNpc([NotNullWhen(true)] out NpcActor? character) {
+
+        using var _ = _npcServicesLock.EnterScope();
+
         if (!TryCreateNewCharacter(out var battleCharacter)) {
             character = null;
             return false;
@@ -29,7 +33,6 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
         battleCharacter->ObjectKind = ObjectKind.BattleNpc;
         battleCharacter->BattleNpcSubKind = (BattleNpcSubKind)4;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
-        battleCharacter->ContentId = 0x80000000000000u + (++_internalContentIdIndex);
 
         var npcActor = Plugin.Services.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
@@ -40,11 +43,20 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
     }
 
     public unsafe void DespawnNpc(NpcActor npcObject) {
+
+        using var _ = _npcServicesLock.EnterScope();
+
         var go = npcObject.Address.AsGameObject();
 
+        log.Debug($"Despawning NPC '{go->GetName()}' at {npcObject.Address:X}");
         var objectManager = ClientObjectManager.Instance();
         var index = objectManager->GetIndexByObject(go);
-        objectManager->DeleteObjectByIndex((ushort)index, 0);
+        if (index >= 0) {
+            log.Debug($"Deleting gameobject at index {index}");
+            objectManager->DeleteObjectByIndex((ushort)index, 0);
+        } else {
+            log.Warning($"Failed to find index for {go->GetName()}");
+        }
     }
 
     private bool TryCreateNewCharacter(out BattleChara* resultCharacter) {
@@ -83,7 +95,7 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
     }
 
     public void Initialize() {
-        hooks.CharacterDestroyed += Hooks_CharacterDestroyed;
+        hooks.OnCharacterDestroyed += Hooks_CharacterDestroyed;
     }
 
     private void Hooks_CharacterDestroyed(Character* chara) {
@@ -94,7 +106,9 @@ public unsafe class NpcServices(IObjectTable objectTable, ArrpGameHooks hooks) :
     }
 
     public void Dispose() {
-        hooks.CharacterDestroyed -= Hooks_CharacterDestroyed;
+        GC.SuppressFinalize(this);
+
+        hooks.OnCharacterDestroyed -= Hooks_CharacterDestroyed;
         ClearNpcs();
     }
 }

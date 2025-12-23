@@ -129,5 +129,3 @@ public class ScenarioNpcEmptyAction : ScenarioNpcAction {
     public static ScenarioNpcEmptyAction Default { get; set; } = new ScenarioNpcEmptyAction();
 }
 
-
-

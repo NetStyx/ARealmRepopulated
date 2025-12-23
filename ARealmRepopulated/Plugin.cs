@@ -54,8 +54,6 @@ public sealed class Plugin : IDalamudPlugin {
         Services.GetRequiredService<ChatCommands>().Initialize();
         Services.GetRequiredService<ScenarioOrchestrator>().Initialize();
         Services.GetRequiredService<NpcServices>().Initialize();
-        Services.GetRequiredService<NpcAppearanceService>().Initialize();
-        Services.GetRequiredService<DebugOverlay>().Initialize();
         Services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         Services.GetRequiredService<ChatBubbleService>();
 
@@ -65,7 +63,6 @@ public sealed class Plugin : IDalamudPlugin {
 
     public void Dispose() {
         Windows.RemoveAllWindows();
-        ConfigWindow.Dispose();
         Services.Dispose();
     }
 
