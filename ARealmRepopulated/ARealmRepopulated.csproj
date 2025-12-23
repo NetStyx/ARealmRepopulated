@@ -17,7 +17,7 @@
         <LoadRequiredState>1</LoadRequiredState>
         <LoadSync>true</LoadSync>
         <CanUnloadAsync>false</CanUnloadAsync>        
-        <ImageUrls>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image1.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image2.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image3.png</ImageUrls>
+        <ImageUrls>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image1.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image2.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image3.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image4.png</ImageUrls>
         <IconUrl>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/icon.png</IconUrl>        
         <AcceptsFeedback>false</AcceptsFeedback>                
     </PropertyGroup>
