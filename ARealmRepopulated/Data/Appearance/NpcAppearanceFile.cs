@@ -137,6 +137,8 @@ public class NpcAppearanceFile {
 
     public float? Transparency { get; set; }
 
+    public bool HideWeapons { get; set; } = true;
+
     public static NpcAppearanceFile? FromResource(string fileName) {
         var assembly = typeof(NpcAppearanceFile).Assembly;
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(f => f.EndsWith(fileName))
@@ -155,9 +157,7 @@ public class NpcAppearanceFile {
     }
 
     public string ToBase64() {
-        var jsonData = JsonSerializer.Serialize(this);
-
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonData));
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this)));
     }
 
     public void Save(SaveFormat format = SaveFormat.Json) {
@@ -189,7 +189,7 @@ public class WeaponModel {
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
 
-    public unsafe void Apply(Character* actor, bool isMainHand) {
+    public unsafe void Apply(Character* actor, bool isMainHand, bool hideWhenSheathed) {
 
         if (ModelSetId == 0)
             return;
@@ -203,6 +203,7 @@ public class WeaponModel {
         };
 
         actor->DrawData.LoadWeapon(isMainHand ? WeaponSlot.MainHand : WeaponSlot.OffHand, wep, 0, 0, 0, 0);
+        actor->DrawData.HideWeapons(hideWhenSheathed);
     }
 
     public static unsafe WeaponModel Read(Character* actor, WeaponSlot slot) {
