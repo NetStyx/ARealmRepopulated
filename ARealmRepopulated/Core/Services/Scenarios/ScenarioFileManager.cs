@@ -26,6 +26,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public string ScenarioPath => Path.Combine(pluginInterface.GetPluginConfigDirectory(), "Scenarios");
     public void StartMonitoring() {
 
+        if (!Directory.Exists(ScenarioPath))
+            Directory.CreateDirectory(ScenarioPath);
+
         _fileSystemWatcher.Path = ScenarioPath;
         _fileSystemWatcher.Filter = "*.json";
         _fileSystemWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.CreationTime | NotifyFilters.LastWrite;

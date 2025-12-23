@@ -29,36 +29,20 @@
     "FacePaintColor": 0,
     "Glasses": 0,
     "MainHand": {
-        "Color": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
-        },
-        "Scale": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
-        },
-        "ModelSetId": 301,
-        "Base": 31,
-        "Variant": 1,
-        "StainId": 0,
+        "Color": {},
+        "Scale": {},
+        "ModelSetId": 0,
+        "Base": 0,
+        "Variant": 0,
+        "Stain0": 0,
         "Stain1": 0
     },
     "OffHand": {
-        "Color": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
-        },
-        "Scale": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
-        },
-        "ModelSetId": 351,
-        "Base": 31,
-        "Variant": 1,
+        "Color": {},
+        "Scale": {},
+        "ModelSetId": 0,
+        "Base": 0,
+        "Variant": 0,
         "Stain0": 0,
         "Stain1": 0
     },
@@ -123,6 +107,6 @@
         "Stain1": 0
     },
 
-
-    "Transparency": 1
+    "HideWeapons": true,
+    "Transparency": null
 }
