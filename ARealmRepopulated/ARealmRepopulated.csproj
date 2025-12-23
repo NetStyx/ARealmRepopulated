@@ -16,19 +16,18 @@
         <DalamudApiLevel>14</DalamudApiLevel>
         <LoadRequiredState>1</LoadRequiredState>
         <LoadSync>true</LoadSync>
-        <CanUnloadAsync>false</CanUnloadAsync>        
+        <CanUnloadAsync>false</CanUnloadAsync>
         <ImageUrls>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image1.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image2.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image3.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image4.png</ImageUrls>
-        <IconUrl>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/icon.png</IconUrl>        
-        <AcceptsFeedback>false</AcceptsFeedback>                
+        <IconUrl>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/icon.png</IconUrl>
+        <AcceptsFeedback>false</AcceptsFeedback>
     </PropertyGroup>
 
-    <ItemGroup>    
-    <Content Include="..\images\**\*" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="data\scenarios\DefaultShiroganeScenario.json" />
-    <EmbeddedResource Include="Data\Appearance\DefaultHumanFemale.json" />
-  </ItemGroup>
+    <ItemGroup>
+        <Content Include="..\images\**\*" CopyToOutputDirectory="PreserveNewest" />
+        <EmbeddedResource Include="Data\Appearance\DefaultHumanFemale.json" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    </ItemGroup>
 </Project>
