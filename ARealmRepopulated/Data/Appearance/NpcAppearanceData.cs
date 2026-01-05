@@ -8,31 +8,6 @@ using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Data.Appearance;
 
-/*
- Offset	Field Name	Type	Meaning
-0x00	Race	
-0x01	Gender	
-0x02	BodyType	
-0x03	Clan	
-0x04	Face	
-0x05	HairStyle	
-0x06	Highlights
-0x07	SkinColor	
-0x08	EyeColorRight
-0x09	HairColor
-0x0A	HairColor2
-0x0B	EyeColorLeft	
-0x0C	EyeShape	
-0x0D	SmallIris
-0x0E	Nose	
-0x0F	Jaw
-0x10	Mouth
-0x11	LipColor
-0x12	BustOrTone1	
-0x13	FacePaint
-0x14	FacePaintColor
- */
-
 public enum CustomizeIndex : int {
     Race = 0x00,
     Sex = 0x01,
@@ -47,7 +22,7 @@ public enum CustomizeIndex : int {
     HairColor = 0x0A,
     HighlightsColor = 0x0B,
     FacialFeatures = 0x0C,
-    TattooColor = 0x0D,
+    FacialFeaturesColor = 0x0D,
     Eyebrows = 0x0E,
     EyeColorLeft = 0x0F,
     EyeShape = 0x10,
@@ -78,25 +53,47 @@ public enum NpcSex : byte {
     Female = 1
 }
 
-public class NpcAppearanceFile {
+public enum NpcTribe : byte {
+    Unknown = 0,
+    Midlander = 1,
+    Highlander = 2,
+    Wildwood = 3,
+    Duskwight = 4,
+    Plainsfolk = 5,
+    Dunesfolk = 6,
+    SeekerOfTheSun = 7,
+    KeeperOfTheMoon = 8,
+    SeaWolf = 9,
+    Hellsguard = 10,
+    Raen = 11,
+    Xaela = 12,
+    Helions = 13,
+    TheLost = 14,
+    Rava = 15,
+    Veena = 16
+}
+
+public enum NpcBodyType : byte {
+    Unknown = 0,
+    Normal = 1,
+    Old = 3,
+    Young = 4
+}
+
+public class NpcAppearanceData {
+
+    public static readonly NpcAppearanceData Default = FromResource("DefaultHumanFemale.json")!;
 
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
     public int ModelCharaId { get; set; } = 0;
     public int ModelSkeletonId { get; set; } = 0;
 
-    // Hyur = 1, Elezen = 2, Lalafel = 3, Miqote = 4, Roegadyn = 5, AuRa = 6, Hrothgar = 7, Viera = 8
     public NpcRace Race { get; set; }
-
-    // Male = 0, Female = 1,
     public NpcSex Sex { get; set; }
-
-    // Normal = 1, Old = 3, Young = 4,
-    public byte? BodyType { get; set; }
+    public NpcBodyType BodyType { get; set; }
     public byte? Height { get; set; }
-
-    // Midlander = 1, Highlander = 2, Wildwood = 3, Duskwight = 4, Plainsfolk = 5, Dunesfolk = 6, SeekerOfTheSun = 7, KeeperOfTheMoon = 8, SeaWolf = 9, Hellsguard = 10, Raen = 11, Xaela = 12, Helions = 13, TheLost = 14, Rava = 15, Veena = 16
-    public byte? Tribe { get; set; }
+    public NpcTribe Tribe { get; set; }
     public byte? Face { get; set; }
     public byte? HairStyle { get; set; }
     public byte? Highlights { get; set; }
@@ -139,20 +136,20 @@ public class NpcAppearanceFile {
 
     public bool HideWeapons { get; set; } = true;
 
-    public static NpcAppearanceFile? FromResource(string fileName) {
-        var assembly = typeof(NpcAppearanceFile).Assembly;
+    public static NpcAppearanceData? FromResource(string fileName) {
+        var assembly = typeof(NpcAppearanceData).Assembly;
         var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(f => f.EndsWith(fileName))
             ?? throw new InvalidOperationException($"Resource {fileName} not found");
         using var resourceStream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException($"Could not create resourcestream for file {fileName}");
-        return JsonSerializer.Deserialize<NpcAppearanceFile>(resourceStream)
+        return JsonSerializer.Deserialize<NpcAppearanceData>(resourceStream)
             ?? throw new InvalidOperationException($"Could not deserialize file {fileName}");
     }
 
-    public static NpcAppearanceFile FromBase64(string data) {
+    public static NpcAppearanceData FromBase64(string data) {
         var jsonData = Convert.FromBase64String(data);
 
-        return JsonSerializer.Deserialize<NpcAppearanceFile>(jsonData)
+        return JsonSerializer.Deserialize<NpcAppearanceData>(jsonData)
             ?? throw new InvalidOperationException($"Could not deserialize file ");
     }
 

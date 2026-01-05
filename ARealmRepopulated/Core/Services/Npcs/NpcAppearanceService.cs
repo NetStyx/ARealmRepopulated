@@ -15,15 +15,15 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         Running = 22
     }
 
-    public void Apply(Character* chara, NpcAppearanceFile file) {
+    public void Apply(Character* chara, NpcAppearanceData file) {
         chara->Scale = 1;
         chara->ModelContainer.ModelCharaId = file.ModelCharaId;
         chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = (byte)file.Race;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = (byte)file.Sex;
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = file.BodyType.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = (byte)file.BodyType;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height] = file.Height.GetValueOrDefault();
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe] = file.Tribe.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe] = (byte)file.Tribe;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Face] = file.Face.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.HairStyle] = file.HairStyle.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Highlights] = file.Highlights.GetValueOrDefault();
@@ -32,7 +32,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.HairColor] = file.HairColor.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.HighlightsColor] = file.HighlightsColor.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacialFeatures] = file.FacialFeatures.GetValueOrDefault();
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.TattooColor] = file.TattooColor.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacialFeaturesColor] = file.TattooColor.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Eyebrows] = file.Eyebrows.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.EyeColorLeft] = file.EyeColorLeft.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.EyeShape] = file.EyeShape.GetValueOrDefault();
@@ -67,16 +67,16 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         }*/
     }
 
-    public void Read(Character* chara, NpcAppearanceFile file) {
+    public void Read(Character* chara, NpcAppearanceData file) {
 
         file.AppearanceId = Guid.NewGuid();
         file.ModelCharaId = chara->ModelContainer.ModelCharaId;
         file.ModelSkeletonId = chara->ModelContainer.ModelSkeletonId;
         file.Race = (NpcRace)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
         file.Sex = (NpcSex)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
-        file.BodyType = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType];
+        file.BodyType = (NpcBodyType)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType];
         file.Height = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height];
-        file.Tribe = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe];
+        file.Tribe = (NpcTribe)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe];
         file.Face = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Face];
         file.HairStyle = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.HairStyle];
         file.Highlights = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Highlights];
@@ -85,7 +85,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.HairColor = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.HairColor];
         file.HighlightsColor = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.HighlightsColor];
         file.FacialFeatures = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacialFeatures];
-        file.TattooColor = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.TattooColor];
+        file.TattooColor = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacialFeaturesColor];
         file.Eyebrows = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Eyebrows];
         file.EyeColorLeft = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.EyeColorLeft];
         file.EyeShape = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.EyeShape];
@@ -166,13 +166,11 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     }
 
     public void Clone(Character* chara) {
-
         if (objectTable.LocalPlayer == null) {
             return;
         }
 
         chara->CharacterSetup.CopyFromCharacter((Character*)objectTable.LocalPlayer.Address, CharacterSetupContainer.CopyFlags.ClassJob);
-
     }
 
     public void SetName(Character* chara) {
@@ -182,5 +180,4 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         }
         chara->Name[name.Length] = 0;
     }
-
 }

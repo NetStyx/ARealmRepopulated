@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.Services.Scenarios;
+using ARealmRepopulated.Data.Appearance;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
@@ -42,7 +43,7 @@ public interface IScenarioMetaData {
 
 public class ScenarioNpcData {
     public string Name { get; set; } = "";
-    public string Appearance { get; set; } = "";
+    public NpcAppearanceData Appearance { get; set; } = NpcAppearanceData.Default;
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
     public List<ScenarioNpcAction> Actions { get; set; } = [];

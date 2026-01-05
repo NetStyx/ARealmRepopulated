@@ -93,7 +93,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
             npc.SetPosition(scenarioNpc.Position, isDefault: true);
             npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
-            if (!string.IsNullOrEmpty(scenarioNpc.Appearance)) {
+            if (scenarioNpc.Appearance != null) {
                 npc.SetAppearance(scenarioNpc.Appearance);
             } else {
                 npc.SetDefaultAppearance();

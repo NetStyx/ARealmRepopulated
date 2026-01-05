@@ -102,15 +102,12 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public Animations GetAnimation()
         => appearanceService.GetAnimation(_actor);
 
-    public void SetAppearance(string base64JsonData)
-        => SetAppearance(NpcAppearanceFile.FromBase64(base64JsonData));
-
-    public void SetAppearance(NpcAppearanceFile appearanceFile) {
+    public void SetAppearance(NpcAppearanceData appearanceFile) {
         appearanceService.Apply((Character*)_actor, appearanceFile);
     }
 
     public void SetDefaultAppearance() {
-        appearanceService.Apply((Character*)_actor, NpcAppearanceFile.FromResource("DefaultHumanFemale.json")!);
+        appearanceService.Apply((Character*)_actor, NpcAppearanceData.FromResource("DefaultHumanFemale.json")!);
     }
 
     public void Talk(string text, float playTime = 3f)
