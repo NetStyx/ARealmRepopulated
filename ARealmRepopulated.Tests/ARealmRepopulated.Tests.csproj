@@ -4,6 +4,11 @@
         <Use_DalamudPackager>false</Use_DalamudPackager>
         <OutputType>Exe</OutputType>
     </PropertyGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\ScenarioFiles\v2-1975ef01-990d-44d7-a955-c6fd4b1b3ff2.json" />
+      <EmbeddedResource Include="Resources\ScenarioFiles\v2-2bc60476-07b2-4a78-9b2b-ad6f14f5878b.json" />
+      <EmbeddedResource Include="Resources\ScenarioFiles\v2-9c382d65-99c1-411a-8cb1-57d15cc74073.json" />
+    </ItemGroup>
 
     <ItemGroup>
         <Reference Include="Dalamud">
@@ -61,10 +66,6 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\" />
   </ItemGroup>
 
 </Project>

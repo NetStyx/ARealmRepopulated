@@ -10,13 +10,12 @@ namespace ARealmRepopulated.Tests;
 
 public class ScenarioFileTests {
 
-
     [Fact]
     public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization() {
 
         var scenario = new ScenarioData { Title = GetRandomString(), Description = GetRandomString() };
 
-        var npcOne = new ScenarioNpcData { Name = GetRandomString(), Appearance = "", Position = GetRandomVector3(), Rotation = GetRandomRadian() };
+        var npcOne = new ScenarioNpcData { Name = GetRandomString(), Position = GetRandomVector3(), Rotation = GetRandomRadian() };
         npcOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = GetRandomTime() });
         npcOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Running });
         npcOne.Actions.Add(new ScenarioNpcSyncAction());
@@ -34,7 +33,7 @@ public class ScenarioFileTests {
 
         var restoredNpcOne = restoredScenario.Npcs[0];
         restoredNpcOne.Name.ShouldBe(npcOne.Name);
-        restoredNpcOne.Appearance.ShouldBe(npcOne.Appearance);
+        restoredNpcOne.Appearance.ToBase64().ShouldBe(npcOne.Appearance.ToBase64());
         restoredNpcOne.Position.ShouldBe(npcOne.Position);
         restoredNpcOne.Rotation.ShouldBe(npcOne.Rotation);
         restoredNpcOne.Actions.Count.ShouldBe(npcOne.Actions.Count);
@@ -68,7 +67,6 @@ public class ScenarioFileTests {
 
     }
 
-
     private static ScenarioData Recode(ScenarioData data) {
         var options = new JsonSerializerOptions();
         options.WriteIndented = true;
@@ -82,7 +80,6 @@ public class ScenarioFileTests {
 
         return deserialized;
     }
-
 
     private static string GetRandomString()
         => Convert.ToBase64String(Guid.NewGuid().ToByteArray());
