@@ -92,8 +92,6 @@ public class AnamnesisParser : IAppearanceFileParser {
 
     private static WeaponModel ParseWeapon(JsonObject obj)
         => new() {
-            Color = GetVector(obj["Color"]!.GetValue<string>()),
-            Scale = GetVector(obj["Scale"]!.GetValue<string>()),
             ModelSetId = obj["ModelSet"]!.GetValue<ushort>(),
             Base = obj["ModelBase"]!.GetValue<ushort>(),
             Variant = obj["ModelVariant"]!.GetValue<ushort>(),

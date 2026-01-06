@@ -46,8 +46,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaint] = file.FacePaint.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaintColor] = file.FacePaintColor.GetValueOrDefault();
 
-        file.MainHand?.Apply(chara, isMainHand: true, hideWhenSheathed: file.HideWeapons);
-        file.OffHand?.Apply(chara, isMainHand: false, hideWhenSheathed: file.HideWeapons);
+        file.MainHand?.Apply(chara, isMainHand: true);
+        file.OffHand?.Apply(chara, isMainHand: false);
 
         file.HeadGear?.Apply(chara, EquipmentSlot.Head);
         file.Body?.Apply(chara, EquipmentSlot.Body);
@@ -60,6 +60,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.LeftRing?.Apply(chara, EquipmentSlot.LFinger);
         file.RightRing?.Apply(chara, EquipmentSlot.RFinger);
 
+        chara->DrawData.HideWeapons(file.HideWeapons);
+        chara->DrawData.HideHeadgear(0, file.HideHeadgear);
         /*
         if (!(&chara->DrawData.CustomizeData)->NormalizeCustomizeData(&chara->DrawData.CustomizeData))
         {
@@ -100,6 +102,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.FacePaintColor = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaintColor];
 
         file.HideWeapons = chara->DrawData.IsWeaponHidden;
+        file.HideHeadgear = chara->DrawData.IsHatHidden;
+
         file.MainHand = WeaponModel.Read(chara, WeaponSlot.MainHand);
         file.OffHand = WeaponModel.Read(chara, WeaponSlot.OffHand);
 

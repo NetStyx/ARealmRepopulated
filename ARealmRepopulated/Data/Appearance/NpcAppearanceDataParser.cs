@@ -39,7 +39,7 @@ public class NpcAppearanceDataParser(IPluginLog log) {
 
     public NpcAppearanceData? TryParseAppearanceData(string appearanceData) {
 
-        var rawData = "";
+        string rawData;
         JsonObject jsonData;
         try {
             var parsedSpan = new Span<byte>(new byte[4096]);

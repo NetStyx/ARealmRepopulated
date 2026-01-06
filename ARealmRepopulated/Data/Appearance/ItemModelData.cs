@@ -33,29 +33,41 @@ public class ItemModelData {
 
     public uint Item { get; set; }
 
-    public static ulong CalculateModel(ushort set, ushort modelBase, ushort modelVariant) {
-        ulong result = set;
-        result |= (ulong)modelBase << (set != 0 ? 16 : 0);
-        result |= (ulong)modelVariant << (set != 0 ? 32 : 16);
+    public static ulong CalculateModel(ushort modelSet, ushort modelBase, ushort modelVariant) {
+        ulong result = modelSet;
+        if (modelSet != 0) {
+            result |= (ulong)modelBase << 16;
+            result |= (ulong)modelVariant << 32;
+        } else {
+            result |= (ulong)modelBase;
+            result |= (ulong)modelVariant << 16;
+        }
         return result;
     }
 
-    public static bool MatchesSlot(ItemSlots s, Item i) => s switch {
-        ItemSlots.MainHand => i.EquipSlotCategory.Value.MainHand == 1,
-        ItemSlots.Head => i.EquipSlotCategory.Value.Head == 1,
-        ItemSlots.Body => i.EquipSlotCategory.Value.Body == 1,
-        ItemSlots.Hands => i.EquipSlotCategory.Value.Gloves == 1,
-        ItemSlots.Waist => i.EquipSlotCategory.Value.Waist == 1,
-        ItemSlots.Legs => i.EquipSlotCategory.Value.Legs == 1,
-        ItemSlots.Feet => i.EquipSlotCategory.Value.Feet == 1,
-        ItemSlots.OffHand => i.EquipSlotCategory.Value.OffHand == 1,
-        ItemSlots.Ears => i.EquipSlotCategory.Value.Ears == 1,
-        ItemSlots.Neck => i.EquipSlotCategory.Value.Neck == 1,
-        ItemSlots.Wrists => i.EquipSlotCategory.Value.Wrists == 1,
-        ItemSlots.RightRing => i.EquipSlotCategory.Value.FingerR == 1,
-        ItemSlots.LeftRing => i.EquipSlotCategory.Value.FingerL == 1,
-        ItemSlots.Weapons => i.EquipSlotCategory.Value.MainHand == 1 || i.EquipSlotCategory.Value.OffHand == 1,
+    private static bool IsInCategory(Item i, Func<dynamic, int> categorySelector)
+        => categorySelector(i.EquipSlotCategory.Value) == 1;
+
+    public static bool Slottable(ItemSlots s, Item i) => s switch {
+        ItemSlots.MainHand => IsInCategory(i, c => c.MainHand),
+        ItemSlots.Head => IsInCategory(i, c => c.Head),
+        ItemSlots.Body => IsInCategory(i, c => c.Body),
+        ItemSlots.Hands => IsInCategory(i, c => c.Gloves),
+        ItemSlots.Waist => IsInCategory(i, c => c.Waist),
+        ItemSlots.Legs => IsInCategory(i, c => c.Legs),
+        ItemSlots.Feet => IsInCategory(i, c => c.Feet),
+        ItemSlots.OffHand => IsInCategory(i, c => c.OffHand),
+        ItemSlots.Ears => IsInCategory(i, c => c.Ears),
+        ItemSlots.Neck => IsInCategory(i, c => c.Neck),
+        ItemSlots.Wrists => IsInCategory(i, c => c.Wrists),
+        ItemSlots.RightRing => IsInCategory(i, c => c.FingerR),
+        ItemSlots.LeftRing => IsInCategory(i, c => c.FingerL),
+        ItemSlots.Weapons => IsInCategory(i, c => c.MainHand) || IsInCategory(i, c => c.OffHand),
         _ => false,
     };
+}
 
+public static class LumiaItemExtension {
+    public static bool IsSlottableAs(this Item item, ItemSlots slot)
+        => ItemModelData.Slottable(slot, item);
 }

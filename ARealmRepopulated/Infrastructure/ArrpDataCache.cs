@@ -64,8 +64,8 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
             if (searchSlot == ItemSlots.MainHand || searchSlot == ItemSlots.OffHand)
                 searchSlot = ItemSlots.Weapons;
 
-            var itemModel = _itemSheet.FirstOrNull(i => ItemModelData.MatchesSlot(searchSlot, i) && i.ModelMain == model);
-            itemModel ??= _itemSheet.FirstOrNull(i => ItemModelData.MatchesSlot(searchSlot, i) && i.ModelSub == model);
+            var itemModel = _itemSheet.FirstOrNull(i => i.IsSlottableAs(searchSlot) && i.ModelMain == model);
+            itemModel ??= _itemSheet.FirstOrNull(i => i.IsSlottableAs(searchSlot) && i.ModelSub == model);
 
             _itemModelData.Add(modelCache = new ItemModelData { Value = model, Slot = slot, ModelSet = set, ModelBase = baseValue, ModelVariant = variant, Item = itemModel?.RowId ?? 0 });
 

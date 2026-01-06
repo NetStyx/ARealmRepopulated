@@ -18,12 +18,10 @@ public partial class ScenarioEditorWindow {
 
     private SelectedNpcAppearanceEditorTab _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcBase;
 
-    private readonly TransferState _appearanceDataImportState = new TransferState { DefaultIcon = FontAwesomeIcon.ClipboardCheck };
-    private readonly TransferState _appearanceFileImportState = new TransferState { DefaultIcon = FontAwesomeIcon.FileImport };
+    private readonly TransferState _appearanceDataImportState = new() { DefaultIcon = FontAwesomeIcon.ClipboardCheck };
+    private readonly TransferState _appearanceFileImportState = new() { DefaultIcon = FontAwesomeIcon.FileImport };
 
     private void DrawNpcAppearanceInfo() {
-
-        var editorData = dataCache.GetCharacterEditorData();
 
         using var table = ImRaii.Table("##ArrpNpcAppearanceEditorTable", 2, ImGuiTableFlags.NoSavedSettings);
         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 130);
@@ -101,7 +99,7 @@ public partial class ScenarioEditorWindow {
         }
 
         if (ImGuiComponents.IconButtonWithText(fileImportIcon, importFileTooltip, size: new Vector2(200, 0), defaultColor: fileImportColor)) {
-            fileDialogManager.OpenFileDialog("Select file##arrpAppearanceFileSelector", "Character Files (.chara){.chara},All Files{.*}", (bool b, List<string> s) => {
+            fileDialogManager.OpenFileDialog("Select file##arrpAppearanceFileSelector", "Character Files (.chara){.chara},All Files{.*}", (b, s) => {
                 if (b && s.Count > 0) {
                     var appearanceData = appearanceDataParser.TryParseAppearanceFile(s[0]);
                     if (appearanceData != null) {
@@ -166,6 +164,23 @@ public partial class ScenarioEditorWindow {
             ImGui.TableNextColumn();
             ImGui.Text("Base Skeleton ID");
             ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelSkeletonId.ToString());
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.Dummy(new Vector2(0, 50));
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            var hideWeapons = SelectedScenarioNpc.Appearance.HideWeapons;
+            if (ImGui.Checkbox("Hide Weapons##npcAppearanceEditorSetupHideWeapons", ref hideWeapons)) {
+                SelectedScenarioNpc.Appearance.HideWeapons = hideWeapons;
+            }
+
+            var hideHeadgear = SelectedScenarioNpc.Appearance.HideHeadgear;
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Hide Headgear##npcAppearanceEditorSetupHideHeadgear", ref hideHeadgear)) {
+                SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
+            }
 
             ImGui.EndTable();
         }
@@ -257,7 +272,7 @@ public partial class ScenarioEditorWindow {
 
     }
 
-    private void DrawNpcModelRow(string description, byte? val) {
+    private static void DrawNpcModelRow(string description, byte? val) {
         ImGui.TableNextColumn();
         ImGui.Text(description);
         ImGui.TextDisabled((val ?? 0).ToString());

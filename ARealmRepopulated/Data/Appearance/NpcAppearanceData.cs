@@ -1,7 +1,6 @@
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.IO;
-using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
@@ -135,6 +134,7 @@ public class NpcAppearanceData {
     public float? Transparency { get; set; }
 
     public bool HideWeapons { get; set; } = true;
+    public bool HideHeadgear { get; set; } = true;
 
     public static NpcAppearanceData? FromResource(string fileName) {
         var assembly = typeof(NpcAppearanceData).Assembly;
@@ -178,15 +178,13 @@ public class NpcAppearanceData {
 
 [Serializable]
 public class WeaponModel {
-    public Vector3 Color { get; set; }
-    public Vector3 Scale { get; set; }
     public ushort ModelSetId { get; set; }
     public ushort Base { get; set; }
     public ushort Variant { get; set; }
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
 
-    public unsafe void Apply(Character* actor, bool isMainHand, bool hideWhenSheathed) {
+    public unsafe void Apply(Character* actor, bool isMainHand) {
 
         if (ModelSetId == 0)
             return;
@@ -200,7 +198,6 @@ public class WeaponModel {
         };
 
         actor->DrawData.LoadWeapon(isMainHand ? WeaponSlot.MainHand : WeaponSlot.OffHand, wep, 0, 0, 0, 0);
-        actor->DrawData.HideWeapons(hideWhenSheathed);
     }
 
     public static unsafe WeaponModel Read(Character* actor, WeaponSlot slot) {
