@@ -15,7 +15,9 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public const float WalkingSpeed = 2.5f;
     public const float TurningSpeed = 6.3f;
 
+    private bool _isReady = false;
     private BattleChara* _actor = null;
+
     public IntPtr Address { get => new(_actor); }
 
     public void Initialize(BattleChara* actorPointer) {
@@ -27,13 +29,22 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         appearanceService.SetName((Character*)_actor);
     }
 
+    public bool IsReady() {
+        if (_actor->Timeline.TimelineSequencer.TimelineIds[0] == 3) {
+            _isReady = true;
+        }
+        return _isReady;
+    }
+
     public void Spawn() {
         _actor->Alpha = 1.0f;
         _actor->EnableDraw();
     }
 
-    public void Despawn()
-        => _actor->DisableDraw();
+    public void Despawn() {
+        _actor->DisableDraw();
+        _isReady = false;
+    }
 
     public Vector3 GetPosition()
         => _actor->Position;
@@ -46,6 +57,15 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
 
     public void ResetPosition()
         => SetPosition(_actor->DefaultPosition);
+
+    public CharacterModes GetMode()
+        => _actor->Mode;
+
+    public void SetMode(CharacterModes mode, byte param = 0)
+        => _actor->SetMode(mode, param);
+
+    public void ResetMode()
+        => SetMode(CharacterModes.Normal);
 
     public void Fade(float degree)
         => _actor->Alpha = System.Math.Clamp(_actor->Alpha + degree, 0, 1);
@@ -75,6 +95,7 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
 
     public void SetRotationToward(Vector3 target)
         => SetRotation(_actor->Position.DirectionTo(target));
+
     public void SetRotationToward(GameObject* target)
         => SetRotation(_actor->Position.DirectionTo(target->Position));
 
@@ -85,10 +106,10 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
         => Vector3.Distance(_actor->Position, target);
 
     public void PlayTimeline(ushort timelineId)
-     => appearanceService.PlayTimeline(_actor, timelineId);
+        => appearanceService.PlayTimeline(_actor, timelineId);
 
-    public void PlayEmote(ushort emoteid, bool loop)
-     => appearanceService.PlayEmote(_actor, emoteid);
+    public void PlayEmote(ushort emoteid)
+        => appearanceService.PlayEmote(_actor, emoteid);
 
     public bool IsPlayingEmote(ushort emoteid)
         => appearanceService.IsPlayingEmote(_actor, emoteid);

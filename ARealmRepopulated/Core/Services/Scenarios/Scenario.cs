@@ -1,13 +1,17 @@
+using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing;
 using ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing.Segments;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public unsafe class Scenario {
+public unsafe class Scenario(IPluginLog log) {
+
+    public Guid ScenarioInstance { get; } = Guid.NewGuid();
     public List<ScenarioNpc> Npcs { get; set; } = [];
     public bool IsLooping { get; set; } = false;
     public TimeSpan DelayBetweenRuns { get; set; } = TimeSpan.Zero;
@@ -25,11 +29,20 @@ public unsafe class Scenario {
         => _state.CurrentScenarioSegment == 0;
 
     public void WaitForNextRun(TimeSpan time) {
+
+        if (_currentDelay == 0) {
+            log.Info($"[{ScenarioInstance.AsHexString()}] Scenario loop finished.");
+            if (DelayBetweenRuns.TotalMilliseconds > 0) {
+                log.Debug($"[{ScenarioInstance.AsHexString()}] Waiting {DelayBetweenRuns.TotalSeconds} seconds before next run.");
+            }
+        }
+
         _currentDelay += time.TotalMilliseconds;
         if (_currentDelay < DelayBetweenRuns.TotalMilliseconds) {
             return;
         }
 
+        log.Info($"[{ScenarioInstance.AsHexString()}] Starting next scenario loop");
         _currentDelay = 0;
         _state.CurrentScenarioSegment = 0;
         Npcs.ForEach(n => {
@@ -40,6 +53,7 @@ public unsafe class Scenario {
 
     public void Advance(TimeSpan time) {
         if (IsSyncing || IsFirstRun) {
+            log.Debug($"[{ScenarioInstance.AsHexString()}] [{_state.CurrentScenarioSegment}] Advancing to segment {_state.CurrentScenarioSegment + 1}");
             _state.CurrentScenarioSegment++;
         }
 
@@ -55,8 +69,11 @@ public class ScenarioState {
     public int CurrentScenarioSegment { get; set; } = 0;
 }
 
-public unsafe class ScenarioNpc {
+public unsafe class ScenarioNpc(IPluginLog log) {
+
+    public Guid ScenarioInstance { get; set; } = Guid.Empty;
     public int Id { get; set; } = 0;
+    public string Name { get; set; } = "";
 
     public int CurrentScenarioSegment { get; set; } = 0;
 
@@ -85,6 +102,7 @@ public unsafe class ScenarioNpc {
         if (CurrentAction.IsFinished || CurrentScenarioSegment != state.CurrentScenarioSegment) {
             CurrentScenarioSegment = state.CurrentScenarioSegment;
             CurrentAction = SetupNextAction();
+            log.Debug($"[{ScenarioInstance.AsHexString()}] [{CurrentScenarioSegment}] [{Id}:{Name}] Starting action '{CurrentAction.Action}'");
         }
 
         if (CurrentAction.IsInfinite || CurrentAction.IsEmpty)
@@ -105,6 +123,10 @@ public unsafe class ScenarioNpc {
 
             case ScenarioNpcEmoteAction emote:
                 AdvanceEmote(emote, time);
+                break;
+
+            case ScenarioNpcIdleAction idle:
+                AdvanceIdle(idle, time);
                 break;
 
             case ScenarioNpcTimelineAction timeline:
@@ -180,19 +202,35 @@ public unsafe class ScenarioNpc {
     }
 
     private void AdvanceEmote(ScenarioNpcEmoteAction action, TimeSpan delta) {
-        if (action.Loop || CurrentAction.CurrentDuration == 0f) {
-            Actor.PlayEmote(action.Emote, true);
+        // after spawning it takes a few frames until the actor is in a stable animation state. so lets wait here.
+        if (!Actor.IsReady())
+            return;
+
+        if ((action.Loop && !Actor.IsPlayingEmote(action.Emote)) || CurrentAction.CurrentDuration == 0f) {
+            Actor.PlayEmote(action.Emote);
         }
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
         if (!action.Loop) {
             if (!Actor.IsPlayingEmote(action.Emote) || (Actor.IsLoopingEmote(action.Emote) && CurrentAction.IsDurationExeeded)) {
                 CurrentAction.IsFinished = true;
+                if (action.EndLoopAtActionEnd)
+                    Actor.ResetMode();
             }
         } else {
             if (CurrentAction.IsDurationExeeded) {
                 CurrentAction.IsFinished = true;
+                if (action.EndLoopAtActionEnd)
+                    Actor.ResetMode();
             }
+        }
+    }
+
+    private void AdvanceIdle(ScenarioNpcIdleAction action, TimeSpan delta) {
+        if (CurrentAction.CurrentDuration == 0f) {
+            CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
+            Actor.ResetMode();
+            CurrentAction.IsFinished = true;
         }
     }
 
@@ -315,10 +353,6 @@ public unsafe class ScenarioNpc {
         }
 
         switch (execution.Action) {
-            case ScenarioNpcMovementAction:
-                execution.IsInfinite = false;
-                break;
-
             case ScenarioNpcPathAction pathAction:
                 execution.IsInfinite = false;
                 execution.Pathfinder.Reset();
@@ -336,24 +370,17 @@ public unsafe class ScenarioNpc {
 
                 break;
 
-            case ScenarioNpcRotationAction:
-                execution.IsInfinite = false;
-                break;
-
             case ScenarioNpcEmoteAction emote:
                 execution.IsInfinite = false;
                 execution.TargetDuration = emote.Duration;
                 break;
 
+            case ScenarioNpcMovementAction:
+            case ScenarioNpcRotationAction:
             case ScenarioNpcTimelineAction:
-                execution.IsInfinite = false;
-                break;
-
             case ScenarioNpcSpawnAction:
-                execution.IsInfinite = false;
-                break;
-
             case ScenarioNpcDespawnAction:
+            case ScenarioNpcIdleAction:
                 execution.IsInfinite = false;
                 break;
 

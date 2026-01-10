@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
@@ -9,7 +10,7 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog pluginLog, IObjectTable objectTable, ScenarioFileManager fileManager, PluginConfig config, NpcServices npcServices, ArrpGameHooks hooks, ArrpEventService eventService) : IDisposable {
+public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog pluginLog, IObjectTable objectTable, IServiceProvider serviceProvider, ScenarioFileManager fileManager, PluginConfig config, NpcServices npcServices, ArrpGameHooks hooks, ArrpEventService eventService) : IDisposable {
 
     private readonly Lock _scenarioActionLock = new();
     private const float ProximityCheckInterval = 0.5f;
@@ -75,18 +76,21 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 return;
 
             using var lockScope = _scenarioActionLock.EnterScope();
-            Orchestrations.Add(new Orchestration { Scenario = ParseScenarioData(scenarioData), Hash = data.FileHash });
+
+            var scenarioInstance = ParseScenarioData(scenarioData);
+            pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), data.FileName]);
+            Orchestrations.Add(new Orchestration { Scenario = scenarioInstance, Hash = data.FileHash });
             OnOrchestrationsChanged?.Invoke();
         }
-
-        pluginLog.Info($"Loaded Scenario {data.FileName}");
     }
 
     private Scenario ParseScenarioData(ScenarioData data) {
-        var scenario = new Scenario {
-            IsLooping = data.Looping,
-            DelayBetweenRuns = TimeSpan.FromSeconds(data.LoopDelay)
-        };
+
+        var scenario = serviceProvider.GetRequiredService<Scenario>();
+        scenario.IsLooping = data.Looping;
+        scenario.DelayBetweenRuns = TimeSpan.FromSeconds(data.LoopDelay);
+
+        var scenarioNpcIndex = 0;
         foreach (var scenarioNpc in data.Npcs) {
             if (!npcServices.TrySpawnNpc(out var npc))
                 throw new InvalidOperationException($"Could not spawn all npcs.");
@@ -99,7 +103,12 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 npc.SetDefaultAppearance();
 
             }
-            var scenarioNpcObject = new ScenarioNpc { Actor = npc };
+            var scenarioNpcObject = serviceProvider.GetRequiredService<ScenarioNpc>();
+            scenarioNpcObject.ScenarioInstance = scenario.ScenarioInstance;
+            scenarioNpcObject.Actor = npc;
+            scenarioNpcObject.Id = scenarioNpcIndex;
+            scenarioNpcObject.Name = scenarioNpc.Name;
+
             if (scenarioNpc.Actions.Count > 0) {
                 foreach (var npcAction in scenarioNpc.Actions) {
                     scenarioNpcObject.AddAction(npcAction);
@@ -114,6 +123,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
             npc.Draw();
             scenario.Npcs.Add(scenarioNpcObject);
+            scenarioNpcIndex++;
         }
         return scenario;
     }
@@ -132,12 +142,14 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
         var removableList = new List<Orchestration>();
         foreach (var orchestration in Orchestrations) {
+
             if (!orchestration.Scenario.IsFinished) {
                 orchestration.Scenario.Advance(time);
                 continue;
             }
 
             if (!orchestration.Scenario.IsLooping) {
+                pluginLog.Debug("Scenario finished and not looping. Unloading orchestration instance {InstanceName}", [orchestration.Scenario.ScenarioInstance.AsHexString()]);
                 removableList.Add(orchestration);
                 continue;
             }

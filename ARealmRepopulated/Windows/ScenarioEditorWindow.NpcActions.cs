@@ -5,6 +5,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.Numerics;
 using CsMaths = FFXIVClientStructs.FFXIV.Common.Math;
 
@@ -15,6 +16,10 @@ public partial class ScenarioEditorWindow {
     private void DrawActionSelection() {
         if (ImGui.Selectable("Waiting")) {
             AddAction(new ScenarioNpcWaitingAction());
+        }
+
+        if (ImGui.Selectable("Idle")) {
+            AddAction(new ScenarioNpcIdleAction());
         }
 
         if (ImGui.Selectable("Emote")) {
@@ -69,25 +74,32 @@ public partial class ScenarioEditorWindow {
             ImGui.TableSetupColumn("##scenarioNpcEditorActionTableCap", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("##scenarioNpcEditorActionTableValue", ImGuiTableColumnFlags.WidthStretch);
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
+            if (SelectedScenarioNpcAction.CanHaveTalk) {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
 
-            ImGui.Text("Npc Talk");
+                ImGui.Text("Npc Talk");
 
-            ImGui.TableNextColumn();
-            var talk = SelectedScenarioNpcAction.NpcTalk;
-            if (ImGui.InputText("##scenarioNpcGeneralActionTalk", ref talk)) {
-                SelectedScenarioNpcAction.NpcTalk = talk;
+                ImGui.TableNextColumn();
+                var talk = SelectedScenarioNpcAction.NpcTalk;
+                if (ImGui.InputText("##scenarioNpcGeneralActionTalk", ref talk)) {
+                    SelectedScenarioNpcAction.NpcTalk = talk;
+                }
             }
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.Text("Duration");
+            if (SelectedScenarioNpcAction.CanHaveDuration) {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text("Duration");
 
-            ImGui.TableNextColumn();
-            var duration = SelectedScenarioNpcAction.Duration;
-            if (ImGui.InputFloat("s.##scenarioNpcGeneralActionDuration", ref duration, step: 0.1f)) {
-                SelectedScenarioNpcAction.Duration = duration;
+                ImGui.TableNextColumn();
+                var duration = SelectedScenarioNpcAction.Duration;
+                if (ImGui.InputFloat("s.##scenarioNpcGeneralActionDuration", ref duration, step: 0.1f, stepFast: 0.1f, format: "%.2f")) {
+                    if (duration < 0.1f)
+                        duration = 0f;
+                    SelectedScenarioNpcAction.Duration = Math.Clamp(duration, 0f, float.MaxValue);
+
+                }
             }
 
             _actionUiRegistry.Draw(SelectedScenarioNpcAction);
@@ -166,7 +178,7 @@ public partial class ScenarioEditorWindow {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, "Add Point##scenarioNpcPathActionPointsTableAddEntry")) {
 
-            var point = new PathMovementPoint { Speed = SelectedPathMovementPoint != null ? SelectedPathMovementPoint.Speed : NpcSpeed.Walking, Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? Vector3.Zero };
+            var point = new PathMovementPoint { Speed = SelectedPathMovementPoint != null ? SelectedPathMovementPoint.Speed : NpcSpeed.Running, Point = objectTable.LocalPlayer?.Position.AsCsVector() ?? Vector3.Zero };
 
             if (SelectedPathMovementPoint != null) {
                 var index = moveAction.Points.IndexOf(SelectedPathMovementPoint);
@@ -260,6 +272,10 @@ public partial class ScenarioEditorWindow {
 
     }
 
+    private void DrawIdleAction(ScenarioNpcIdleAction idleAction) {
+
+    }
+
     private void DrawEmoteAction(ScenarioNpcEmoteAction emoteAction) {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -267,7 +283,8 @@ public partial class ScenarioEditorWindow {
 
         ImGui.TableNextColumn();
         var emoteid = emoteAction.Emote;
-        var emoteName = $"{emoteid} - " + dataCache.GetEmote(emoteid).Name.ToString();
+        var emoteRow = dataCache.GetEmote(emoteid);
+        var emoteName = $"{emoteid} - " + emoteRow.Name.ToString();
 
         ImGui.BeginDisabled(true);
         ImGui.InputText("##scenarioNpcEmoteActionEmote", ref emoteName);
@@ -287,14 +304,25 @@ public partial class ScenarioEditorWindow {
             ImGui.EndPopup();
         }
 
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text("Loop");
+        if (emoteAction.Duration == 0f)
+            return;
 
-        ImGui.TableNextColumn();
-        var loop = emoteAction.Loop;
-        if (ImGui.Checkbox("##scenarioNpcEmoteActionLoop", ref loop)) {
-            emoteAction.Loop = loop;
+        if (emoteid > 0 && emoteRow.EmoteMode.IsValid && emoteRow.EmoteMode.Value.ConditionMode != (byte)CharacterModes.EmoteLoop) {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            var loop = emoteAction.Loop;
+            if (ImGui.Checkbox("Loop emote for duration##scenarioNpcEmoteActionLoop", ref loop)) {
+                emoteAction.Loop = loop;
+            }
+        } else {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            var endloop = emoteAction.EndLoopAtActionEnd;
+            if (ImGui.Checkbox("End emote after duration##scenarioNpcEmoteActionEndLoop", ref endloop)) {
+                emoteAction.EndLoopAtActionEnd = endloop;
+            }
         }
     }
 }

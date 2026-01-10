@@ -58,6 +58,7 @@ public class ScenarioNpcData {
 [JsonDerivedType(typeof(ScenarioNpcPathAction), typeDiscriminator: "Path")]
 [JsonDerivedType(typeof(ScenarioNpcRotationAction), typeDiscriminator: "Rotation")]
 [JsonDerivedType(typeof(ScenarioNpcEmoteAction), typeDiscriminator: "Emote")]
+[JsonDerivedType(typeof(ScenarioNpcIdleAction), typeDiscriminator: "Idle")]
 [JsonDerivedType(typeof(ScenarioNpcSyncAction), typeDiscriminator: "Sync")]
 public abstract class ScenarioNpcAction {
     internal int ScenarioKey { get; set; } = 0;
@@ -68,20 +69,20 @@ public abstract class ScenarioNpcAction {
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public float Duration { get; set; } = 0f;
-}
 
-public class ScenarioNpcPathAction : ScenarioNpcAction {
-
-    public float Tension { get; set; } = 0.3f;
-    public List<PathMovementPoint> Points { get; set; } = [];
-}
-
-public class PathMovementPoint {
-    public Vector3 Point { get; set; }
-    public NpcSpeed Speed { get; set; }
-
+    [DefaultValue(true)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public float CustomSpeed { get; set; } = 0f;
+    public bool CanHaveTalk { get; set; } = true;
+
+    [DefaultValue(true)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool CanHaveDuration { get; set; } = true;
+
+    public ScenarioNpcAction() { }
+    public ScenarioNpcAction(bool canHaveTalk, bool canHaveDuration) {
+        CanHaveTalk = canHaveTalk;
+        CanHaveDuration = canHaveDuration;
+    }
 }
 
 public enum NpcSpeed {
@@ -92,41 +93,77 @@ public enum NpcSpeed {
 
 public class ScenarioNpcWaitingAction : ScenarioNpcAction {
     // do nothing
+    public override string ToString() => $"Waiting [Duration: {Duration}]";
 }
 
-public class ScenarioNpcSpawnAction : ScenarioNpcAction {
+public class ScenarioNpcSpawnAction() : ScenarioNpcAction(false, false) {
     // do nothing
+    public override string ToString() => "Spawn";
 }
 
-public class ScenarioNpcDespawnAction : ScenarioNpcAction {
+public class ScenarioNpcDespawnAction() : ScenarioNpcAction(false, false) {
     // do nothing
+    public override string ToString() => "Despawn";
 }
 
 public class ScenarioNpcMovementAction : ScenarioNpcAction {
     public Vector3 TargetPosition { get; set; }
     public NpcSpeed Speed { get; set; }
+
+    public override string ToString() => $"Move [Duration: {Duration}; Speed: {Speed}; Target: {TargetPosition}]";
+}
+
+public class ScenarioNpcPathAction() : ScenarioNpcAction {
+    public float Tension { get; set; } = 0.3f;
+    public List<PathMovementPoint> Points { get; set; } = [];
+
+    public override string ToString()
+        => $"Path [Duration: {Duration}; Tension: {Tension}, Points: {Points.Count}]";
+}
+
+public class PathMovementPoint {
+    public Vector3 Point { get; set; }
+    public NpcSpeed Speed { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public float CustomSpeed { get; set; } = 0f;
 }
 
 public class ScenarioNpcRotationAction : ScenarioNpcAction {
     public float TargetRotation { get; set; }
+    public override string ToString() => $"Rotate [Duration: {Duration}; Angle: {TargetRotation}]";
 }
 
 public class ScenarioNpcEmoteAction : ScenarioNpcAction {
     public ushort Emote { get; set; }
     public bool Loop { get; set; }
 
-    internal ushort TimelineId { get; set; }
+    [DefaultValue(true)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool EndLoopAtActionEnd { get; set; } = true;
+
+    public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; EndAfterAction: {EndLoopAtActionEnd}]";
+}
+
+public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, false) {
+    // do nothing
+    public override string ToString() => $"Idle";
 }
 
 public class ScenarioNpcTimelineAction : ScenarioNpcAction {
     public ushort TimelineId { get; set; }
+
+    public override string ToString() => $"Timeline [ID: {TimelineId}; Duration: {Duration}]";
 }
 
-public class ScenarioNpcSyncAction : ScenarioNpcAction {
+public class ScenarioNpcSyncAction() : ScenarioNpcAction(false, false) {
+    public override string ToString() => $"Sync";
 }
 
-public class ScenarioNpcEmptyAction : ScenarioNpcAction {
+public class ScenarioNpcEmptyAction() : ScenarioNpcAction(false, false) {
     // Used when no further action could be determined
     public static ScenarioNpcEmptyAction Default { get; set; } = new ScenarioNpcEmptyAction();
+
+    public override string ToString() => $"Empty";
 }
 

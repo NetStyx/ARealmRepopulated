@@ -41,7 +41,9 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<FileDialogManager>()
             .AddWindow<ConfigWindow>()
             .AddTransientWindow<ScenarioEditorWindow>()
-            .AddTransient<NpcActor>();
+            .AddTransient<NpcActor>()
+            .AddTransient<Scenario>()
+            .AddTransient<ScenarioNpc>();
 
         Services = serviceDescriptors.BuildServiceProvider();
         Services.GetRequiredService<PluginConfigMigration>().Migrate();

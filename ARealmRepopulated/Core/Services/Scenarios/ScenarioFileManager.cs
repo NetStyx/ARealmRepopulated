@@ -114,11 +114,11 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
 
     public ScenarioData? LoadScenarioFile(ScenarioFileData file)
         => LoadScenarioFile(file.FilePath);
-
-    public ScenarioData? LoadScenarioFile(string filePath) {
-
-        log.Debug($"Loading scenario file {filePath}");
-        var fileData = File.ReadAllText(filePath);
+    public ScenarioData? LoadScenarioFile(string filePath)
+        => LoadScenarioFile(new FileInfo(filePath));
+    public ScenarioData? LoadScenarioFile(FileInfo fileInfo) {
+        log.Debug($"Reading scenario file {fileInfo.Name}");
+        var fileData = File.ReadAllText(fileInfo.FullName);
         return DeserializeScenarioData(fileData);
     }
 
