@@ -13,3 +13,12 @@ public static unsafe class NativeExtensions {
     public static Character* AsCharacter(this nint pointer)
         => (Character*)pointer;
 }
+
+public static class CliTypeExtensions {
+
+    public static string AsBase64(this Guid guid)
+        => Convert.ToBase64String(guid.ToByteArray());
+
+    public static string AsHexString(this Guid guid)
+        => Convert.ToHexStringLower(guid.ToByteArray());
+}

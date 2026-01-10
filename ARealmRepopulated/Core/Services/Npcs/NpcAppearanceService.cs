@@ -122,18 +122,59 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     public void PlayEmote(BattleChara* character, ushort emote) {
 
         var emoteEntry = dataCache.GetEmote(emote);
-        if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId) {
-            if (emoteEntry.EmoteMode.RowId != 0) {
-                character->SetMode(CharacterModes.EmoteLoop, (byte)emoteEntry.EmoteMode.RowId);
+
+        if (character->Mode == CharacterModes.InPositionLoop) {
+
+            var timelineId = (ushort)emoteEntry.ActionTimeline[2].RowId;
+            if (timelineId != 0) {
+
+                if (emoteEntry.EmoteMode.Value.EndEmote.RowId == emote) {
+                    character->SetMode(CharacterModes.Normal, 0);
+                }
+                character->Timeline.TimelineSequencer.PlayTimeline(timelineId);
+            }
+
+        } else {
+            if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId) {
+                if (emoteEntry.EmoteMode.Value.ConditionMode != 0) {
+                    character->SetMode((CharacterModes)emoteEntry.EmoteMode.Value.ConditionMode, (byte)emoteEntry.EmoteMode.RowId);
+                }
+            }
+            character->Timeline.TimelineSequencer.PlayTimeline((ushort)emoteEntry.ActionTimeline[0].RowId);
+
+            // we control the execution position manually, so reset any draw offset applied by emote
+            if (character->DrawOffset != FFXIVClientStructs.FFXIV.Common.Math.Vector3.Zero) {
+                character->SetDrawOffset(0, 0, 0);
             }
         }
 
-        character->Timeline.PlayActionTimeline((ushort)emoteEntry.ActionTimeline[0].RowId, 0);
+    }
+
+    public bool IsPlayingEmote(BattleChara* character, ushort emoteId) {
+        var emote = dataCache.GetEmote(emoteId);
+        var emoteTimelineIds = new List<uint>();
+        foreach (var emoteTimeline in emote.ActionTimeline) {
+            if (emoteTimeline.Value.RowId == 0)
+                continue;
+
+            emoteTimelineIds.Add(emoteTimeline.Value.RowId);
+        }
+
+        var timelineSequencer = character->Timeline.TimelineSequencer;
+        for (var timelineIndex = 0; timelineIndex < timelineSequencer.TimelineIds.Length; timelineIndex++) {
+            if (timelineSequencer.TimelineIds[timelineIndex] == 0)
+                continue;
+
+            if (emoteTimelineIds.Contains(timelineSequencer.TimelineIds[timelineIndex]))
+                return true;
+
+        }
+        return false;
     }
 
     public bool IsRepeatingEmote(ushort emote) {
-        var emoteEntry = dataCache.GetEmote(emote);
-        return emoteEntry.EmoteMode.RowId != 0;
+        var conditionMode = (CharacterModes)dataCache.GetEmote(emote).EmoteMode.Value.ConditionMode;
+        return conditionMode == CharacterModes.AnimLock || conditionMode == CharacterModes.InPositionLoop || conditionMode == CharacterModes.EmoteLoop;
     }
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
@@ -150,10 +191,6 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         //character->Timeline.PlayActionTimeline(, timelineData.);
 
         //}
-    }
-
-    public bool IsPlayingEmote(BattleChara* character, ushort emote) {
-        return character->Timeline.TimelineSequencer.TimelineIds[0] == dataCache.GetEmote(emote).ActionTimeline[0].RowId;
     }
 
     public void SetAnimation(BattleChara* character, Animations animation) {

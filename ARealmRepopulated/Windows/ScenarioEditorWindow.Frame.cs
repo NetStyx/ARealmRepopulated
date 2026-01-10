@@ -67,9 +67,14 @@ public partial class ScenarioEditorWindow(
             help: (a) => "Plays an emote. If the emote supports looping and no timelimit is specified, it continues to do so.",
             draw: DrawEmoteAction
         );
+        _actionUiRegistry.Register<ScenarioNpcIdleAction>(
+            shortName: (a) => "Idle",
+            help: (a) => "Returns the actor to the idle state.",
+            draw: DrawIdleAction
+        );
         _actionUiRegistry.Register<ScenarioNpcWaitingAction>(
             shortName: (a) => "Wait",
-            help: (a) => "Justs waits at the current location and rotation for a specific time.",
+            help: (a) => "Simply waits at the current location for a specific time.",
             draw: DrawWaitingAction
         );
         _actionUiRegistry.Register<ScenarioNpcSpawnAction>(
@@ -99,7 +104,7 @@ public partial class ScenarioEditorWindow(
         );
         _actionUiRegistry.Register<ScenarioNpcPathAction>(
             shortName: (a) => "Path",
-            help: (a) => "Moves based on a point list",
+            help: (a) => "Create a path based on a point lists. The actor walks or runs along this path more naturally as opposed to multiple move actions.",
             draw: DrawPathAction
         );
 
@@ -156,16 +161,14 @@ public partial class ScenarioEditorWindow(
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        using (ImRaii.Disabled())
-            ImGui.Text("Scenario File Name");
+        ImGui.TextDisabled("Scenario File Name");
 
         var fileName = string.IsNullOrWhiteSpace(_scenarioFilePath) ? "not yet saved" : Path.GetFileName(_scenarioFilePath);
         ImGui.Text($"{fileName}");
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        using (ImRaii.Disabled())
-            ImGui.Text("Scenario Location");
+        ImGui.TextDisabled("Scenario Location");
         ImGui.Text($"Server {ScenarioObject.Location.Server} / Territory {ScenarioObject.Location.Territory} / Division {ScenarioObject.Location.HousingDivision} / Ward {ScenarioObject.Location.HousingWard} / Plot {ScenarioObject.Location.HousingPlot}");
 
     }
@@ -175,7 +178,7 @@ public partial class ScenarioEditorWindow(
 
             ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
             ImGui.Text("Scenario Meta Data");
-            ImGui.TextDisabled("Edit the main scenario files in this section. These are mostly meta data to identify the scenario on the user interface.");
+            ImGui.TextDisabled("Edit the scenario information in this section. These are mostly meta data to identify the scenario on the user interface.");
 
             ImGui.Separator();
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -555,12 +558,24 @@ public partial class ScenarioEditorWindow(
 
             using (ImRaii.ListBox("##scenarioNpcEditorActionListBox", new Vector2(120, -10))) {
                 var scenarioNpcActions = SelectedScenarioNpc.Actions.ToList();
+                var syncActionCount = 0;
                 for (var actionIndex = 0; actionIndex < scenarioNpcActions.Count; actionIndex++) {
                     var npcAction = scenarioNpcActions[actionIndex];
                     var npcActionSelected = npcAction == SelectedScenarioNpcAction;
+                    var npcActionShortName = _actionUiRegistry.GetShortName(npcAction);
 
-                    if (ImGui.Selectable($"{_actionUiRegistry.GetShortName(npcAction)}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected)) {
+                    if (npcAction is ScenarioNpcSyncAction) {
+                        syncActionCount++;
+                        npcActionShortName += $" [{syncActionCount}]";
+                    }
+
+                    if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected)) {
                         ResetSelectedAction(npcAction);
+                    }
+
+                    if (npcAction is ScenarioNpcSyncAction) {
+                        ImGui.Separator();
+                        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
                     }
                 }
             }
