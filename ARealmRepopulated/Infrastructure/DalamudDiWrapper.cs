@@ -1,14 +1,22 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.l10n;
+using ARealmRepopulated.Core.Logging;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Logging;
 
 namespace ARealmRepopulated.Infrastructure;
 
-public class DalamudDiWrapper(IDalamudPluginInterface pluginInterface) {
+public class DalamudDiWrapper(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog) {
     public IServiceCollection CreateServiceCollection()
         => new ServiceCollection()
+            .AddLogging(c => {
+                c.ClearProviders();
+                c.SetMinimumLevel(LogLevel.Trace);
+                c.Services.AddSingleton<ILoggerProvider>(new ArrpLogProvider(pluginLog));
+            })
+            .AddSingleton(pluginLog)
             .AddSingleton(pluginInterface)
-            .AddSingleton(pluginInterface.GetRequiredService<IPluginLog>())
             .AddSingleton(pluginInterface.GetRequiredService<IDataManager>())
             .AddSingleton(pluginInterface.GetRequiredService<ICommandManager>())
             .AddSingleton(pluginInterface.GetRequiredService<IObjectTable>())
@@ -25,5 +33,6 @@ public class DalamudDiWrapper(IDalamudPluginInterface pluginInterface) {
             .AddSingleton<ArrpEventService>()
             .AddSingleton<ArrpDataCache>()
             .AddSingleton<ArrpDtrControl>()
+            .AddSingleton<ArrpTranslation>()
             .AddSingleton(s => s.GetRequiredService<IDalamudPluginInterface>().GetPluginConfig() as PluginConfig ?? new PluginConfig());
 }

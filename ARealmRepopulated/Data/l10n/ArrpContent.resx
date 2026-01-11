@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ListWnd_Title" xml:space="preserve">
+    <value>ARealmRepopulated Configuration</value>
+  </data>
+  <data name="ListWnd_Scenario_Desc" xml:space="preserve">
+    <value>Manage your custom scenarios in this section. You can create, edit and delete scenarios as you like. Please be aware that having too many scenarios and actors at the same time in the same location might impact performance. The scenarios are stored as files in the 'scenarios' subfolder located in the plugin configuration directory.</value>
+  </data>
+  <data name="ListWnd_Options_AutoLoad_Desc" xml:space="preserve">
+    <value>Automatically loads available scenarios on start. Also keeps track of the file status and reloads if changes to the files are detected.</value>
+  </data>
+  <data name="ListWnd_Options_DtrBar_Desc" xml:space="preserve">
+    <value>Displays a clickable entry in the DTR bar. It provides quick access to the configuration menu and displays the count of loaded scenarios in the current area.</value>
+  </data>
+  <data name="ListWnd_Options_DebugOverlay_Desc" xml:space="preserve">
+    <value>The debug overlay is used to display the scenario actor paths when editing a specific scenario. To give an example: Without it you dont have access to the drag and drop functionallities for movement nodes.\nYou can disable this option if you not plan on editing the scenarios.</value>
+  </data>
+  <data name="ListWnd_Options_AutoLoad_Option" xml:space="preserve">
+    <value>Auto load scenarios</value>
+  </data>
+  <data name="ListWnd_Options_DebugOverlay_Option" xml:space="preserve">
+    <value>Enable debug overlay</value>
+  </data>
+  <data name="ListWnd_Options_DtrBar_Option" xml:space="preserve">
+    <value>Show DTR Entry</value>
+  </data>
+  <data name="ListWnd_Scenario_Title" xml:space="preserve">
+    <value>Scenarios</value>
+  </data>
+  <data name="ListWnd_Options_Title" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="ListWnd_Close" xml:space="preserve">
+    <value>Close Configuration</value>
+  </data>
+  <data name="ListWnd_Scenario_Search_Placeholder" xml:space="preserve">
+    <value>Search ... </value>
+  </data>
+  <data name="ListWnd_Scenario_Action_Scan_Desc" xml:space="preserve">
+    <value>Rescan the available scenario files</value>
+  </data>
+  <data name="ListWnd_Scenario_Action_Add_Desc" xml:space="preserve">
+    <value>Add a new scenario</value>
+  </data>
+  <data name="ListWnd_Scenario_Action_OpenFolder_Desc" xml:space="preserve">
+    <value>Opens the scenario file folder</value>
+  </data>
+  <data name="ListWnd_Scenario_Action_EditScenario_Desc" xml:space="preserve">
+    <value>Edit this scenario</value>
+  </data>
+  <data name="ListWnd_Scenario_Action_DeleteScenario_Desc" xml:space="preserve">
+    <value>Delete this scenario</value>
+  </data>
+  <data name="ListWnd_Scenario_Popup_DeleteScenario_Title" xml:space="preserve">
+    <value>Confirm Delete</value>
+  </data>
+  <data name="ListWnd_Scenario_Popup_DeleteScenario_Desc" xml:space="preserve">
+    <value>Are you sure you want to delete the scenario '{0}'</value>
+  </data>
+  <data name="ListWnd_Scenario_Popup_DeleteScenario_Accept" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="ListWnd_Scenario_Popup_DeleteScenario_Decline" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="ScenarioEditor_FileInfo_Name" xml:space="preserve">
+    <value>Scenario File Name</value>
+  </data>
+  <data name="ScenarioEditor_FileInfo_Unsaved" xml:space="preserve">
+    <value>not yet saved</value>
+  </data>
+  <data name="ScenarioEditor_FileInfo_Location" xml:space="preserve">
+    <value>Scenario Location</value>
+  </data>
+  <data name="ScenarioEditor_FileInfo_LocationDetails" xml:space="preserve">
+    <value>Server {0} / Territory {1} / Division {2} / Ward {3} / Plot {4}</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Title" xml:space="preserve">
+    <value>Scenario Meta Data</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Desc" xml:space="preserve">
+    <value>Edit the scenario information in this section. These are mostly meta data to identify the scenario on the user interface.</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_LocationCurrent" xml:space="preserve">
+    <value>Set to Current Location</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Title" xml:space="preserve">
+    <value>Title:</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Description" xml:space="preserve">
+    <value>Description:</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Looping" xml:space="preserve">
+    <value>Looping:</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_LoopingDelay" xml:space="preserve">
+    <value>Delay between loops:</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_Import_Desc" xml:space="preserve">
+    <value>Import from clipboard</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_Export_Desc" xml:space="preserve">
+    <value>Export to clipboard</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_Import_Success" xml:space="preserve">
+    <value>Import success!</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_Import_Failed" xml:space="preserve">
+    <value>Import failed!</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_SaveClose" xml:space="preserve">
+    <value>Save &amp; Close</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Action_DiscardClose" xml:space="preserve">
+    <value>Discard &amp; Close</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Title" xml:space="preserve">
+    <value>Scenario Actor Data</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Desc" xml:space="preserve">
+    <value>Select the actor to edit here. You can define the actions for each actor individually.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Manage_Select" xml:space="preserve">
+    <value>Select Actor:</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Manage_SelectHint" xml:space="preserve">
+    <value>Select Actor ...</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Manage_AddActor" xml:space="preserve">
+    <value>Add Actor</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Manage_RemoveActor" xml:space="preserve">
+    <value>Remove Actor</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Title" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameHint" xml:space="preserve">
+    <value>The npc does not output a name at any point. Its only use is to make it easier identifyable when editing the scenario.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_Position" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_PositionCurrent" xml:space="preserve">
+    <value>Set to current location</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_Rotation" xml:space="preserve">
+    <value>Roation</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_RotationCurrent" xml:space="preserve">
+    <value>Set to current rotation</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Title" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Title" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Desc" xml:space="preserve">
+    <value>NPC Appearance can be changed by choosing a template from your environment. It is currently not planned to include a character editor.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Walking" xml:space="preserve">
+    <value>Walking</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATalk_Short" xml:space="preserve">
+    <value>Npc Talk</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ADuration_Short" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AWaiting_Short" xml:space="preserve">
+    <value>Wait</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AWaiting_Desc" xml:space="preserve">
+    <value>Simply waits at the current location for a specific time.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_Short" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_Desc" xml:space="preserve">
+    <value>Returns the actor to the idle state.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_Short" xml:space="preserve">
+    <value>Emote</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_Desc" xml:space="preserve">
+    <value>Plays an emote. If the emote supports looping and no timelimit is specified, it continues to do so.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_Select" xml:space="preserve">
+    <value>Emote</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_SelectHint" xml:space="preserve">
+    <value>Select Emote</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_Loop" xml:space="preserve">
+    <value>Loop emote for duration</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_StayInPos" xml:space="preserve">
+    <value>Stay in emote pose after end</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ASpawn_Short" xml:space="preserve">
+    <value>Spawn</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ASpawn_Desc" xml:space="preserve">
+    <value>Spawn the actor in if it was previously despawned.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ADespawn_Short" xml:space="preserve">
+    <value>Despawn</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ADespawn_Desc" xml:space="preserve">
+    <value>Despawnes the actor. This does not unload it but disables the drawing cycles.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AMove_Short" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AMove_Desc" xml:space="preserve">
+    <value>Walks, or runs, the actor to a specific location. If the target is at a different angle than the actor is looking at, this action rotates the actor first in the correct direction.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AMove_Speed" xml:space="preserve">
+    <value>Speed</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AMove_Position" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AMove_Position_CurrentLocationHint" xml:space="preserve">
+    <value>Set to current location</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_Short" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_Desc" xml:space="preserve">
+    <value>Create a path based on a point lists. The actor walks or runs along this path more naturally as opposed to multiple move actions.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_Tension" xml:space="preserve">
+    <value>Tension</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_AddPoint" xml:space="preserve">
+    <value>Add Point</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_AddPointHint" xml:space="preserve">
+    <value>Add a new point to the collection. If one was previously selected in the list, the new point is inserted below your selection.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_RemovePointHint" xml:space="preserve">
+    <value>Remove this point from the collection</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_SelectPointHint" xml:space="preserve">
+    <value>Set this point as active for display in the debugger. Also determines the insert point for new points.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_Position_CurrentLocationHint" xml:space="preserve">
+    <value>Set to current location</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ARotation_Short" xml:space="preserve">
+    <value>Rotate</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ARotation_Desc" xml:space="preserve">
+    <value>Rotates the actor to a given angle.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ARotation_SetCurrent" xml:space="preserve">
+    <value>Set Current Rotation</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ASync_Short" xml:space="preserve">
+    <value>Sync</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ASync_Desc" xml:space="preserve">
+    <value>Pauses continuation of the action list until every scenario actor has reached the same sync action</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_TensionHint" xml:space="preserve">
+    <value>Defines how 'curvy' the npc will move along the path. A value of 0 equals drunk, a value of 1 means thunder. A value between 0.25 and 0.5 yields a natural response in normal circumstances.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup" xml:space="preserve">
+    <value>Setup</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_Desc" xml:space="preserve">
+    <value>Pick the appearance of the npc from an existing source.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickNpc" xml:space="preserve">
+    <value>Pick from nearby NPC</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickSelf" xml:space="preserve">
+    <value>Pick from yourself</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickTarget" xml:space="preserve">
+    <value>Pick from target</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportFile" xml:space="preserve">
+    <value>Import from file</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Select" xml:space="preserve">
+    <value>Select file ...</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Success" xml:space="preserve">
+    <value>Import success!</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Failure" xml:space="preserve">
+    <value>Import failed!</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportClipboard" xml:space="preserve">
+    <value>Import from clipboard</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportClipboard_Success" xml:space="preserve">
+    <value>Import success!</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_ImportClipboard_Failure" xml:space="preserve">
+    <value>Import failed!</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Model" xml:space="preserve">
+    <value>NPC Model</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Equip" xml:space="preserve">
+    <value>NPC Equipment</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CRace" xml:space="preserve">
+    <value>Race</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CTribe" xml:space="preserve">
+    <value>Tribe</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CGender" xml:space="preserve">
+    <value>Gender</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CBase" xml:space="preserve">
+    <value>Base ID</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CSkeleton" xml:space="preserve">
+    <value>Base Skeleton ID</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CWeaponsHidden" xml:space="preserve">
+    <value>Hide Weapons</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHeadgearHidden" xml:space="preserve">
+    <value>Hide Headgear</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHeight" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CFace" xml:space="preserve">
+    <value>Face</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHairstyle" xml:space="preserve">
+    <value>Hairstyle</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHighlights" xml:space="preserve">
+    <value>Highlights</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CSkinColor" xml:space="preserve">
+    <value>SkinColor</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CEyeColorRight" xml:space="preserve">
+    <value>Eye Color Right</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHairColor" xml:space="preserve">
+    <value>Haircolor</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHighlightsColor" xml:space="preserve">
+    <value>Highlights Color</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CFacialFeatures" xml:space="preserve">
+    <value>Facial Features</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CFacialFeaturesColor" xml:space="preserve">
+    <value>Facial Features Color</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CEyebrows" xml:space="preserve">
+    <value>Eyebrows</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CEyeColorLeft" xml:space="preserve">
+    <value>Eye Color Left</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CEyeShape" xml:space="preserve">
+    <value>Eye Shape</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CNose" xml:space="preserve">
+    <value>Nose</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CJaw" xml:space="preserve">
+    <value>Jaw</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CLipstick" xml:space="preserve">
+    <value>Lipstick</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CLipColorFurPattern" xml:space="preserve">
+    <value>Lip Color / Fur Pattern</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CMuscleMass" xml:space="preserve">
+    <value>MuscleMass</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CTailShape" xml:space="preserve">
+    <value>Tail shape</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CBustSize" xml:space="preserve">
+    <value>Bust size</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EMainHand" xml:space="preserve">
+    <value>Mainhand</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EOffHand" xml:space="preserve">
+    <value>Offhand</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EHeadgear" xml:space="preserve">
+    <value>Headgear</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EBody" xml:space="preserve">
+    <value>Body</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EHands" xml:space="preserve">
+    <value>Hands</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ELegs" xml:space="preserve">
+    <value>Legs</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EFeet" xml:space="preserve">
+    <value>Feet</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EEars" xml:space="preserve">
+    <value>Earings</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ENeck" xml:space="preserve">
+    <value>Necklace</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EWrist" xml:space="preserve">
+    <value>Armband</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ERingLeft" xml:space="preserve">
+    <value>Ring (left)</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ERingRight" xml:space="preserve">
+    <value>Ring (right)</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EGlasses" xml:space="preserve">
+    <value>Glasses</value>
+  </data>
+</root>

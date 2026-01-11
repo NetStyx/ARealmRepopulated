@@ -1,5 +1,6 @@
 using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Components;
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.Npcs;
@@ -11,6 +12,7 @@ using ARealmRepopulated.Windows;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using System.Globalization;
 
 namespace ARealmRepopulated;
 
@@ -68,6 +70,7 @@ public sealed class Plugin : IDalamudPlugin {
         Services.GetRequiredService<NpcAppearanceDataParser>().Initialize();
         Services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         Services.GetRequiredService<ChatBubbleService>();
+        Services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
 
         // set the event service to do a territory check cycle
         Services.GetRequiredService<ArrpEventService>().Arm();

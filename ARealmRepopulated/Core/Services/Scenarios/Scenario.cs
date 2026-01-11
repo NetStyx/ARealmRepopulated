@@ -214,19 +214,19 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         if (!action.Loop) {
             if (!Actor.IsPlayingEmote(action.Emote) || (Actor.IsLoopingEmote(action.Emote) && CurrentAction.IsDurationExeeded)) {
                 CurrentAction.IsFinished = true;
-                if (action.EndLoopAtActionEnd)
+                if (!action.StayInEmotePose)
                     Actor.ResetMode();
             }
         } else {
             if (CurrentAction.IsDurationExeeded) {
                 CurrentAction.IsFinished = true;
-                if (action.EndLoopAtActionEnd)
+                if (!action.StayInEmotePose)
                     Actor.ResetMode();
             }
         }
     }
 
-    private void AdvanceIdle(ScenarioNpcIdleAction action, TimeSpan delta) {
+    private void AdvanceIdle(ScenarioNpcIdleAction _, TimeSpan delta) {
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
             Actor.ResetMode();
