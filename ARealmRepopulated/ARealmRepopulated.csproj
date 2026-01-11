@@ -20,6 +20,7 @@
         <ImageUrls>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image1.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image2.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image3.png;https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/image4.png</ImageUrls>
         <IconUrl>https://raw.githubusercontent.com/NetStyx/ARealmRepopulated/main/images/icon.png</IconUrl>
         <AcceptsFeedback>false</AcceptsFeedback>
+        <NeutralLanguage>en</NeutralLanguage>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,5 +30,21 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Data\l10n\arrpcontent.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>ArrpContent.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Data\l10n\ArrpContent.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>arrpcontent.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
     </ItemGroup>
 </Project>

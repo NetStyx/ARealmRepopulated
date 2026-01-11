@@ -1,5 +1,6 @@
 using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Location;
@@ -19,12 +20,13 @@ namespace ARealmRepopulated.Windows;
 public class ConfigWindow(
     IPluginLog log,
     IClientState state,
+    ArrpTranslation loc,
     PluginConfig _config,
     ScenarioFileManager _fileManager,
     DebugOverlay _debugOverlay,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
-    ArrpDataCache dataCache) : ADalamudWindow("ARealmRepopulated Configuration###ARealmRepopulatedConfigWindow") {
+    ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow") {
 
     protected override void SetWindowOptions() {
         Size = new Vector2(232, 90);
@@ -33,6 +35,8 @@ public class ConfigWindow(
         this.AllowPinning = false;
         this.AllowClickthrough = false;
         this.CollapsedCondition = ImGuiCond.None;
+        loc.OnLocalizationChanged += UpdateWindowTitle;
+        UpdateWindowTitle();
     }
 
     public override void OnOpen() {
@@ -40,7 +44,6 @@ public class ConfigWindow(
 
         if (_config.EnableScenarioDebugOverlay)
             _debugOverlay.Hook();
-
     }
 
     public override void OnClose() {
@@ -48,12 +51,15 @@ public class ConfigWindow(
         _debugOverlay.Unhook();
     }
 
+    private void UpdateWindowTitle()
+        => this.WindowName = $"{loc["ListWnd_Title"]}###ARealmRepopulatedConfigWindow";
+
     public override void Draw() {
 
         if (ImGui.BeginChild("", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize)) {
 
             if (ImGui.BeginTabBar("", ImGuiTabBarFlags.NoTooltip)) {
-                if (ImGui.BeginTabItem("Scenarios", ImGuiTabItemFlags.NoTooltip)) {
+                if (ImGui.BeginTabItem(loc["ListWnd_Scenario_Title"], ImGuiTabItemFlags.NoTooltip)) {
                     try {
                         ScenarioTab();
                     } catch (System.Exception ex) {
@@ -63,7 +69,7 @@ public class ConfigWindow(
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Options", ImGuiTabItemFlags.NoTooltip)) {
+                if (ImGui.BeginTabItem(loc["ListWnd_Options_Title"], ImGuiTabItemFlags.NoTooltip)) {
                     OptionsTab();
                     ImGui.EndTabItem();
                 }
@@ -83,7 +89,7 @@ public class ConfigWindow(
             ImGui.TableNextColumn();
             ImGui.TableNextColumn();
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-            if (ImGui.Button("Close Configuration")) {
+            if (ImGui.Button(loc["ListWnd_Close"])) {
                 this.IsOpen = false;
             }
             ImGui.EndTable();
@@ -94,27 +100,27 @@ public class ConfigWindow(
     private void OptionsTab() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var autoLoadScenarios = _config.AutoLoadScenarios;
-        if (ImGui.Checkbox("Auto load scenarios", ref autoLoadScenarios)) {
+        if (ImGui.Checkbox(loc["ListWnd_Options_AutoLoad_Option"], ref autoLoadScenarios)) {
             _config.AutoLoadScenarios = autoLoadScenarios;
             _config.Save();
         }
         using (ImRaii.Disabled())
-            ImGui.TextWrapped("Automatically loads available scenarios on start. Also keeps track of the file status and reloads if changes to the files are detected.");
+            ImGui.TextWrapped(loc["ListWnd_Options_AutoLoad_Desc"]);
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var showDtrEntry = _config.ShowInDtrBar;
-        if (ImGui.Checkbox("Show DTR Entry", ref showDtrEntry)) {
+        if (ImGui.Checkbox(loc["ListWnd_Options_DtrBar_Option"], ref showDtrEntry)) {
             _config.ShowInDtrBar = showDtrEntry;
             _config.Save();
 
             dtrControl.UpdateVisibility();
         }
         using (ImRaii.Disabled())
-            ImGui.TextWrapped("Displays a clickable entry in the DTR bar. It provides quick access to the configuration menu and displays the count of loaded scenarios in the current area.");
+            ImGui.TextWrapped(loc["ListWnd_Options_DtrBar_Desc"]);
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var scenarioDebugOverlay = _config.EnableScenarioDebugOverlay;
-        if (ImGui.Checkbox("Enable debug overlay", ref scenarioDebugOverlay)) {
+        if (ImGui.Checkbox(loc["ListWnd_Options_DebugOverlay_Option"], ref scenarioDebugOverlay)) {
             if (scenarioDebugOverlay) {
                 _debugOverlay.Hook();
             } else {
@@ -125,7 +131,7 @@ public class ConfigWindow(
             _config.Save();
         }
         using (ImRaii.Disabled())
-            ImGui.TextWrapped("The debug overlay is used to display the scenario actor paths when editing a specific scenario. To give an example: Without it you dont have access to the drag and drop functionallities for movement nodes.\nYou can disable this option if you not plan on editing the scenarios.");
+            ImGui.TextWrapped(loc["ListWnd_Options_DebugOverlay_Desc"]);
     }
 
     private string _searchScenarioText = string.Empty;
@@ -133,7 +139,7 @@ public class ConfigWindow(
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
         using (ImRaii.Disabled())
-            ImGui.TextWrapped("Manage your custom scenarios in this section. You can create, edit and delete scenarios as you like. Please be aware that having too many scenarios and actors at the same time in the same location might impact performance. The scenarios are stored as files in the 'scenarios' subfolder located in the plugin configuration directory.");
+            ImGui.TextWrapped(loc["ListWnd_Scenario_Desc"]);
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         ImGui.Separator();
 
@@ -142,7 +148,7 @@ public class ConfigWindow(
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(-1);
-            ImGui.InputTextWithHint("##SearchScenarios", "Search ... ", ref _searchScenarioText);
+            ImGui.InputTextWithHint("##SearchScenarios", loc["ListWnd_Scenario_Search_Placeholder"], ref _searchScenarioText);
             ImGui.EndTable();
         }
 
@@ -161,7 +167,7 @@ public class ConfigWindow(
                     _fileManager.ScanScenarioFiles();
                 }
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Rescan the available scenario files");
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Scan_Desc"]);
             });
             DrawCenteredHeaderCell(1, () => ImGui.Text("Location"));
             DrawCenteredHeaderCell(2, () => ImGui.Text("Scenario"));
@@ -173,7 +179,7 @@ public class ConfigWindow(
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Add a new scenario");
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Add_Desc"]);
 
                 ImGui.SameLine(0, 5);
                 if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen)) {
@@ -185,7 +191,7 @@ public class ConfigWindow(
                 }
 
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Opens the scenario file folder");
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_OpenFolder_Desc"]);
             });
 
             var scenarioIndex = 0;
@@ -237,32 +243,32 @@ public class ConfigWindow(
                     Plugin.Services.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
                 }
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Edit this scenario");
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_EditScenario_Desc"]);
 
                 ImGui.SameLine(0, 5);
-                var deletePopupId = $"Confirm Delete##ConfirmDelete{scenarioIndex}";
+                var deletePopupId = $"{loc["ListWnd_Scenario_Popup_DeleteScenario_Title"]}##ConfirmDelete{scenarioIndex}";
                 if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Trash)) {
                     ImGui.OpenPopup(deletePopupId);
                 }
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Delete this scenario");
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_DeleteScenario_Desc"]);
 
                 ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
                 if (ImGui.BeginPopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings)) {
 
                     ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-                    ImGui.TextWrapped($"Are you sure you want to delete the scenario '{s.MetaData.Title}'");
+                    ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", s.MetaData.Title]);
                     ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
                     ImGui.Separator();
                     ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-                    if (ImGui.Button("Yes", new Vector2(120, 0))) {
+                    if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Accept"], new Vector2(120, 0))) {
                         _fileManager.RemoveScenarioFile(s.FilePath);
                         ImGui.CloseCurrentPopup();
                     }
                     ImGui.SetItemDefaultFocus();
                     ImGui.SameLine();
-                    if (ImGui.Button("No", new Vector2(120, 0))) {
+                    if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Decline"], new Vector2(120, 0))) {
                         ImGui.CloseCurrentPopup();
                     }
                     ImGui.EndPopup();

@@ -138,11 +138,10 @@ public class ScenarioNpcEmoteAction : ScenarioNpcAction {
     public ushort Emote { get; set; }
     public bool Loop { get; set; }
 
-    [DefaultValue(true)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool EndLoopAtActionEnd { get; set; } = true;
+    public bool StayInEmotePose { get; set; } = false;
 
-    public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; EndAfterAction: {EndLoopAtActionEnd}]";
+    public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; StayInEmotePose: {StayInEmotePose}]";
 }
 
 public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, false) {

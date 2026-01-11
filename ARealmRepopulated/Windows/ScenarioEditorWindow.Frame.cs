@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
@@ -29,6 +30,7 @@ public partial class ScenarioEditorWindow(
     ArrpDataCache dataCache,
     ArrpEventService eventService,
     ArrpGuiEmotePicker emotePicker,
+    ArrpTranslation loc,
     FileDialogManager fileDialogManager,
     IObjectTable objectTable,
     ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow") {
@@ -62,50 +64,50 @@ public partial class ScenarioEditorWindow(
             debugOverlay.RemoveEditor(this);
         };
 
-        _actionUiRegistry.Register<ScenarioNpcEmoteAction>(
-            shortName: (a) => "Emote",
-            help: (a) => "Plays an emote. If the emote supports looping and no timelimit is specified, it continues to do so.",
-            draw: DrawEmoteAction
-        );
-        _actionUiRegistry.Register<ScenarioNpcIdleAction>(
-            shortName: (a) => "Idle",
-            help: (a) => "Returns the actor to the idle state.",
-            draw: DrawIdleAction
-        );
         _actionUiRegistry.Register<ScenarioNpcWaitingAction>(
-            shortName: (a) => "Wait",
-            help: (a) => "Simply waits at the current location for a specific time.",
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AWaiting_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_AWaiting_Desc"],
             draw: DrawWaitingAction
         );
+        _actionUiRegistry.Register<ScenarioNpcIdleAction>(
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AIdle_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_AIdle_Desc"],
+            draw: DrawIdleAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcEmoteAction>(
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AEmote_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_AEmote_Desc"],
+            draw: DrawEmoteAction
+        );
         _actionUiRegistry.Register<ScenarioNpcSpawnAction>(
-            shortName: (a) => "Spawn",
-            help: (a) => "Spawn the actor in if it was previously despawned.",
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ASpawn_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_ASpawn_Desc"],
             draw: DrawSpawnAction
         );
         _actionUiRegistry.Register<ScenarioNpcDespawnAction>(
-            shortName: (a) => "Despawn",
-            help: (a) => "Despawnes the actor. This does not unload it but disables the drawing cycles.",
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ADespawn_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_ADespawn_Desc"],
             draw: DrawDespawnAction
         );
         _actionUiRegistry.Register<ScenarioNpcMovementAction>(
-            shortName: (a) => "Move",
-            help: (a) => "Walks, or runs, the actor to a specific location. If the target is at a different angle than the actor is looking at, this action rotates the actor first in the correct direction.",
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AMove_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_AMove_Desc"],
             draw: DrawMovementAction
         );
+        _actionUiRegistry.Register<ScenarioNpcPathAction>(
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_APath_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_APath_Desc"],
+            draw: DrawPathAction
+        );
         _actionUiRegistry.Register<ScenarioNpcRotationAction>(
-            shortName: (a) => "Rotate",
-            help: (a) => "Rotates the actor to a given angle.",
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ARotation_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_ARotation_Desc"],
             draw: DrawRotationAction
         );
         _actionUiRegistry.Register<ScenarioNpcSyncAction>(
-            shortName: (a) => "Sync",
-            help: (a) => "Pauses continuation of the action list until every scenario actor has reached the same sync action",
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ASync_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_ASync_Desc"],
             draw: DrawSyncAction
-        );
-        _actionUiRegistry.Register<ScenarioNpcPathAction>(
-            shortName: (a) => "Path",
-            help: (a) => "Create a path based on a point lists. The actor walks or runs along this path more naturally as opposed to multiple move actions.",
-            draw: DrawPathAction
         );
 
     }
@@ -161,15 +163,22 @@ public partial class ScenarioEditorWindow(
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextDisabled("Scenario File Name");
+        ImGui.TextDisabled(loc["ScenarioEditor_FileInfo_Name"]);
 
-        var fileName = string.IsNullOrWhiteSpace(_scenarioFilePath) ? "not yet saved" : Path.GetFileName(_scenarioFilePath);
+        var fileName = string.IsNullOrWhiteSpace(_scenarioFilePath) ? loc["ScenarioEditor_FileInfo_Unsaved"] : Path.GetFileName(_scenarioFilePath);
         ImGui.Text($"{fileName}");
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TextDisabled("Scenario Location");
-        ImGui.Text($"Server {ScenarioObject.Location.Server} / Territory {ScenarioObject.Location.Territory} / Division {ScenarioObject.Location.HousingDivision} / Ward {ScenarioObject.Location.HousingWard} / Plot {ScenarioObject.Location.HousingPlot}");
+        ImGui.TextDisabled(loc["ScenarioEditor_FileInfo_Location"]);
+        ImGui.Text(loc[
+            "ScenarioEditor_FileInfo_LocationDetails",
+            ScenarioObject.Location.Server,
+            ScenarioObject.Location.Territory,
+            ScenarioObject.Location.HousingDivision,
+            ScenarioObject.Location.HousingWard,
+            ScenarioObject.Location.HousingPlot
+            ]);
 
     }
     public override void Draw() {
@@ -177,8 +186,8 @@ public partial class ScenarioEditorWindow(
         using (ImRaii.Child("##scenarioEditorMainArea", new Vector2(0, -50))) {
 
             ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-            ImGui.Text("Scenario Meta Data");
-            ImGui.TextDisabled("Edit the scenario information in this section. These are mostly meta data to identify the scenario on the user interface.");
+            ImGui.Text(loc["ScenarioEditor_BaseData_Title"]);
+            ImGui.TextDisabled(loc["ScenarioEditor_BaseData_Desc"]);
 
             ImGui.Separator();
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -186,15 +195,15 @@ public partial class ScenarioEditorWindow(
             DrawScenarioGeneralTable();
 
             ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
-            ImGui.Text("Scenario Actor Data");
-            ImGui.TextDisabled("Select the actor to edit here. You can define the actions for each actor individually.");
+            ImGui.Text(loc["ScenarioEditor_ActorData_Title"]);
+            ImGui.TextDisabled(loc["ScenarioEditor_ActorData_Desc"]);
 
             ImGui.Separator();
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-            ArrpGuiAlignment.CenterText("Select Actor:");
+            ArrpGuiAlignment.CenterText(loc["ScenarioEditor_ActorData_Manage_Select"]);
             ImGui.SameLine();
-            if (ImGui.BeginCombo("##scenarioEditorWindowNpcSelection", SelectedScenarioNpc == null ? "Select NPC ..." : SelectedScenarioNpc.Name, ImGuiComboFlags.None)) {
+            if (ImGui.BeginCombo("##scenarioEditorWindowNpcSelection", SelectedScenarioNpc == null ? loc["ScenarioEditor_ActorData_Manage_SelectHint"] : SelectedScenarioNpc.Name, ImGuiComboFlags.None)) {
                 var scenarioNpcs = ScenarioObject.Npcs.ToList();
                 for (var npcIndex = 0; npcIndex < scenarioNpcs.Count; npcIndex++) {
                     var npc = scenarioNpcs[npcIndex];
@@ -213,7 +222,7 @@ public partial class ScenarioEditorWindow(
 
             ImGui.SameLine();
             using (ImRaii.PushId("##scenarioNpcControllAddNpc")) {
-                if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Plus, "Add NPC")) {
+                if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, loc["ScenarioEditor_ActorData_Manage_AddActor"])) {
                     var newScenarioNpc = new ScenarioNpcData { Name = "New Actor", Position = objectTable.LocalPlayer?.Position ?? Vector3.Zero, Rotation = objectTable.LocalPlayer?.Rotation ?? 0f };
                     ScenarioObject.Npcs.Add(newScenarioNpc);
                     ResetSelectedNpc(newScenarioNpc);
@@ -223,7 +232,7 @@ public partial class ScenarioEditorWindow(
             if (SelectedScenarioNpc != null) {
                 ImGui.SameLine();
                 using (ImRaii.PushId("##scenarioNpcControllDeleteNpc")) {
-                    if (ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Trash, "Remove NPC")) {
+                    if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Trash, loc["ScenarioEditor_ActorData_Manage_RemoveActor"])) {
                         ScenarioObject.Npcs.Remove(SelectedScenarioNpc);
                         ResetSelectedNpc();
                     }
@@ -236,7 +245,7 @@ public partial class ScenarioEditorWindow(
                 using (ImRaii.Child("##scenarioEditorNpcArea", new Vector2(0, 0), false, ImGuiWindowFlags.NoSavedSettings)) {
                     using (ImRaii.TabBar("##scenarioEditorNpcTabBar")) {
 
-                        if (ImGui.BeginTabItem("General##scenarioEditorNpcTabGeneral", ImGuiTabItemFlags.NoTooltip)) {
+                        if (ImGui.BeginTabItem($"{loc["ScenarioEditor_ActorData_General_Title"]}##scenarioEditorNpcTabGeneral", ImGuiTabItemFlags.NoTooltip)) {
 
                             if (SelectedScenarioNpcAction != null) {
                                 ResetSelectedAction();
@@ -246,7 +255,7 @@ public partial class ScenarioEditorWindow(
                             ImGui.EndTabItem();
                         }
 
-                        if (ImGui.BeginTabItem("Actions##scenarioEditorNpcTabActions", ImGuiTabItemFlags.NoTooltip)) {
+                        if (ImGui.BeginTabItem($"{loc["ScenarioEditor_ActorData_Actions_Title"]}##scenarioEditorNpcTabActions", ImGuiTabItemFlags.NoTooltip)) {
                             DrawNpcActionTab();
                             ImGui.EndTabItem();
                         }
@@ -266,9 +275,9 @@ public partial class ScenarioEditorWindow(
             ImGui.TableNextColumn();
 
             _importState.CheckState(out var importIcon, out var importColor);
-            var importTooltip = "Import from clipboard";
+            var importTooltip = loc["ScenarioEditor_BaseData_Action_Import_Desc"];
             if (_importState.Result.HasValue) {
-                importTooltip = (bool)_importState.Result ? "Import success!" : "Import failed!";
+                importTooltip = (bool)_importState.Result ? loc["ScenarioEditor_BaseData_Action_Import_Success"] : loc["ScenarioEditor_BaseData_Action_Import_Failed"];
             }
             if (ImGuiComponents.IconButtonWithText(importIcon, importTooltip, defaultColor: importColor, hoveredColor: importColor)) {
                 _importState.SetResult(false);
@@ -284,7 +293,7 @@ public partial class ScenarioEditorWindow(
 
             ImGui.SameLine(0, 5);
             _exportState.CheckState(out var exportIcon, out var exportColor);
-            if (ImGuiComponents.IconButtonWithText(exportIcon, "Export to clipboard", defaultColor: exportColor, hoveredColor: exportColor)) {
+            if (ImGuiComponents.IconButtonWithText(exportIcon, loc["ScenarioEditor_BaseData_Action_Export_Desc"], defaultColor: exportColor, hoveredColor: exportColor)) {
                 _exportState.SetResult(true);
                 ImGui.SetClipboardText(ScenarioFileManager.ExportBase64Scenario(ScenarioObject));
             }
@@ -292,13 +301,13 @@ public partial class ScenarioEditorWindow(
             ImGui.TableNextColumn();
             ImGui.TableNextColumn();
 
-            if (ImGui.Button("Apply")) {
+            if (ImGui.Button(loc["ScenarioEditor_BaseData_Action_Apply"])) {
                 SaveScenario();
             }
 
             using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
                 ImGui.SameLine(0, 5);
-                if (ImGui.Button("Save & Close")) {
+                if (ImGui.Button(loc["ScenarioEditor_BaseData_Action_SaveClose"])) {
                     SaveScenario();
                     IsOpen = false;
                 }
@@ -306,7 +315,7 @@ public partial class ScenarioEditorWindow(
 
             using (ImRaii.PushColor(ImGuiCol.Button, ImGuiColors.DPSRed)) {
                 ImGui.SameLine(0, 5);
-                if (ImGui.Button("Discard & Close")) {
+                if (ImGui.Button(loc["ScenarioEditor_BaseData_Action_DiscardClose"])) {
                     IsOpen = false;
                 }
             }
@@ -328,7 +337,7 @@ public partial class ScenarioEditorWindow(
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text("Location");
+        ImGui.Text(loc["ScenarioEditor_BaseData_Input_Location"]);
 
         ImGui.TableNextColumn();
 
@@ -339,7 +348,7 @@ public partial class ScenarioEditorWindow(
 
         ImGui.Text($"{ScenarioObject.Location.Territory} - {territoryName}");
         ImGui.SameLine(0, 5);
-        if (ImGui.SmallButton("Set to Current Location")) {
+        if (ImGui.SmallButton(loc["ScenarioEditor_BaseData_Input_LocationCurrent"])) {
             var currentLocation = eventService.CurrentLocation;
             ScenarioObject.Location.Server = currentLocation.Server;
             ScenarioObject.Location.Territory = currentLocation.TerritoryType;
@@ -352,7 +361,7 @@ public partial class ScenarioEditorWindow(
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
 
-        ImGui.Text("Title:");
+        ImGui.Text(loc["ScenarioEditor_BaseData_Input_Title"]);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputText("##scenarioEditorTitleInput", ref titleRef)) {
@@ -362,7 +371,7 @@ public partial class ScenarioEditorWindow(
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text("Description:");
+        ImGui.Text(loc["ScenarioEditor_BaseData_Input_Description"]);
         ImGui.TableNextColumn();
         ImGui.SetNextItemWidth(-1);
         if (ImGui.InputTextMultiline("##scenarioEditorDescriptionInput", ref descriptionRef, size: new Vector2(0, 50))) {
@@ -371,7 +380,7 @@ public partial class ScenarioEditorWindow(
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text("Looping:");
+        ImGui.Text(loc["ScenarioEditor_BaseData_Input_Looping"]);
         ImGui.TableNextColumn();
         if (ImGui.Checkbox("##scenarioEditorLoopingInput", ref loopingRef)) {
             ScenarioObject.Looping = loopingRef;
@@ -379,7 +388,7 @@ public partial class ScenarioEditorWindow(
 
         using (ImRaii.Disabled(!ScenarioObject.Looping)) {
             ImGui.SameLine(0, 10);
-            ImGui.Text("Delay between loops:");
+            ImGui.Text(loc["ScenarioEditor_BaseData_Input_LoopingDelay"]);
             ImGui.SameLine(0, 5);
             using (ImRaii.ItemWidth(100)) {
                 var duration = ScenarioObject.LoopDelay;
@@ -402,9 +411,9 @@ public partial class ScenarioEditorWindow(
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text("Name");
+                ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Name"]);
                 ImGui.SameLine();
-                ImGuiComponents.HelpMarker("The npc does not output a name at any point. Its only use is to make it easier identifyable when editing the scenario.");
+                ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_General_Input_NameHint"]);
 
                 ImGui.TableNextColumn();
                 var name = SelectedScenarioNpc.Name;
@@ -414,7 +423,7 @@ public partial class ScenarioEditorWindow(
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text("Position");
+                ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Position"]);
 
                 ImGui.TableNextColumn();
                 var position = new Vector3(SelectedScenarioNpc.Position.X, SelectedScenarioNpc.Position.Y, SelectedScenarioNpc.Position.Z);
@@ -426,11 +435,11 @@ public partial class ScenarioEditorWindow(
                     SelectedScenarioNpc.Position = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
                 }
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Set to current location");
+                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_PositionCurrent"]);
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text("Roation");
+                ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Rotation"]);
 
                 ImGui.TableNextColumn();
                 var rotation = SelectedScenarioNpc.Rotation;
@@ -442,16 +451,16 @@ public partial class ScenarioEditorWindow(
                     SelectedScenarioNpc.Rotation = objectTable.LocalPlayer.Rotation;
                 }
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Set to current rotation");
+                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_RotationCurrent"]);
 
                 ImGui.EndTable();
             }
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        ImGui.Text("Appearance");
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Title"]);
         ImGui.SameLine();
-        ImGuiComponents.HelpMarker("NPC Appearance can be changed by choosing a template from your environment. It is currently not planned to include a character editor.");
+        ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_Desc"]);
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         DrawNpcAppearanceInfo();
@@ -531,21 +540,21 @@ public partial class ScenarioEditorWindow(
 
                 using (ImRaii.Disabled(!isActionSelected || isFirstActionSelected)) {
                     ImGui.SameLine(0, 5);
-                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp)) {
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowUp)) {
                         MoveSelectedActionUp();
                     }
                 }
 
                 using (ImRaii.Disabled(!isActionSelected || isLastActionSelected)) {
                     ImGui.SameLine(0, 5);
-                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown)) {
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowDown)) {
                         MoveSelectedActionDown();
                     }
                 }
 
                 using (ImRaii.Disabled(!isActionSelected)) {
                     ImGui.SameLine(0, 5);
-                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Trash)) {
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash)) {
                         RemoveSelectedAction();
                     }
                 }
