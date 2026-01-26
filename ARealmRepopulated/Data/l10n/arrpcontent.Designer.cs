@@ -1123,6 +1123,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create random name.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_General_Input_NameRandom {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_General_Input_NameRandom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Position.
         /// </summary>
         public static string ScenarioEditor_ActorData_General_Input_Position {

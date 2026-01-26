@@ -28,6 +28,7 @@ public partial class ScenarioEditorWindow(
     NpcAppearanceService appearanceService,
     NpcAppearanceDataParser appearanceDataParser,
     ArrpDataCache dataCache,
+    ArrpCharacterCreationData characterCreationData,
     ArrpEventService eventService,
     ArrpGuiEmotePicker emotePicker,
     ArrpTranslation loc,
@@ -224,6 +225,10 @@ public partial class ScenarioEditorWindow(
             using (ImRaii.PushId("##scenarioNpcControllAddNpc")) {
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, loc["ScenarioEditor_ActorData_Manage_AddActor"])) {
                     var newScenarioNpc = new ScenarioNpcData { Name = "New Actor", Position = objectTable.LocalPlayer?.Position ?? Vector3.Zero, Rotation = objectTable.LocalPlayer?.Rotation ?? 0f };
+
+                    var newActorName = characterCreationData.GenerateRandomName(newScenarioNpc.Appearance.Race, newScenarioNpc.Appearance.Tribe, newScenarioNpc.Appearance.Sex);
+                    newScenarioNpc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
+
                     ScenarioObject.Npcs.Add(newScenarioNpc);
                     ResetSelectedNpc(newScenarioNpc);
                 }
@@ -420,6 +425,13 @@ public partial class ScenarioEditorWindow(
                 if (ImGui.InputText("##scenarioNpcGeneralEditName", ref name)) {
                     SelectedScenarioNpc.Name = name;
                 }
+                ImGui.SameLine();
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Random)) {
+                    var newActorName = characterCreationData.GenerateRandomName(SelectedScenarioNpc.Appearance.Race, SelectedScenarioNpc.Appearance.Tribe, SelectedScenarioNpc.Appearance.Sex);
+                    SelectedScenarioNpc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
+                }
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_NameRandom"]);
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();

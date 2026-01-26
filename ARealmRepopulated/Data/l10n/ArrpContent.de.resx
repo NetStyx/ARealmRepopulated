@@ -558,4 +558,7 @@
   <data name="ScenarioEditor_ActorData_Appearance_EGlasses" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameRandom" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>
