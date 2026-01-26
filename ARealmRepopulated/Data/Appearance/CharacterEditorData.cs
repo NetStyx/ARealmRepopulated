@@ -4,6 +4,15 @@ public class CharacterEditorData {
     public List<CharacterEditorRace> Races { get; set; } = [];
 }
 
+public class CharacterEditorNameGenerationData {
+    public NpcRace Race { get; set; } = NpcRace.Unknown;
+    public NpcTribe Tribe { get; set; } = NpcTribe.Unknown;
+    public NpcSex Gender { get; set; } = NpcSex.Male;
+
+    public List<string> FirstNames { get; set; } = [];
+    public List<string> LastNames { get; set; } = [];
+}
+
 public class CharacterEditorRace {
     public NpcRace Race { get; set; } = NpcRace.Unknown;
     public NpcTribe Tribe { get; set; } = NpcTribe.Unknown;

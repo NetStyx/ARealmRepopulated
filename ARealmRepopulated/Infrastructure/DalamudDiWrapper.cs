@@ -32,6 +32,7 @@ public class DalamudDiWrapper(IDalamudPluginInterface pluginInterface, IPluginLo
             .AddSingleton<ArrpGameHooks>()
             .AddSingleton<ArrpEventService>()
             .AddSingleton<ArrpDataCache>()
+            .AddSingleton<ArrpCharacterCreationData>()
             .AddSingleton<ArrpDtrControl>()
             .AddSingleton<ArrpTranslation>()
             .AddSingleton(s => s.GetRequiredService<IDalamudPluginInterface>().GetPluginConfig() as PluginConfig ?? new PluginConfig());

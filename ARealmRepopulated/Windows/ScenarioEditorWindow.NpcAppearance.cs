@@ -193,7 +193,6 @@ public partial class ScenarioEditorWindow {
 
         using var child = ImRaii.Child("##npcAppearanceInfoChild", new System.Numerics.Vector2(0, -10), false);
 
-        var characterEditorData = dataCache.GetCharacterEditorData();
         var selectedNpcTribe = SelectedScenarioNpc.Appearance.Tribe;
         var selectedNpcRace = SelectedScenarioNpc.Appearance.Race;
         var selectedNpcGender = SelectedScenarioNpc.Appearance.Sex;

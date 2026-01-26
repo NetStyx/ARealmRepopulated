@@ -62,6 +62,7 @@ public sealed class Plugin : IDalamudPlugin {
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
 
         Services.GetRequiredService<ArrpDataCache>().Populate();
+        Services.GetRequiredService<ArrpCharacterCreationData>().Populate();
         Services.GetRequiredService<ScenarioMigrator>().Initialize();
         Services.GetRequiredService<ArrpDtrControl>().Initialize();
         Services.GetRequiredService<ChatCommands>().Initialize();
