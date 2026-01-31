@@ -250,6 +250,159 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close Introduction.
+        /// </summary>
+        public static string OnboardingWnd_Close {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Realm Repopulated - Welcome !.
+        /// </summary>
+        public static string OnboardingWnd_Header {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is the onboarding wizzard for the plugin &apos;A Realm Repopulated&apos;. The purpose of it is to give you the ability to enhance your surroundings by adding additional background NPCs. Each NPC can be given a set of instructions that guides its behaviour to create the feeling of the world being a bit more alive then usual..
+        /// </summary>
+        public static string OnboardingWnd_Intro {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Intro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Thats it for now. Play around a bit and tell me what you think. Have fun!.
+        /// </summary>
+        public static string OnboardingWnd_Outro {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Outro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Demo scenario created by the onboarding wizzard..
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Desc {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can edit my actions via the configuration window. Try opening it by typing /arrp!.
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Npc_Explain1 {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Npc_Explain1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to I will take my leave now, but if you wait for a few seconds i will reappear here!.
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Npc_Explain2 {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Npc_Explain2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hello !!.
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Npc_Greeting {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Npc_Greeting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My name is {0}. I am here to bid you welcome..
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Npc_Intro {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Npc_Intro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Have fun!.
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Npc_Outro {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Npc_Outro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Introduction to scenarios.
+        /// </summary>
+        public static string OnboardingWnd_Scenario_Title {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Scenario_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Settings.
+        /// </summary>
+        public static string OnboardingWnd_Settings {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interactions are grouped in a container called &apos;Scenario&apos; and each scenario is bound to a location. You can view them in the plugins settings.
+        /// </summary>
+        public static string OnboardingWnd_SettingsDesc {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_SettingsDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spawn Demo NPC.
+        /// </summary>
+        public static string OnboardingWnd_Spawn {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Spawn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To see how it works, you can use the button below to spawn a dummy NPC to see the plugin working..
+        /// </summary>
+        public static string OnboardingWnd_SpawnDesc {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_SpawnDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scenario created.
+        /// </summary>
+        public static string OnboardingWnd_SpawnSuccess {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_SpawnSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First Start.
+        /// </summary>
+        public static string OnboardingWnd_Title {
+            get {
+                return ResourceManager.GetString("OnboardingWnd_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Despawnes the actor. This does not unload it but disables the drawing cycles..
         /// </summary>
         public static string ScenarioEditor_ActorData_Actions_ADespawn_Desc {

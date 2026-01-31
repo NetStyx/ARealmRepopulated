@@ -561,4 +561,55 @@
   <data name="ScenarioEditor_ActorData_General_Input_NameRandom" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="OnboardingWnd_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Header" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Intro" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_SpawnDesc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Spawn" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_SettingsDesc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Settings" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Outro" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_SpawnSuccess" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Close" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Greeting" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Intro" xml:space="preserve">
+    <value>a {0}</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Explain1" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Explain2" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Outro" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

@@ -561,4 +561,55 @@
   <data name="ScenarioEditor_ActorData_General_Input_NameRandom" xml:space="preserve">
     <value>Create random name</value>
   </data>
+  <data name="OnboardingWnd_Title" xml:space="preserve">
+    <value>First Start</value>
+  </data>
+  <data name="OnboardingWnd_Header" xml:space="preserve">
+    <value>A Realm Repopulated - Welcome !</value>
+  </data>
+  <data name="OnboardingWnd_Intro" xml:space="preserve">
+    <value>This is the onboarding wizzard for the plugin 'A Realm Repopulated'. The purpose of it is to give you the ability to enhance your surroundings by adding additional background NPCs. Each NPC can be given a set of instructions that guides its behaviour to create the feeling of the world being a bit more alive then usual.</value>
+  </data>
+  <data name="OnboardingWnd_SpawnDesc" xml:space="preserve">
+    <value>To see how it works, you can use the button below to spawn a dummy NPC to see the plugin working.</value>
+  </data>
+  <data name="OnboardingWnd_Spawn" xml:space="preserve">
+    <value>Spawn Demo NPC</value>
+  </data>
+  <data name="OnboardingWnd_SettingsDesc" xml:space="preserve">
+    <value>The interactions are grouped in a container called 'Scenario' and each scenario is bound to a location. You can view them in the plugins settings</value>
+  </data>
+  <data name="OnboardingWnd_Settings" xml:space="preserve">
+    <value>Toggle Settings</value>
+  </data>
+  <data name="OnboardingWnd_Outro" xml:space="preserve">
+    <value>Thats it for now. Play around a bit and tell me what you think. Have fun!</value>
+  </data>
+  <data name="OnboardingWnd_SpawnSuccess" xml:space="preserve">
+    <value>Scenario created</value>
+  </data>
+  <data name="OnboardingWnd_Close" xml:space="preserve">
+    <value>Close Introduction</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Title" xml:space="preserve">
+    <value>Introduction to scenarios</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Desc" xml:space="preserve">
+    <value>Demo scenario created by the onboarding wizzard.</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Greeting" xml:space="preserve">
+    <value>Hello !!</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Intro" xml:space="preserve">
+    <value>My name is {0}. I am here to bid you welcome.</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Explain1" xml:space="preserve">
+    <value>You can edit my actions via the configuration window. Try opening it by typing /arrp!</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Explain2" xml:space="preserve">
+    <value>I will take my leave now, but if you wait for a few seconds i will reappear here!</value>
+  </data>
+  <data name="OnboardingWnd_Scenario_Npc_Outro" xml:space="preserve">
+    <value>Have fun!</value>
+  </data>
 </root>

@@ -15,6 +15,8 @@ public class PluginConfig : IPluginConfiguration {
 
     public bool EnableScenarioDebugOverlay { get; set; } = false;
 
+    public bool OnboardingCompleted { get; set; } = false;
+
     public void Save() {
         Plugin.Services.GetRequiredService<IDalamudPluginInterface>().SavePluginConfig(this);
     }

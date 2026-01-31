@@ -56,8 +56,9 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     public List<Emote> GetEmotes()
         => [.. _emoteTypeSheet];
 
-    public TerritoryType GetTerritoryType(ushort territoryTypeId)
-        => _territoryTypeSheet.GetRow(territoryTypeId);
+    public TerritoryType GetTerritoryType(ushort territoryTypeId) {
+        return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
+    }
 
 }
 
