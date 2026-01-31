@@ -5,6 +5,7 @@ using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
@@ -354,13 +355,7 @@ public partial class ScenarioEditorWindow(
         ImGui.Text($"{ScenarioObject.Location.Territory} - {territoryName}");
         ImGui.SameLine(0, 5);
         if (ImGui.SmallButton(loc["ScenarioEditor_BaseData_Input_LocationCurrent"])) {
-            var currentLocation = eventService.CurrentLocation;
-            ScenarioObject.Location.Server = currentLocation.Server;
-            ScenarioObject.Location.Territory = currentLocation.TerritoryType;
-            ScenarioObject.Location.HousingDivision = currentLocation.HousingDivision;
-            ScenarioObject.Location.HousingWard = currentLocation.HousingWard;
-            ScenarioObject.Location.HousingPlot = currentLocation.HousingPlot;
-            ScenarioObject.Location.Server = currentLocation.Server;
+            eventService.CurrentLocation.UpdateScenarioLocation(ScenarioObject.Location);
         }
 
         ImGui.TableNextRow();

@@ -7,6 +7,7 @@ using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Infrastructure;
 using ARealmRepopulated.Windows;
 using Dalamud.Interface.ImGuiFileDialog;
@@ -21,6 +22,7 @@ public sealed class Plugin : IDalamudPlugin {
 
     private WindowSystem Windows { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
+    private OnboardingWindow OnboardingWindow { get; init; }
 
     public Plugin(IDalamudPluginInterface pluginInterface) {
         var serviceDescriptors = pluginInterface.Create<DalamudDiWrapper>()?.CreateServiceCollection()
@@ -42,6 +44,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<ArrpGuiEmotePicker>()
             .AddSingleton<FileDialogManager>()
             .AddWindow<ConfigWindow>()
+            .AddWindow<OnboardingWindow>()
             .AddTransientWindow<ScenarioEditorWindow>()
             .AddTransient<NpcActor>()
             .AddTransient<Scenario>()
@@ -52,6 +55,7 @@ public sealed class Plugin : IDalamudPlugin {
 
         Windows = Services.GetRequiredService<WindowSystem>();
         ConfigWindow = Services.GetRequiredService<ConfigWindow>();
+        OnboardingWindow = Services.GetRequiredService<OnboardingWindow>();
 
         var fileDialogManager = Services.GetRequiredService<FileDialogManager>();
 
@@ -74,7 +78,17 @@ public sealed class Plugin : IDalamudPlugin {
         Services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
 
         // set the event service to do a territory check cycle
+        var eventService = Services.GetRequiredService<ArrpEventService>();
+        if (!Services.GetRequiredService<PluginConfig>().OnboardingCompleted) {
+            eventService.OnTerritoryLoadFinished += RunOnboarding;
+        }
         Services.GetRequiredService<ArrpEventService>().Arm();
+
+    }
+
+    private void RunOnboarding(LocationData _) {
+        Services.GetRequiredService<ArrpEventService>().OnTerritoryLoadFinished -= RunOnboarding;
+        OnboardingWindow.Toggle();
     }
 
     public void Dispose() {

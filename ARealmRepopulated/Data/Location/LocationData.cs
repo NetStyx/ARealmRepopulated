@@ -22,4 +22,13 @@ public static class LocationDataExtension {
         return true;
     }
 
+    public static void UpdateScenarioLocation(this LocationData location, ScenarioLocation target) {
+        target.Server = location.Server;
+        target.Territory = location.TerritoryType;
+        target.HousingDivision = location.HousingDivision;
+        target.HousingWard = location.HousingWard;
+        target.HousingPlot = location.HousingPlot;
+        target.Server = location.Server;
+    }
+
 }
