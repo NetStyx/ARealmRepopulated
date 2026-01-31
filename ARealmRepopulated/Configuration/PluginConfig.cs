@@ -13,7 +13,7 @@ public class PluginConfig : IPluginConfiguration {
 
     public bool ShowInDtrBar { get; set; } = true;
 
-    public bool EnableScenarioDebugOverlay { get; set; } = false;
+    public bool EnableScenarioDebugOverlay { get; set; } = true;
 
     public bool OnboardingCompleted { get; set; } = false;
 
