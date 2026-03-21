@@ -5,7 +5,9 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using InteropGenerator.Runtime;
+using System.Threading;
 using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace ARealmRepopulated.Core.Services.Chat;
 
@@ -20,6 +22,7 @@ public unsafe class ChatBubbleService : IDisposable {
     private readonly Hook<OpenBubbleDelegate> _openBalloonHook = null!;
     private delegate void OpenBubbleDelegate(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint);
 
+    private readonly Lock _npcTextsLock = new();
     private readonly List<ChatBubbleEntry> _npcTexts = [];
     private readonly Timer _cleanupTimer;
 
@@ -36,11 +39,10 @@ public unsafe class ChatBubbleService : IDisposable {
     }
 
     private void _cleanupTimer_Elapsed(object? sender, ElapsedEventArgs e) {
-        lock (_npcTexts) {
-            var overdueNpcTexts = _npcTexts.Where(c => c.Timeout < DateTime.Now).ToList();
-            if (overdueNpcTexts.Count > 0) {
-                overdueNpcTexts.ForEach(a => _npcTexts.Remove(a));
-            }
+        using var _ = _npcTextsLock.EnterScope();
+        var overdueNpcTexts = _npcTexts.Where(c => c.Timeout < DateTime.Now).ToList();
+        if (overdueNpcTexts.Count > 0) {
+            overdueNpcTexts.ForEach(a => _npcTexts.Remove(a));
         }
     }
 
@@ -55,7 +57,7 @@ public unsafe class ChatBubbleService : IDisposable {
 
     public void Talk(Character* character, string text, float duration) {
         var characterAddress = (nint)character;
-        lock (_npcTexts) {
+        using (_npcTextsLock.EnterScope()) {
             var existingEntry = _npcTexts.FirstOrDefault(c => c.Character == characterAddress);
             if (existingEntry == null) {
                 _npcTexts.Add(existingEntry = new ChatBubbleEntry());

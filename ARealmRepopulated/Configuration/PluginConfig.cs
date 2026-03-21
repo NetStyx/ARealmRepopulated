@@ -7,6 +7,9 @@ namespace ARealmRepopulated.Configuration;
 [Serializable]
 public class PluginConfig : IPluginConfiguration {
 
+    [JsonIgnore]
+    internal IDalamudPluginInterface PluginInterface { get; set; } = null!;
+
     public int Version { get; set; } = 0;
 
     public bool AutoLoadScenarios { get; set; } = true;
@@ -18,7 +21,7 @@ public class PluginConfig : IPluginConfiguration {
     public bool OnboardingCompleted { get; set; } = false;
 
     public void Save() {
-        Plugin.Services.GetRequiredService<IDalamudPluginInterface>().SavePluginConfig(this);
+        PluginInterface.SavePluginConfig(this);
     }
 
     [JsonExtensionData]

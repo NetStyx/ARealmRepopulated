@@ -1,4 +1,3 @@
-using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.IO;
 using System.Text;
@@ -157,8 +156,8 @@ public class NpcAppearanceData {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this)));
     }
 
-    public void Save(SaveFormat format = SaveFormat.Json) {
-        var filePath = Path.Combine(Plugin.Services.GetRequiredService<IDalamudPluginInterface>().GetPluginConfigDirectory(), "appearance", this.AppearanceId.ToString() + ".arrpc");
+    public void Save(string configDirectory, SaveFormat format = SaveFormat.Json) {
+        var filePath = Path.Combine(configDirectory, "appearance", this.AppearanceId.ToString() + ".arrpc");
 
         string exportData;
         if (format == SaveFormat.Base64) {

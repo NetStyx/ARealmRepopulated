@@ -53,25 +53,26 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
             | ImGuiWindowFlags.NoInputs
             | ImGuiWindowFlags.NoFocusOnAppearing
             | ImGuiWindowFlags.NoBackground
-            | ImGuiWindowFlags.NoNav)
-        ) {
+            | ImGuiWindowFlags.NoNav)) {
             ImGui.End();
             return;
         }
 
-        _imguiColorBlack ??= ImGui.GetColorU32(new Vector4(0, 0, 0, 255));
-        _imguiColorRed ??= ImGui.GetColorU32(new Vector4(255, 0, 0, 255));
-        _imguiColorGreen ??= ImGui.GetColorU32(new Vector4(0, 255, 0, 255));
+        try {
+            _imguiColorBlack ??= ImGui.GetColorU32(new Vector4(0, 0, 0, 255));
+            _imguiColorRed ??= ImGui.GetColorU32(new Vector4(255, 0, 0, 255));
+            _imguiColorGreen ??= ImGui.GetColorU32(new Vector4(0, 255, 0, 255));
 
-        List<ScenarioEditorWindow> snapshot;
-        using (var _ = _scenarioAccessLock.EnterScope()) {
-            snapshot = [.. _openEditors];
+            List<ScenarioEditorWindow> snapshot;
+            using (var _ = _scenarioAccessLock.EnterScope()) {
+                snapshot = [.. _openEditors];
+            }
+            snapshot.ForEach(DrawScenarioDebugInfo);
+
+            DrawNpcTrace();
+        } finally {
+            ImGui.End();
         }
-        snapshot.ForEach(DrawScenarioDebugInfo);
-
-        DrawNpcTrace();
-
-        ImGui.End();
     }
 
     private void DrawNpcTrace() {

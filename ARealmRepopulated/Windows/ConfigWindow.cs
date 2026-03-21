@@ -18,6 +18,7 @@ using System.Numerics;
 namespace ARealmRepopulated.Windows;
 
 public class ConfigWindow(
+    IServiceProvider serviceProvider,
     IPluginLog log,
     IClientState state,
     ArrpTranslation loc,
@@ -26,7 +27,7 @@ public class ConfigWindow(
     DebugOverlay _debugOverlay,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
-    ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow") {
+    ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
 
     protected override void SetWindowOptions() {
         Size = new Vector2(232, 90);
@@ -37,6 +38,11 @@ public class ConfigWindow(
         this.CollapsedCondition = ImGuiCond.None;
         loc.OnLocalizationChanged += UpdateWindowTitle;
         UpdateWindowTitle();
+    }
+
+    public void Dispose() {
+        loc.OnLocalizationChanged -= UpdateWindowTitle;
+        GC.SuppressFinalize(this);
     }
 
     public override void OnOpen() {
@@ -182,7 +188,7 @@ public class ConfigWindow(
             DrawCenteredHeaderCell(3, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
                     if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
-                        Plugin.Services.GetService<ScenarioEditorWindow>()!.CreateScenario();
+                        serviceProvider.GetService<ScenarioEditorWindow>()!.CreateScenario();
                     }
                 }
 
@@ -248,7 +254,7 @@ public class ConfigWindow(
 
                 ImGui.TableNextColumn();
                 if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Wrench)) {
-                    Plugin.Services.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+                    serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
                 }
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_EditScenario_Desc"]);

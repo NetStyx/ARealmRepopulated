@@ -23,7 +23,7 @@ public class OnboardingWindow(
     ArrpEventService eventService,
     ScenarioFileManager fileManager,
     Plugin plugin,
-    PluginConfig config) : ADalamudWindow("###ARealmRepopulatedOnboardingWindow") {
+    PluginConfig config) : ADalamudWindow("###ARealmRepopulatedOnboardingWindow"), IDisposable {
     protected override void SetWindowOptions() {
         Size = new Vector2(232, 90);
         SizeCondition = ImGuiCond.FirstUseEver;
@@ -37,6 +37,11 @@ public class OnboardingWindow(
         };
         loc.OnLocalizationChanged += UpdateWindowTitle;
         UpdateWindowTitle();
+    }
+
+    public void Dispose() {
+        loc.OnLocalizationChanged -= UpdateWindowTitle;
+        GC.SuppressFinalize(this);
     }
 
     private void UpdateWindowTitle()

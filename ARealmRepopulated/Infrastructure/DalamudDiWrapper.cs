@@ -35,5 +35,9 @@ public class DalamudDiWrapper(IDalamudPluginInterface pluginInterface, IPluginLo
             .AddSingleton<ArrpCharacterCreationData>()
             .AddSingleton<ArrpDtrControl>()
             .AddSingleton<ArrpTranslation>()
-            .AddSingleton(s => s.GetRequiredService<IDalamudPluginInterface>().GetPluginConfig() as PluginConfig ?? new PluginConfig());
+            .AddSingleton(s => {
+                var config = s.GetRequiredService<IDalamudPluginInterface>().GetPluginConfig() as PluginConfig ?? new PluginConfig();
+                config.PluginInterface = s.GetRequiredService<IDalamudPluginInterface>();
+                return config;
+            });
 }
