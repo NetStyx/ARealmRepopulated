@@ -50,8 +50,8 @@ public class CircularListTests {
         list.Add(2);
         list.Add(3);
 
+        list.GetNextItem(); // index = -1 -> 0
         list.GetNextItem(); // index = 0 -> 1
-        list.GetNextItem(); // index = 1 -> 2
 
         list.Remove(2);
 
