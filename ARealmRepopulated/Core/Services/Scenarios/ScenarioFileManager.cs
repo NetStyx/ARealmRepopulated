@@ -8,6 +8,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
@@ -17,6 +18,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
     public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter(), new JsonStringEnumConverter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } } };
 
+    private readonly Lock _filesLock = new();
     private readonly List<ScenarioFileData> _currentFiles = [];
 
     public delegate void ScenarioFileChangedDelegate(ScenarioFileData metaData);
@@ -45,15 +47,17 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     }
 
     public List<ScenarioFileData> GetScenarioFiles() {
+        using var _ = _filesLock.EnterScope();
         return [.. _currentFiles];
     }
 
     public List<ScenarioFileData> GetScenarioFilesByTerritory(LocationData location) {
+        using var _ = _filesLock.EnterScope();
         return [.. _currentFiles.Where(x => x.MetaData.Location.Territory == location.TerritoryType)];
     }
 
     public void ScanScenarioFiles() {
-
+        using var _ = _filesLock.EnterScope();
         _fileSystemWatcher.EnableRaisingEvents = false;
         _currentFiles.Clear();
         Directory
@@ -79,6 +83,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     }
 
     private void ScanScenarioFile(FileInfo fileInfo) {
+        using var _ = _filesLock.EnterScope();
         if (!fileInfo.Exists) {
             _currentFiles
                 .Where(x => x.FilePath.Equals(fileInfo.FullName))

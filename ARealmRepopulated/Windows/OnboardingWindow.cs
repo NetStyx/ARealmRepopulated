@@ -23,7 +23,7 @@ public class OnboardingWindow(
     ArrpEventService eventService,
     ScenarioFileManager fileManager,
     Plugin plugin,
-    PluginConfig config) : ADalamudWindow("###ARealmRepopulatedOnboardingWindow") {
+    PluginConfig config) : ADalamudWindow("###ARealmRepopulatedOnboardingWindow"), IDisposable {
     protected override void SetWindowOptions() {
         Size = new Vector2(232, 90);
         SizeCondition = ImGuiCond.FirstUseEver;
@@ -39,51 +39,59 @@ public class OnboardingWindow(
         UpdateWindowTitle();
     }
 
+    public void Dispose() {
+        loc.OnLocalizationChanged -= UpdateWindowTitle;
+        GC.SuppressFinalize(this);
+    }
+
     private void UpdateWindowTitle()
         => this.WindowName = $"{loc["OnboardingWnd_Title"]}###ARealmRepopulatedOnboardingWindow";
 
     private bool _demoNpcSpawned = false;
     public override void Draw() {
 
-        if (ImGui.BeginChild("", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize)) {
-            ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-            ImGui.TextWrapped(loc["OnboardingWnd_Header"]);
-            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-            using (ImRaii.Disabled()) {
-                ImGui.TextWrapped(loc["OnboardingWnd_Intro"]);
+        using (var child = ImRaii.Child("", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize)) {
+            if (child.Success) {
+                ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+                ImGui.TextWrapped(loc["OnboardingWnd_Header"]);
                 ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-                ImGui.TextWrapped(loc["OnboardingWnd_SpawnDesc"]);
-            }
-            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-
-            if (!_demoNpcSpawned) {
-                if (ImGui.Button(loc["OnboardingWnd_Spawn"])) {
-                    _demoNpcSpawned = true;
-                    SpawnDemoScenario();
+                using (ImRaii.Disabled()) {
+                    ImGui.TextWrapped(loc["OnboardingWnd_Intro"]);
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+                    ImGui.TextWrapped(loc["OnboardingWnd_SpawnDesc"]);
                 }
-            } else {
-                ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.CheckCircle, loc["OnboardingWnd_SpawnSuccess"], defaultColor: ArrpGuiColors.ArrpGreen, hoveredColor: ArrpGuiColors.ArrpGreen);
-            }
-
-            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-            using (ImRaii.Disabled()) {
-                ImGui.TextWrapped(loc["OnboardingWnd_SettingsDesc"]);
                 ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-            }
-            if (ImGui.Button(loc["OnboardingWnd_Settings"])) {
-                plugin.ToggleConfigUI();
-            }
 
-            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-            using (ImRaii.Disabled()) {
-                ImGui.TextWrapped(loc["OnboardingWnd_Outro"]);
-            }
+                if (!_demoNpcSpawned) {
+                    if (ImGui.Button(loc["OnboardingWnd_Spawn"])) {
+                        _demoNpcSpawned = true;
+                        SpawnDemoScenario();
+                    }
+                } else {
+                    ImGuiComponents.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.CheckCircle, loc["OnboardingWnd_SpawnSuccess"], defaultColor: ArrpGuiColors.ArrpGreen, hoveredColor: ArrpGuiColors.ArrpGreen);
+                }
 
-            ImGui.EndChild();
+                ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+                using (ImRaii.Disabled()) {
+                    ImGui.TextWrapped(loc["OnboardingWnd_SettingsDesc"]);
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+                }
+                if (ImGui.Button(loc["OnboardingWnd_Settings"])) {
+                    plugin.ToggleConfigUI();
+                }
+
+                ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+                using (ImRaii.Disabled()) {
+                    ImGui.TextWrapped(loc["OnboardingWnd_Outro"]);
+                }
+            }
         }
 
         ImGui.Separator();
-        if (ImGui.BeginTable("##onboardingWindowControlTable", 3, ImGuiTableFlags.NoSavedSettings)) {
+        using (var table = ImRaii.Table("##onboardingWindowControlTable", 3, ImGuiTableFlags.NoSavedSettings)) {
+            if (!table.Success)
+                return;
+
             ImGui.TableSetupColumn("##onboardingWindowControlTableStrech", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("##onboardingWindowControlTableClose", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("##onboardingWindowControlTablePadding", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
@@ -95,7 +103,6 @@ public class OnboardingWindow(
             if (ImGui.Button(loc["OnboardingWnd_Close"])) {
                 this.IsOpen = false;
             }
-            ImGui.EndTable();
         }
 
     }

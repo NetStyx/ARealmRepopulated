@@ -16,7 +16,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     private const float ProximityCheckInterval = 0.5f;
     private float _lastProximityCheck = 0f;
 
-    public List<Orchestration> Orchestrations { get; set; } = [];
+    public List<Orchestration> Orchestrations { get; private set; } = [];
     public event Action? OnOrchestrationsChanged;
 
     private void Game_CharacterDestroyed(Character* chara) {

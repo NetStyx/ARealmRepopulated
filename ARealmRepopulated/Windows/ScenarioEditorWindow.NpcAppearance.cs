@@ -24,24 +24,27 @@ public partial class ScenarioEditorWindow {
     private void DrawNpcAppearanceInfo() {
 
         using var table = ImRaii.Table("##ArrpNpcAppearanceEditorTable", 2, ImGuiTableFlags.NoSavedSettings);
+        if (!table.Success)
+            return;
         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 130);
         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, -1);
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
 
-        using (ImRaii.ListBox("##scenarioNpcAppearanceEditorListBox", new System.Numerics.Vector2(120, -10))) {
+        using (var listBox = ImRaii.ListBox("##scenarioNpcAppearanceEditorListBox", new System.Numerics.Vector2(120, -10))) {
+            if (listBox.Success) {
+                if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Setup"]}##scenarioNpcAppearanceEditorListBoxGeneral", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcBase)) {
+                    _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcBase;
+                }
 
-            if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Setup"]}##scenarioNpcAppearanceEditorListBoxGeneral", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcBase)) {
-                _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcBase;
-            }
+                if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##scenarioNpcAppearanceEditorListBoxCustomize", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcCustomize)) {
+                    _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcCustomize;
+                }
 
-            if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##scenarioNpcAppearanceEditorListBoxCustomize", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcCustomize)) {
-                _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcCustomize;
-            }
-
-            if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##scenarioNpcAppearanceEditorListBoxGeneral", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcEquipment)) {
-                _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcEquipment;
+                if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##scenarioNpcAppearanceEditorListBoxEquipment", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcEquipment)) {
+                    _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcEquipment;
+                }
             }
         }
 
@@ -70,9 +73,10 @@ public partial class ScenarioEditorWindow {
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.PeoplePulling, loc["ScenarioEditor_ActorData_Appearance_Setup_PickNpc"], new Vector2(200, 0))) {
             ImGui.OpenPopup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup");
         }
-        if (ImGui.BeginPopup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup")) {
-            DrawNpcPickerPopup();
-            ImGui.EndPopup();
+        using (var popup = ImRaii.Popup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup")) {
+            if (popup.Success) {
+                DrawNpcPickerPopup();
+            }
         }
 
         ImGui.SameLine();
@@ -137,7 +141,9 @@ public partial class ScenarioEditorWindow {
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        if (ImGui.BeginTable("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings)) {
+        using (var t = ImRaii.Table("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings)) {
+            if (!t.Success)
+                return;
 
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
@@ -182,7 +188,6 @@ public partial class ScenarioEditorWindow {
                 SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
             }
 
-            ImGui.EndTable();
         }
     }
 
@@ -192,12 +197,16 @@ public partial class ScenarioEditorWindow {
             return;
 
         using var child = ImRaii.Child("##npcAppearanceInfoChild", new System.Numerics.Vector2(0, -10), false);
+        if (!child.Success)
+            return;
 
         var selectedNpcTribe = SelectedScenarioNpc.Appearance.Tribe;
         var selectedNpcRace = SelectedScenarioNpc.Appearance.Race;
         var selectedNpcGender = SelectedScenarioNpc.Appearance.Sex;
 
-        if (ImGui.BeginTable("##npcAppearanceEditorNpcValues", 3, ImGuiTableFlags.NoSavedSettings)) {
+        using (var table = ImRaii.Table("##npcAppearanceEditorNpcValues", 3, ImGuiTableFlags.NoSavedSettings)) {
+            if (!table.Success)
+                return;
 
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
@@ -236,8 +245,6 @@ public partial class ScenarioEditorWindow {
             ImGui.TableNextRow();
             DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CTailShape"], SelectedScenarioNpc.Appearance.TailShape);
             DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CBustSize"], SelectedScenarioNpc.Appearance.BustSize);
-
-            ImGui.EndTable();
         }
 
     }
@@ -246,7 +253,9 @@ public partial class ScenarioEditorWindow {
         if (SelectedScenarioNpc == null)
             return;
 
-        if (ImGui.BeginTable("##npcAppearanceEditorNpcValues", 3, ImGuiTableFlags.NoSavedSettings)) {
+        using (var table = ImRaii.Table("##npcAppearanceEditorEquipmentValues", 2, ImGuiTableFlags.NoSavedSettings)) {
+            if (!table.Success)
+                return;
 
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
@@ -265,8 +274,6 @@ public partial class ScenarioEditorWindow {
             DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingLeft"], ItemSlots.LeftRing, SelectedScenarioNpc.Appearance.LeftRing);
             DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingRight"], ItemSlots.RightRing, SelectedScenarioNpc.Appearance.RightRing);
             DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EGlasses"], SelectedScenarioNpc.Appearance.Glasses);
-
-            ImGui.EndTable();
         }
 
     }
@@ -339,62 +346,3 @@ public partial class ScenarioEditorWindow {
     }
 
 }
-
-/*
-if (ImGui.BeginTable("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings)) {
-ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-
-ImGui.TableNextRow();
-ImGui.TableNextColumn();
-
-if (ImGui.BeginCombo("##npcAppearanceEditorRaceComboBox", selectedNpcRace != NpcRace.Unknown ? selectedNpcRace.ToString() : "Select Race ...")) {
-    foreach (var race in characterEditorData.Races.Select(x => x.Race).Distinct()) {
-        if (ImGui.Selectable(race.ToString(), false)) {
-            var updatedRace = UpdateRace(race, NpcTribe.Unknown, NpcSex.Male);
-            selectedNpcRace = updatedRace.Race;
-            selectedNpcTribe = updatedRace.Tribe;
-            selectedNpcGender = updatedRace.Sex;
-        }
-    }
-    ImGui.EndCombo();
-}
-
-ImGui.TableNextColumn();
-if (ImGui.BeginCombo("##npcAppearanceEditorTribeComboBox", selectedNpcTribe != NpcTribe.Unknown ? selectedNpcTribe.ToString() : "Select Tribe")) {
-    foreach (var tribe in characterEditorData.Races.Where(x => x.Race == selectedNpcRace).Select(x => x.Tribe).Distinct()) {
-        if (ImGui.Selectable(tribe.ToString(), false)) {
-            var updatedRace = UpdateRace(selectedNpcRace, tribe, NpcSex.Male);
-            selectedNpcTribe = updatedRace.Tribe;
-            selectedNpcGender = updatedRace.Sex;
-        }
-    }
-    ImGui.EndCombo();
-}
-
-ImGui.TableNextColumn();
-if (ImGui.BeginCombo("##npcAppearanceEditorGenderComboBox", selectedNpcGender.ToString())) {
-    foreach (var gender in characterEditorData.Races.Where(x => x.Race == selectedNpcRace && x.Tribe == selectedNpcTribe).Select(x => x.Gender).Distinct()) {
-        if (ImGui.Selectable(gender.ToString(), false)) {
-            selectedNpcGender = UpdateRace(selectedNpcRace, selectedNpcTribe, gender).Sex;
-        }
-    }
-    ImGui.EndCombo();
-}
-
-ImGui.EndTable();
-}
-
-private (NpcRace Race, NpcTribe Tribe, NpcSex Sex) UpdateRace(NpcRace race, NpcTribe tribe, NpcSex sex) {
-    SelectedScenarioNpc.Appearance?.Race = race;
-    SelectedScenarioNpc.Appearance?.Tribe = dataCache.GetCharacterEditorData().Races.FirstOrDefault(x => x.Race == race && x.Tribe == tribe)?.Tribe ?? NpcTribe.Unknown;
-    SelectedScenarioNpc.Appearance?.Sex = dataCache.GetCharacterEditorData().Races.FirstOrDefault(x => x.Race == race && x.Tribe == tribe && x.Gender == sex)?.Gender ?? NpcSex.Male;
-
-    return (
-        SelectedScenarioNpc.Appearance?.Race ?? NpcRace.Unknown,
-        SelectedScenarioNpc.Appearance?.Tribe ?? NpcTribe.Unknown,
-        SelectedScenarioNpc.Appearance?.Sex ?? NpcSex.Male
-        );
-}
-*/

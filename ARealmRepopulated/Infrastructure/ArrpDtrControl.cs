@@ -6,7 +6,7 @@ using Dalamud.Plugin.Services;
 
 namespace ARealmRepopulated.Infrastructure;
 
-public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, IClientState clientState, IDtrBar dalamudDtrBar) : IDisposable {
+public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, IClientState clientState, IDtrBar dalamudDtrBar, IServiceProvider serviceProvider) : IDisposable {
 
     private IDtrBarEntry? _dtrBarEntry = null;
 
@@ -26,7 +26,7 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
     private void OnLogin() {
         if ((_dtrBarEntry = dalamudDtrBar.Get("ARealmRepopulated Scenario Entry")) != null) {
             _dtrBarEntry.OnClick = (e) => {
-                var configWindow = Plugin.Services.GetRequiredService<ConfigWindow>();
+                var configWindow = serviceProvider.GetRequiredService<ConfigWindow>();
                 if (!configWindow.IsOpen) {
                     configWindow.Toggle();
                 }
@@ -57,8 +57,12 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
     }
 
     public void Dispose() {
+        manager.OnOrchestrationsChanged -= Manager_OrchestrationsChanged;
         clientState.Login -= OnLogin;
         clientState.Logout -= OnLogout;
+
+        _dtrBarEntry?.Remove();
+        _dtrBarEntry = null;
 
         GC.SuppressFinalize(this);
     }

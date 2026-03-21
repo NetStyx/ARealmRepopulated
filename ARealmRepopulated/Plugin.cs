@@ -18,13 +18,18 @@ using System.Globalization;
 namespace ARealmRepopulated;
 
 public sealed class Plugin : IDalamudPlugin {
-    public static ServiceProvider Services { get; private set; } = null!;
+    private readonly IDalamudPluginInterface _pluginInterface;
+    private readonly ServiceProvider _services;
 
     private WindowSystem Windows { get; init; }
     private ConfigWindow ConfigWindow { get; init; }
     private OnboardingWindow OnboardingWindow { get; init; }
 
+    private readonly Action _drawAction;
+
     public Plugin(IDalamudPluginInterface pluginInterface) {
+        _pluginInterface = pluginInterface;
+
         var serviceDescriptors = pluginInterface.Create<DalamudDiWrapper>()?.CreateServiceCollection()
             ?? throw new InvalidOperationException("Could not create dalamud service wrapper");
 
@@ -50,50 +55,54 @@ public sealed class Plugin : IDalamudPlugin {
             .AddTransient<Scenario>()
             .AddTransient<ScenarioNpc>();
 
-        Services = serviceDescriptors.BuildServiceProvider();
-        Services.GetRequiredService<PluginConfigMigration>().Migrate();
+        _services = serviceDescriptors.BuildServiceProvider();
+        _services.GetRequiredService<PluginConfigMigration>().Migrate();
 
-        Windows = Services.GetRequiredService<WindowSystem>();
-        ConfigWindow = Services.GetRequiredService<ConfigWindow>();
-        OnboardingWindow = Services.GetRequiredService<OnboardingWindow>();
+        Windows = _services.GetRequiredService<WindowSystem>();
+        ConfigWindow = _services.GetRequiredService<ConfigWindow>();
+        OnboardingWindow = _services.GetRequiredService<OnboardingWindow>();
 
-        var fileDialogManager = Services.GetRequiredService<FileDialogManager>();
+        var fileDialogManager = _services.GetRequiredService<FileDialogManager>();
 
-        pluginInterface.UiBuilder.Draw += () => {
+        _drawAction = () => {
             Windows.Draw();
             fileDialogManager.Draw();
         };
+        pluginInterface.UiBuilder.Draw += _drawAction;
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
 
-        Services.GetRequiredService<ArrpDataCache>().Populate();
-        Services.GetRequiredService<ArrpCharacterCreationData>().Populate();
-        Services.GetRequiredService<ScenarioMigrator>().Initialize();
-        Services.GetRequiredService<ArrpDtrControl>().Initialize();
-        Services.GetRequiredService<ChatCommands>().Initialize();
-        Services.GetRequiredService<ScenarioOrchestrator>().Initialize();
-        Services.GetRequiredService<NpcServices>().Initialize();
-        Services.GetRequiredService<NpcAppearanceDataParser>().Initialize();
-        Services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
-        Services.GetRequiredService<ChatBubbleService>();
-        Services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
+        _services.GetRequiredService<ArrpDataCache>().Populate();
+        _services.GetRequiredService<ArrpCharacterCreationData>().Populate();
+        _services.GetRequiredService<ScenarioMigrator>().Initialize();
+        _services.GetRequiredService<ArrpDtrControl>().Initialize();
+        _services.GetRequiredService<ChatCommands>().Initialize();
+        _services.GetRequiredService<ScenarioOrchestrator>().Initialize();
+        _services.GetRequiredService<NpcServices>().Initialize();
+        _services.GetRequiredService<NpcAppearanceDataParser>().Initialize();
+        _services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
+        _services.GetRequiredService<ChatBubbleService>();
+        _services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
 
         // set the event service to do a territory check cycle
-        var eventService = Services.GetRequiredService<ArrpEventService>();
-        if (!Services.GetRequiredService<PluginConfig>().OnboardingCompleted) {
+        var eventService = _services.GetRequiredService<ArrpEventService>();
+        if (!_services.GetRequiredService<PluginConfig>().OnboardingCompleted) {
             eventService.OnTerritoryLoadFinished += RunOnboarding;
         }
-        Services.GetRequiredService<ArrpEventService>().Arm();
+        _services.GetRequiredService<ArrpEventService>().Arm();
 
     }
 
     private void RunOnboarding(LocationData _) {
-        Services.GetRequiredService<ArrpEventService>().OnTerritoryLoadFinished -= RunOnboarding;
+        _services.GetRequiredService<ArrpEventService>().OnTerritoryLoadFinished -= RunOnboarding;
         OnboardingWindow.Toggle();
     }
 
     public void Dispose() {
+        _pluginInterface.UiBuilder.Draw -= _drawAction;
+        _pluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUI;
+
         Windows.RemoveAllWindows();
-        Services.Dispose();
+        _services.Dispose();
     }
 
     public void ToggleConfigUI()

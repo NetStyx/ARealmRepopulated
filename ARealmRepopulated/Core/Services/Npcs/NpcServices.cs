@@ -9,8 +9,7 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-[PluginInterface]
-public unsafe class NpcServices(IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable {
+public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
@@ -34,7 +33,7 @@ public unsafe class NpcServices(IObjectTable objectTable, IPluginLog log, ArrpGa
         battleCharacter->BattleNpcSubKind = (BattleNpcSubKind)4;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
 
-        var npcActor = Plugin.Services.GetRequiredService<NpcActor>();
+        var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
         Actors.Add(npcActor);
 
