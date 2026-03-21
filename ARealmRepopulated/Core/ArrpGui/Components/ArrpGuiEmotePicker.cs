@@ -15,6 +15,8 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
         emoteId = 0;
         using var padding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(5, 5));
         using var table = ImRaii.Table("###ArrpEmoteInspectorListTable", 1, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY, size ?? new Vector2(200, 300));
+        if (!table.Success)
+            return false;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, -1);

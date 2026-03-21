@@ -55,6 +55,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
             | ImGuiWindowFlags.NoBackground
             | ImGuiWindowFlags.NoNav)
         ) {
+            ImGui.End();
             return;
         }
 

@@ -187,6 +187,24 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Location.
+        /// </summary>
+        public static string ListWnd_Scenario_Header_Location {
+            get {
+                return ResourceManager.GetString("ListWnd_Scenario_Header_Location", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Title.
+        /// </summary>
+        public static string ListWnd_Scenario_Header_Title {
+            get {
+                return ResourceManager.GetString("ListWnd_Scenario_Header_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Yes.
         /// </summary>
         public static string ListWnd_Scenario_Popup_DeleteScenario_Accept {
@@ -624,6 +642,15 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_ActorData_Actions_APath_TensionHint {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_APath_TensionHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rotation.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ARotation_Caption {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ARotation_Caption", resourceCulture);
             }
         }
         
@@ -1303,7 +1330,7 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Roation.
+        ///   Looks up a localized string similar to Rotation.
         /// </summary>
         public static string ScenarioEditor_ActorData_General_Input_Rotation {
             get {

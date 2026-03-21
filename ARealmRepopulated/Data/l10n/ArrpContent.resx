@@ -271,7 +271,7 @@
     <value>Set to current location</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_Rotation" xml:space="preserve">
-    <value>Roation</value>
+    <value>Rotation</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_RotationCurrent" xml:space="preserve">
     <value>Set to current rotation</value>
@@ -611,5 +611,14 @@
   </data>
   <data name="OnboardingWnd_Scenario_Npc_Outro" xml:space="preserve">
     <value>Have fun!</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ARotation_Caption" xml:space="preserve">
+    <value>Rotation</value>
+  </data>
+  <data name="ListWnd_Scenario_Header_Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="ListWnd_Scenario_Header_Title" xml:space="preserve">
+    <value>Title</value>
   </data>
 </root>
