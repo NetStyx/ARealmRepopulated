@@ -56,8 +56,6 @@ public partial class ScenarioEditorWindow {
         if (SelectedScenarioNpcAction == null) {
             return;
         }
-
-        // TODO: To be filled later.
     }
 
     private void DrawCurrentAction() {

@@ -59,9 +59,9 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         }
 
         try {
-            _imguiColorBlack ??= ImGui.GetColorU32(new Vector4(0, 0, 0, 255));
-            _imguiColorRed ??= ImGui.GetColorU32(new Vector4(255, 0, 0, 255));
-            _imguiColorGreen ??= ImGui.GetColorU32(new Vector4(0, 255, 0, 255));
+            _imguiColorBlack ??= ImGui.GetColorU32(new Vector4(0, 0, 0, 1f));
+            _imguiColorRed ??= ImGui.GetColorU32(new Vector4(1f, 0, 0, 1f));
+            _imguiColorGreen ??= ImGui.GetColorU32(new Vector4(0, 1f, 0, 1f));
 
             List<ScenarioEditorWindow> snapshot;
             using (var _ = _scenarioAccessLock.EnterScope()) {
