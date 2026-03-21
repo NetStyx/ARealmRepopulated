@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
-namespace ARealmRepopulated.Tests;
+namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioFileTests {
 

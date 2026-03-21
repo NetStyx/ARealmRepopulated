@@ -3,7 +3,7 @@ using Shouldly;
 using System;
 using System.Numerics;
 
-namespace ARealmRepopulated.Tests;
+namespace ARealmRepopulated.Tests.Core.SpatialMath;
 
 public class RotationExtensionTests {
 

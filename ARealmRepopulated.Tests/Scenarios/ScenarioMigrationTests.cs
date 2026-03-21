@@ -1,9 +1,9 @@
 using ARealmRepopulated.Core.Services.Scenarios.Migrations;
 using System.Text.Json.Nodes;
 
-namespace ARealmRepopulated.Tests;
+namespace ARealmRepopulated.Tests.Scenarios;
 
-public class ScenarioMigrationTest {
+public class ScenarioMigrationTests {
 
     [Theory]
     [InlineData("v2-1975ef01-990d-44d7-a955-c6fd4b1b3ff2.json")]

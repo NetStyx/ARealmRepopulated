@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace ARealmRepopulated.Tests;
+namespace ARealmRepopulated.Tests.Scenarios.Pathing;
 
 public class PathMovementComposerTests {
 

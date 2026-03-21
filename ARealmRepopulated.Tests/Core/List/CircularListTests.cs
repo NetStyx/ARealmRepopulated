@@ -1,7 +1,7 @@
 using ARealmRepopulated.Core.List;
 using Shouldly;
 
-namespace ARealmRepopulated.Tests;
+namespace ARealmRepopulated.Tests.Core.List;
 
 public class CircularListTests {
 
