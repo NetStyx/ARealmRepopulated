@@ -101,10 +101,9 @@ public class ConfigWindow(
             }
         }
 
-        using (var optionsTab = ImRaii.TabItem(loc["ListWnd_Options_Title"], ImGuiTabItemFlags.NoTooltip)) {
-            if (optionsTab.Success) {
-                OptionsTab();
-            }
+        using var optionsTab = ImRaii.TabItem(loc["ListWnd_Options_Title"], ImGuiTabItemFlags.NoTooltip);
+        if (optionsTab.Success) {
+            OptionsTab();
         }
     }
 
@@ -268,23 +267,23 @@ public class ConfigWindow(
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_DeleteScenario_Desc"]);
 
                 ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
-                using (var modal = ImRaii.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings)) {
-                    if (modal.Success) {
-                        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-                        ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", s.MetaData.Title]);
-                        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-                        ImGui.Separator();
-                        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-                        if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Accept"], new Vector2(120, 0))) {
-                            _fileManager.RemoveScenarioFile(s.FilePath);
-                            ImGui.CloseCurrentPopup();
-                        }
-                        ImGui.SetItemDefaultFocus();
-                        ImGui.SameLine();
-                        if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Decline"], new Vector2(120, 0))) {
-                            ImGui.CloseCurrentPopup();
-                        }
+                using var modal = ImRaii.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings);
+                if (modal.Success) {
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+                    ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", s.MetaData.Title]);
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+                    ImGui.Separator();
+                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+                    if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Accept"], new Vector2(120, 0))) {
+                        _fileManager.RemoveScenarioFile(s.FilePath);
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.SetItemDefaultFocus();
+                    ImGui.SameLine();
+                    if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Decline"], new Vector2(120, 0))) {
+                        ImGui.CloseCurrentPopup();
                     }
                 }
             }

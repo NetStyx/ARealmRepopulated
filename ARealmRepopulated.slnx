@@ -1,0 +1,14 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="ARealmRepopulated.Tests/ARealmRepopulated.Tests.csproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ARealmRepopulated/ARealmRepopulated.csproj">
+    <Platform Project="x64" />
+  </Project>
+</Solution>

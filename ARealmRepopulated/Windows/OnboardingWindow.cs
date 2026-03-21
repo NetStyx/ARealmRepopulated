@@ -88,21 +88,20 @@ public class OnboardingWindow(
         }
 
         ImGui.Separator();
-        using (var table = ImRaii.Table("##onboardingWindowControlTable", 3, ImGuiTableFlags.NoSavedSettings)) {
-            if (!table.Success)
-                return;
+        using var table = ImRaii.Table("##onboardingWindowControlTable", 3, ImGuiTableFlags.NoSavedSettings);
+        if (!table.Success)
+            return;
 
-            ImGui.TableSetupColumn("##onboardingWindowControlTableStrech", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("##onboardingWindowControlTableClose", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("##onboardingWindowControlTablePadding", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
+        ImGui.TableSetupColumn("##onboardingWindowControlTableStrech", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("##onboardingWindowControlTableClose", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##onboardingWindowControlTablePadding", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.TableNextColumn();
-            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-            if (ImGui.Button(loc["OnboardingWnd_Close"])) {
-                this.IsOpen = false;
-            }
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TableNextColumn();
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        if (ImGui.Button(loc["OnboardingWnd_Close"])) {
+            this.IsOpen = false;
         }
 
     }

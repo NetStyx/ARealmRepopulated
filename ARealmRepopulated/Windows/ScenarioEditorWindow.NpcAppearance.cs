@@ -141,53 +141,51 @@ public partial class ScenarioEditorWindow {
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        using (var t = ImRaii.Table("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings)) {
-            if (!t.Success)
-                return;
+        using var t = ImRaii.Table("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings);
+        if (!t.Success)
+            return;
 
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CRace"]);
-            ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Race.ToString());
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CRace"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Race.ToString());
 
-            ImGui.TableNextColumn();
-            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CTribe"]);
-            ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Tribe.ToString());
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CTribe"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Tribe.ToString());
 
-            ImGui.TableNextColumn();
-            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CGender"]);
-            ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Sex.ToString());
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CGender"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Sex.ToString());
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CBase"]);
-            ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelCharaId.ToString());
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CBase"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelCharaId.ToString());
 
-            ImGui.TableNextColumn();
-            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CSkeleton"]);
-            ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelSkeletonId.ToString());
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CSkeleton"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelSkeletonId.ToString());
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.Dummy(new Vector2(0, 50));
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Dummy(new Vector2(0, 50));
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            var hideWeapons = SelectedScenarioNpc.Appearance.HideWeapons;
-            if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CWeaponsHidden"]}##npcAppearanceEditorSetupHideWeapons", ref hideWeapons)) {
-                SelectedScenarioNpc.Appearance.HideWeapons = hideWeapons;
-            }
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        var hideWeapons = SelectedScenarioNpc.Appearance.HideWeapons;
+        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CWeaponsHidden"]}##npcAppearanceEditorSetupHideWeapons", ref hideWeapons)) {
+            SelectedScenarioNpc.Appearance.HideWeapons = hideWeapons;
+        }
 
-            var hideHeadgear = SelectedScenarioNpc.Appearance.HideHeadgear;
-            ImGui.TableNextColumn();
-            if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"]}##npcAppearanceEditorSetupHideHeadgear", ref hideHeadgear)) {
-                SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
-            }
-
+        var hideHeadgear = SelectedScenarioNpc.Appearance.HideHeadgear;
+        ImGui.TableNextColumn();
+        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"]}##npcAppearanceEditorSetupHideHeadgear", ref hideHeadgear)) {
+            SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
         }
     }
 
@@ -204,48 +202,47 @@ public partial class ScenarioEditorWindow {
         var selectedNpcRace = SelectedScenarioNpc.Appearance.Race;
         var selectedNpcGender = SelectedScenarioNpc.Appearance.Sex;
 
-        using (var table = ImRaii.Table("##npcAppearanceEditorNpcValues", 3, ImGuiTableFlags.NoSavedSettings)) {
-            if (!table.Success)
-                return;
+        using var table = ImRaii.Table("##npcAppearanceEditorNpcValues", 3, ImGuiTableFlags.NoSavedSettings);
+        if (!table.Success)
+            return;
 
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHeight"], SelectedScenarioNpc.Appearance.Height);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHairstyle"], SelectedScenarioNpc.Appearance.HairStyle);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHairColor"], SelectedScenarioNpc.Appearance.HairColor);
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHeight"], SelectedScenarioNpc.Appearance.Height);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHairstyle"], SelectedScenarioNpc.Appearance.HairStyle);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHairColor"], SelectedScenarioNpc.Appearance.HairColor);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHighlights"], SelectedScenarioNpc.Appearance.Highlights);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHighlightsColor"], SelectedScenarioNpc.Appearance.HighlightsColor);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CSkinColor"], SelectedScenarioNpc.Appearance.SkinColor);
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHighlights"], SelectedScenarioNpc.Appearance.Highlights);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CHighlightsColor"], SelectedScenarioNpc.Appearance.HighlightsColor);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CSkinColor"], SelectedScenarioNpc.Appearance.SkinColor);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CFace"], SelectedScenarioNpc.Appearance.Face);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CNose"], SelectedScenarioNpc.Appearance.Nose);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CJaw"], SelectedScenarioNpc.Appearance.Jaw);
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CFace"], SelectedScenarioNpc.Appearance.Face);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CNose"], SelectedScenarioNpc.Appearance.Nose);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CJaw"], SelectedScenarioNpc.Appearance.Jaw);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CFacialFeatures"], SelectedScenarioNpc.Appearance.FacialFeatures);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CFacialFeaturesColor"], SelectedScenarioNpc.Appearance.TattooColor);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyebrows"], SelectedScenarioNpc.Appearance.Eyebrows);
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CFacialFeatures"], SelectedScenarioNpc.Appearance.FacialFeatures);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CFacialFeaturesColor"], SelectedScenarioNpc.Appearance.TattooColor);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyebrows"], SelectedScenarioNpc.Appearance.Eyebrows);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyeShape"], SelectedScenarioNpc.Appearance.EyeShape);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyeColorLeft"], SelectedScenarioNpc.Appearance.EyeColorLeft);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyeColorRight"], SelectedScenarioNpc.Appearance.EyeColorRight);
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyeShape"], SelectedScenarioNpc.Appearance.EyeShape);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyeColorLeft"], SelectedScenarioNpc.Appearance.EyeColorLeft);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CEyeColorRight"], SelectedScenarioNpc.Appearance.EyeColorRight);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CLipstick"], SelectedScenarioNpc.Appearance.Lipstick);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CLipColorFurPattern"], SelectedScenarioNpc.Appearance.LipColorFurPattern);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CMuscleMass"], SelectedScenarioNpc.Appearance.MuscleMass);
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CLipstick"], SelectedScenarioNpc.Appearance.Lipstick);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CLipColorFurPattern"], SelectedScenarioNpc.Appearance.LipColorFurPattern);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CMuscleMass"], SelectedScenarioNpc.Appearance.MuscleMass);
 
-            ImGui.TableNextRow();
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CTailShape"], SelectedScenarioNpc.Appearance.TailShape);
-            DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CBustSize"], SelectedScenarioNpc.Appearance.BustSize);
-        }
+        ImGui.TableNextRow();
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CTailShape"], SelectedScenarioNpc.Appearance.TailShape);
+        DrawNpcModelRow(loc["ScenarioEditor_ActorData_Appearance_CBustSize"], SelectedScenarioNpc.Appearance.BustSize);
 
     }
     private void DrawNpcEquipmentAppearanceInfo() {
@@ -253,28 +250,27 @@ public partial class ScenarioEditorWindow {
         if (SelectedScenarioNpc == null)
             return;
 
-        using (var table = ImRaii.Table("##npcAppearanceEditorEquipmentValues", 2, ImGuiTableFlags.NoSavedSettings)) {
-            if (!table.Success)
-                return;
+        using var table = ImRaii.Table("##npcAppearanceEditorEquipmentValues", 2, ImGuiTableFlags.NoSavedSettings);
+        if (!table.Success)
+            return;
 
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
 
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EMainHand"], ItemSlots.MainHand, SelectedScenarioNpc.Appearance.MainHand);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EOffHand"], ItemSlots.OffHand, SelectedScenarioNpc.Appearance.OffHand);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EMainHand"], ItemSlots.MainHand, SelectedScenarioNpc.Appearance.MainHand);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EOffHand"], ItemSlots.OffHand, SelectedScenarioNpc.Appearance.OffHand);
 
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EHeadgear"], ItemSlots.Head, SelectedScenarioNpc.Appearance.HeadGear);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EBody"], ItemSlots.Body, SelectedScenarioNpc.Appearance.Body);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EHands"], ItemSlots.Hands, SelectedScenarioNpc.Appearance.Hands);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ELegs"], ItemSlots.Legs, SelectedScenarioNpc.Appearance.Legs);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EFeet"], ItemSlots.Feet, SelectedScenarioNpc.Appearance.Feet);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EEars"], ItemSlots.Ears, SelectedScenarioNpc.Appearance.Ears);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ENeck"], ItemSlots.Neck, SelectedScenarioNpc.Appearance.Neck);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EWrist"], ItemSlots.Wrists, SelectedScenarioNpc.Appearance.Wrists);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingLeft"], ItemSlots.LeftRing, SelectedScenarioNpc.Appearance.LeftRing);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingRight"], ItemSlots.RightRing, SelectedScenarioNpc.Appearance.RightRing);
-            DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EGlasses"], SelectedScenarioNpc.Appearance.Glasses);
-        }
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EHeadgear"], ItemSlots.Head, SelectedScenarioNpc.Appearance.HeadGear);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EBody"], ItemSlots.Body, SelectedScenarioNpc.Appearance.Body);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EHands"], ItemSlots.Hands, SelectedScenarioNpc.Appearance.Hands);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ELegs"], ItemSlots.Legs, SelectedScenarioNpc.Appearance.Legs);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EFeet"], ItemSlots.Feet, SelectedScenarioNpc.Appearance.Feet);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EEars"], ItemSlots.Ears, SelectedScenarioNpc.Appearance.Ears);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ENeck"], ItemSlots.Neck, SelectedScenarioNpc.Appearance.Neck);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EWrist"], ItemSlots.Wrists, SelectedScenarioNpc.Appearance.Wrists);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingLeft"], ItemSlots.LeftRing, SelectedScenarioNpc.Appearance.LeftRing);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingRight"], ItemSlots.RightRing, SelectedScenarioNpc.Appearance.RightRing);
+        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EGlasses"], SelectedScenarioNpc.Appearance.Glasses);
 
     }
 
