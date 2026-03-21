@@ -69,43 +69,42 @@ public partial class ScenarioEditorWindow {
         }
         ImGui.Separator();
 
-        using (var table = ImRaii.Table("##scenarioNpcEditorActionTable", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings)) {
-            if (!table.Success)
-                return;
+        using var table = ImRaii.Table("##scenarioNpcEditorActionTable", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings);
+        if (!table.Success)
+            return;
 
-            ImGui.TableSetupColumn("##scenarioNpcEditorActionTableCap", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("##scenarioNpcEditorActionTableValue", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("##scenarioNpcEditorActionTableCap", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##scenarioNpcEditorActionTableValue", ImGuiTableColumnFlags.WidthStretch);
 
-            if (SelectedScenarioNpcAction.CanHaveTalk) {
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
+        if (SelectedScenarioNpcAction.CanHaveTalk) {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
 
-                ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATalk_Short"]);
+            ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATalk_Short"]);
 
-                ImGui.TableNextColumn();
-                var talk = SelectedScenarioNpcAction.NpcTalk;
-                if (ImGui.InputText("##scenarioNpcGeneralActionTalk", ref talk)) {
-                    SelectedScenarioNpcAction.NpcTalk = talk;
-                }
+            ImGui.TableNextColumn();
+            var talk = SelectedScenarioNpcAction.NpcTalk;
+            if (ImGui.InputText("##scenarioNpcGeneralActionTalk", ref talk)) {
+                SelectedScenarioNpcAction.NpcTalk = talk;
             }
-
-            if (SelectedScenarioNpcAction.CanHaveDuration) {
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ADuration_Short"]);
-
-                ImGui.TableNextColumn();
-                var duration = SelectedScenarioNpcAction.Duration;
-                if (ImGui.InputFloat("s.##scenarioNpcGeneralActionDuration", ref duration, step: 0.1f, stepFast: 0.1f, format: "%.2f")) {
-                    if (duration < 0.1f)
-                        duration = 0f;
-                    SelectedScenarioNpcAction.Duration = Math.Clamp(duration, 0f, float.MaxValue);
-
-                }
-            }
-
-            _actionUiRegistry.Draw(SelectedScenarioNpcAction);
         }
+
+        if (SelectedScenarioNpcAction.CanHaveDuration) {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ADuration_Short"]);
+
+            ImGui.TableNextColumn();
+            var duration = SelectedScenarioNpcAction.Duration;
+            if (ImGui.InputFloat("s.##scenarioNpcGeneralActionDuration", ref duration, step: 0.1f, stepFast: 0.1f, format: "%.2f")) {
+                if (duration < 0.1f)
+                    duration = 0f;
+                SelectedScenarioNpcAction.Duration = Math.Clamp(duration, 0f, float.MaxValue);
+
+            }
+        }
+
+        _actionUiRegistry.Draw(SelectedScenarioNpcAction);
     }
 
     private void DrawSyncAction(ScenarioNpcSyncAction syncAction) {
@@ -149,14 +148,13 @@ public partial class ScenarioEditorWindow {
         ImGui.Text(loc["ScenarioEditor_ActorData_Actions_AMove_Speed"]);
         ImGui.TableNextColumn();
 
-        using (var combo = ImRaii.Combo($"##scenarioNpcMoveActionPositionSpeedSelection", moveAction.Speed.ToString())) {
-            if (combo.Success) {
-                if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Walking"]}##scenarioNpcMoveActionPositionSpeedSelectionWalking", moveAction.Speed == NpcSpeed.Walking)) {
-                    moveAction.Speed = NpcSpeed.Walking;
-                }
-                if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Running"]}##scenarioNpcMoveActionPositionSpeedSelectionRunning", moveAction.Speed == NpcSpeed.Running)) {
-                    moveAction.Speed = NpcSpeed.Running;
-                }
+        using var combo = ImRaii.Combo($"##scenarioNpcMoveActionPositionSpeedSelection", moveAction.Speed.ToString());
+        if (combo.Success) {
+            if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Walking"]}##scenarioNpcMoveActionPositionSpeedSelectionWalking", moveAction.Speed == NpcSpeed.Walking)) {
+                moveAction.Speed = NpcSpeed.Walking;
+            }
+            if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Running"]}##scenarioNpcMoveActionPositionSpeedSelectionRunning", moveAction.Speed == NpcSpeed.Running)) {
+                moveAction.Speed = NpcSpeed.Running;
             }
         }
 

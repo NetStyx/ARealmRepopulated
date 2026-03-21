@@ -337,10 +337,9 @@ public partial class ScenarioEditorWindow(
             }
         }
 
-        using (var actionsTab = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Actions_Title"]}##scenarioEditorNpcTabActions", ImGuiTabItemFlags.NoTooltip)) {
-            if (actionsTab.Success) {
-                DrawNpcActionTab();
-            }
+        using var actionsTab = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Actions_Title"]}##scenarioEditorNpcTabActions", ImGuiTabItemFlags.NoTooltip);
+        if (actionsTab.Success) {
+            DrawNpcActionTab();
         }
     }
 
@@ -420,66 +419,65 @@ public partial class ScenarioEditorWindow(
         if (SelectedScenarioNpc == null)
             return;
 
-        using (var cellPaddingStyle = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(10, 5))) {
-            using (var t = ImRaii.Table("##scenarioNpcEditorTableAction", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings)) {
-                if (!t.Success)
-                    return;
+        {
+            using var cellPaddingStyle = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(10, 5));
+            using var t = ImRaii.Table("##scenarioNpcEditorTableAction", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings);
+            if (!t.Success)
+                return;
 
-                ImGui.TableSetupColumn("##scenarioNpcEditorTableActionList", ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("##scenarioNpcEditorTableActionContent", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##scenarioNpcEditorTableActionList", ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("##scenarioNpcEditorTableActionContent", ImGuiTableColumnFlags.WidthStretch);
 
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Name"]);
-                ImGui.SameLine();
-                ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_General_Input_NameHint"]);
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Name"]);
+            ImGui.SameLine();
+            ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_General_Input_NameHint"]);
 
-                ImGui.TableNextColumn();
-                var name = SelectedScenarioNpc.Name;
-                if (ImGui.InputText("##scenarioNpcGeneralEditName", ref name)) {
-                    SelectedScenarioNpc.Name = name;
-                }
-                ImGui.SameLine();
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.Random)) {
-                    var newActorName = characterCreationData.GenerateRandomName(SelectedScenarioNpc.Appearance.Race, SelectedScenarioNpc.Appearance.Tribe, SelectedScenarioNpc.Appearance.Sex);
-                    SelectedScenarioNpc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
-                }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_NameRandom"]);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Position"]);
-
-                ImGui.TableNextColumn();
-                var position = new Vector3(SelectedScenarioNpc.Position.X, SelectedScenarioNpc.Position.Y, SelectedScenarioNpc.Position.Z);
-                if (ImGui.InputFloat3("##scenarioNpcGeneralEditPosition", ref position)) {
-                    SelectedScenarioNpc.Position = new CsMaths.Vector3(position.X, position.Y, position.Z);
-                }
-                ImGui.SameLine();
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
-                    SelectedScenarioNpc.Position = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
-                }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_PositionCurrent"]);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Rotation"]);
-
-                ImGui.TableNextColumn();
-                var rotation = SelectedScenarioNpc.Rotation;
-                if (ImGui.InputFloat("##scenarioNpcGeneralEditRotation", ref rotation)) {
-                    SelectedScenarioNpc.Rotation = rotation;
-                }
-                ImGui.SameLine();
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin) && objectTable.LocalPlayer != null) {
-                    SelectedScenarioNpc.Rotation = objectTable.LocalPlayer.Rotation;
-                }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_RotationCurrent"]);
-
+            ImGui.TableNextColumn();
+            var name = SelectedScenarioNpc.Name;
+            if (ImGui.InputText("##scenarioNpcGeneralEditName", ref name)) {
+                SelectedScenarioNpc.Name = name;
             }
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Random)) {
+                var newActorName = characterCreationData.GenerateRandomName(SelectedScenarioNpc.Appearance.Race, SelectedScenarioNpc.Appearance.Tribe, SelectedScenarioNpc.Appearance.Sex);
+                SelectedScenarioNpc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_NameRandom"]);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Position"]);
+
+            ImGui.TableNextColumn();
+            var position = new Vector3(SelectedScenarioNpc.Position.X, SelectedScenarioNpc.Position.Y, SelectedScenarioNpc.Position.Z);
+            if (ImGui.InputFloat3("##scenarioNpcGeneralEditPosition", ref position)) {
+                SelectedScenarioNpc.Position = new CsMaths.Vector3(position.X, position.Y, position.Z);
+            }
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.LocationCrosshairs) && objectTable.LocalPlayer != null) {
+                SelectedScenarioNpc.Position = new CsMaths.Vector3(objectTable.LocalPlayer.Position.X, objectTable.LocalPlayer.Position.Y, objectTable.LocalPlayer.Position.Z);
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_PositionCurrent"]);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Rotation"]);
+
+            ImGui.TableNextColumn();
+            var rotation = SelectedScenarioNpc.Rotation;
+            if (ImGui.InputFloat("##scenarioNpcGeneralEditRotation", ref rotation)) {
+                SelectedScenarioNpc.Rotation = rotation;
+            }
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin) && objectTable.LocalPlayer != null) {
+                SelectedScenarioNpc.Rotation = objectTable.LocalPlayer.Rotation;
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_RotationCurrent"]);
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -543,88 +541,86 @@ public partial class ScenarioEditorWindow(
             return;
 
         using var cellPaddingStyle = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(10, 5));
-        using (var t = ImRaii.Table("##scenarioNpcEditorTableAction", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings)) {
-            if (!t.Success)
-                return;
+        using var t = ImRaii.Table("##scenarioNpcEditorTableAction", 2, ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoSavedSettings);
+        if (!t.Success)
+            return;
 
-            ImGui.TableSetupColumn("##scenarioNpcEditorTableActionList", ImGuiTableColumnFlags.WidthFixed);
-            ImGui.TableSetupColumn("##scenarioNpcEditorTableActionContent", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("##scenarioNpcEditorTableActionList", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##scenarioNpcEditorTableActionContent", ImGuiTableColumnFlags.WidthStretch);
 
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
 
-            if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
-                ImGui.OpenPopup("AddActionSelection");
-            }
-
-            using (var popup = ImRaii.Popup("AddActionSelection")) {
-                if (popup.Success) {
-                    DrawActionSelection();
-                }
-            }
-
-            if (SelectedScenarioNpcAction != null) {
-                var isFirstActionSelected = SelectedScenarioNpc.Actions.IndexOf(SelectedScenarioNpcAction) == 0;
-                var isLastActionSelected = SelectedScenarioNpc.Actions.IndexOf(SelectedScenarioNpcAction) == SelectedScenarioNpc.Actions.Count - 1;
-                var isActionSelected = SelectedScenarioNpcAction != null;
-
-                using (ImRaii.Disabled(!isActionSelected || isFirstActionSelected)) {
-                    ImGui.SameLine(0, 5);
-                    if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowUp)) {
-                        MoveSelectedActionUp();
-                    }
-                }
-
-                using (ImRaii.Disabled(!isActionSelected || isLastActionSelected)) {
-                    ImGui.SameLine(0, 5);
-                    if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowDown)) {
-                        MoveSelectedActionDown();
-                    }
-                }
-
-                using (ImRaii.Disabled(!isActionSelected)) {
-                    ImGui.SameLine(0, 5);
-                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash)) {
-                        RemoveSelectedAction();
-                    }
-                }
-            }
-            ImGui.TableNextColumn();
-            DrawCurrentActionBar();
-
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-
-            using (var listBox = ImRaii.ListBox("##scenarioNpcEditorActionListBox", new Vector2(120, -10))) {
-                if (listBox.Success) {
-                    var scenarioNpcActions = SelectedScenarioNpc.Actions.ToList();
-                    var syncActionCount = 0;
-                    for (var actionIndex = 0; actionIndex < scenarioNpcActions.Count; actionIndex++) {
-                        var npcAction = scenarioNpcActions[actionIndex];
-                        var npcActionSelected = npcAction == SelectedScenarioNpcAction;
-                        var npcActionShortName = _actionUiRegistry.GetShortName(npcAction);
-
-                        if (npcAction is ScenarioNpcSyncAction) {
-                            syncActionCount++;
-                            npcActionShortName += $" [{syncActionCount}]";
-                        }
-
-                        if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected)) {
-                            ResetSelectedAction(npcAction);
-                        }
-
-                        if (npcAction is ScenarioNpcSyncAction) {
-                            ImGui.Separator();
-                            ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-                        }
-                    }
-                }
-            }
-
-            ImGui.TableNextColumn();
-            DrawCurrentAction();
-
+        if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
+            ImGui.OpenPopup("AddActionSelection");
         }
+
+        using (var popup = ImRaii.Popup("AddActionSelection")) {
+            if (popup.Success) {
+                DrawActionSelection();
+            }
+        }
+
+        if (SelectedScenarioNpcAction != null) {
+            var isFirstActionSelected = SelectedScenarioNpc.Actions.IndexOf(SelectedScenarioNpcAction) == 0;
+            var isLastActionSelected = SelectedScenarioNpc.Actions.IndexOf(SelectedScenarioNpcAction) == SelectedScenarioNpc.Actions.Count - 1;
+            var isActionSelected = SelectedScenarioNpcAction != null;
+
+            using (ImRaii.Disabled(!isActionSelected || isFirstActionSelected)) {
+                ImGui.SameLine(0, 5);
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowUp)) {
+                    MoveSelectedActionUp();
+                }
+            }
+
+            using (ImRaii.Disabled(!isActionSelected || isLastActionSelected)) {
+                ImGui.SameLine(0, 5);
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowDown)) {
+                    MoveSelectedActionDown();
+                }
+            }
+
+            using (ImRaii.Disabled(!isActionSelected)) {
+                ImGui.SameLine(0, 5);
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash)) {
+                    RemoveSelectedAction();
+                }
+            }
+        }
+        ImGui.TableNextColumn();
+        DrawCurrentActionBar();
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+
+        using (var listBox = ImRaii.ListBox("##scenarioNpcEditorActionListBox", new Vector2(120, -10))) {
+            if (listBox.Success) {
+                var scenarioNpcActions = SelectedScenarioNpc.Actions.ToList();
+                var syncActionCount = 0;
+                for (var actionIndex = 0; actionIndex < scenarioNpcActions.Count; actionIndex++) {
+                    var npcAction = scenarioNpcActions[actionIndex];
+                    var npcActionSelected = npcAction == SelectedScenarioNpcAction;
+                    var npcActionShortName = _actionUiRegistry.GetShortName(npcAction);
+
+                    if (npcAction is ScenarioNpcSyncAction) {
+                        syncActionCount++;
+                        npcActionShortName += $" [{syncActionCount}]";
+                    }
+
+                    if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected)) {
+                        ResetSelectedAction(npcAction);
+                    }
+
+                    if (npcAction is ScenarioNpcSyncAction) {
+                        ImGui.Separator();
+                        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+                    }
+                }
+            }
+        }
+
+        ImGui.TableNextColumn();
+        DrawCurrentAction();
     }
 
     private void AddAction(ScenarioNpcAction action) {
