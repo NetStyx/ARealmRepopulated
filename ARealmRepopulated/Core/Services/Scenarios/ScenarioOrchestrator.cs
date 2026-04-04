@@ -36,6 +36,27 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         }
     }
 
+    private void EventService_OnCutsceneStarted() {
+        if (Orchestrations.Count == 0)
+            return;
+
+        pluginLog.Info("Cutscene started. Unloading scenarios to free resources.");
+        Unload();
+    }
+
+    private void EventService_OnCutsceneEnded() {
+        if (!config.AutoLoadScenarios)
+            return;
+
+        if (!eventService.IsTerritoryReady) {
+            pluginLog.Info("Cutscene ended but territory is not ready. Deferring reload to territory handler.");
+            return;
+        }
+
+        pluginLog.Info("Cutscene ended. Reloading scenarios.");
+        Load(eventService.CurrentLocation);
+    }
+
     private void ScenarioFileManager_ScenarioFileChanged(ScenarioFileData metaData)
         => LoadFile(metaData);
 
@@ -118,7 +139,9 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 if (scenarioNpc.Actions.LastOrDefault() is not ScenarioNpcSyncAction) {
                     scenarioNpcObject.AddAction(new ScenarioNpcSyncAction());
                 }
-
+            } else {
+                // if no actions are defined, simply let the actor wait indefinitely. This prevents infinte scenario restarts.
+                scenarioNpcObject.AddAction(new ScenarioNpcWaitingAction());
             }
 
             npc.Draw();
@@ -185,6 +208,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     public void Initialize() {
         hooks.OnCharacterDestroyed += Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished += EventService_OnTerritoryReady;
+        eventService.OnCutsceneStarted += EventService_OnCutsceneStarted;
+        eventService.OnCutsceneEnded += EventService_OnCutsceneEnded;
         framework.Update += Framework_Update;
         fileManager.OnScenarioFileChanged += ScenarioFileManager_ScenarioFileChanged;
         fileManager.OnScenarioFileRemoved += ScenarioFileManager_ScenarioFileRemoved;
@@ -193,6 +218,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     public void Dispose() {
         hooks.OnCharacterDestroyed -= Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished -= EventService_OnTerritoryReady;
+        eventService.OnCutsceneStarted -= EventService_OnCutsceneStarted;
+        eventService.OnCutsceneEnded -= EventService_OnCutsceneEnded;
         framework.Update -= Framework_Update;
         fileManager.OnScenarioFileRemoved -= ScenarioFileManager_ScenarioFileRemoved;
         fileManager.OnScenarioFileChanged -= ScenarioFileManager_ScenarioFileChanged;
