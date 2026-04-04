@@ -1393,6 +1393,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to One of the actors does not have actions attached to it. Scenario looping will not work..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Manage_SelectIssue {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Manage_SelectIssue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scenario Actor Data.
         /// </summary>
         public static string ScenarioEditor_ActorData_Title {

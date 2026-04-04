@@ -621,4 +621,7 @@
   <data name="ListWnd_Scenario_Header_Title" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Manage_SelectIssue" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

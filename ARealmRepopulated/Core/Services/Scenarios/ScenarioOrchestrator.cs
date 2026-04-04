@@ -184,7 +184,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         var removableList = new List<Orchestration>();
         foreach (var orchestration in Orchestrations) {
 
-            // If there are no NPCs in the scenario, there's no need to advance it. This can happen if all NPCs were removed due to character destruction or other reasons. The scenario will just stay idle until it's unloaded.
+            // If there are no NPCs in the scenario, there's no need to advance it.
+            // This can happen if the scenario is new and simply does not contain anything yet OR if all NPCs were removed due to character destruction (while zone changing for example) or other reasons.
             if (orchestration.Scenario.Npcs.Count == 0)
                 continue;
 
