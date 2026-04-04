@@ -93,8 +93,26 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
         if (fileManager.LoadScenarioFile(data) is ScenarioData scenarioData) {
 
-            if (!scenarioData.Enabled)
+            if (!scenarioData.Enabled) {
+                pluginLog.Warning("Cannot load scenario {FileName}: Scenario file is disabled", [data.FileName]);
                 return;
+            }
+
+            if (scenarioData.Npcs.Count == 0) {
+                pluginLog.Warning("Cannot load scenario {FileName}: No actors defined", [data.FileName]);
+                return;
+            }
+
+            var spawnedActorCount = Orchestrations.Sum(o => o.Scenario.Npcs.Count);
+            if (spawnedActorCount + scenarioData.Npcs.Count > config.ActorSoftLimit) {
+                pluginLog.Warning("Cannot load scenario {FileName}: would exceed NPC limit ({Current}+{Required}/{Max})", [data.FileName, spawnedActorCount, scenarioData.Npcs.Count, config.ActorSoftLimit]);
+                return;
+            }
+
+            if (objectTable.ClientObjects.Count() + scenarioData.Npcs.Count > config.ActorHardLimit) {
+                pluginLog.Warning("Cannot load scenario {FileName}: would exceed game object limit ({Current}+{Required}/{Max})", [data.FileName, objectTable.ClientObjects.Count(), scenarioData.Npcs.Count, config.ActorHardLimit]);
+                return;
+            }
 
             using var lockScope = _scenarioActionLock.EnterScope();
 
@@ -134,14 +152,14 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 foreach (var npcAction in scenarioNpc.Actions) {
                     scenarioNpcObject.AddAction(npcAction);
                 }
-
-                // attach a sync node at the end to make sure the scenario actually finishes.
-                if (scenarioNpc.Actions.LastOrDefault() is not ScenarioNpcSyncAction) {
-                    scenarioNpcObject.AddAction(new ScenarioNpcSyncAction());
-                }
             } else {
-                // if no actions are defined, simply let the actor wait indefinitely. This prevents infinte scenario restarts.
+                // if no actions are defined, add a default wait action to prevent the scenario from immedialy looping.
                 scenarioNpcObject.AddAction(new ScenarioNpcWaitingAction());
+            }
+
+            // attach a sync node at the end to make sure the scenario actually finishes.
+            if (scenarioNpc.Actions.LastOrDefault() is not ScenarioNpcSyncAction) {
+                scenarioNpcObject.AddAction(new ScenarioNpcSyncAction());
             }
 
             npc.Draw();
