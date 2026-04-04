@@ -1,6 +1,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
 using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
@@ -12,9 +13,9 @@ public static class ArrpGuiHelper {
         uiColor ??= ImGuiColors.DalamudWhite;
         spacing ??= 0f;
 
-        ImGui.PushFont(UiBuilder.IconFont);
-        ImGui.TextColored(uiColor.Value, icon.ToIconString());
-        ImGui.PopFont();
+        using (ImRaii.PushFont(UiBuilder.IconFont)) {
+            ImGui.TextColored(uiColor.Value, icon.ToIconString());
+        }
 
         if (tooltip != null && ImGui.IsItemHovered())
             ImGui.SetTooltip(tooltip);

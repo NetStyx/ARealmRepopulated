@@ -622,6 +622,6 @@
     <value>Title</value>
   </data>
   <data name="ScenarioEditor_ActorData_Manage_SelectIssue" xml:space="preserve">
-    <value>One of the actors does not have actions attached to it. Scenario looping will not work.</value>
+    <value>One of the actors does not have actions attached to it. A default wait action will be used, so the actor will do nothing. Scenario looping will be blocked until resolved.</value>
   </data>
 </root>

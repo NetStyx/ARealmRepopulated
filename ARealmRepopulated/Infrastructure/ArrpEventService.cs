@@ -41,6 +41,8 @@ public class ArrpEventService : IDisposable {
         framework.Update += Framework_Update;
         clientState.TerritoryChanged += ClientState_TerritoryChanged;
         clientState.Login += ClientState_Login;
+
+        _wasCutsceneActive = IsInCutscene;
     }
 
     public void Arm()

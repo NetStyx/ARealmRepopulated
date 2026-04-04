@@ -1393,7 +1393,7 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One of the actors does not have actions attached to it. Scenario looping will not work..
+        ///   Looks up a localized string similar to One of the actors does not have actions attached to it. A default wait action will be used, so the actor will do nothing. Scenario looping will be blocked until resolved..
         /// </summary>
         public static string ScenarioEditor_ActorData_Manage_SelectIssue {
             get {
