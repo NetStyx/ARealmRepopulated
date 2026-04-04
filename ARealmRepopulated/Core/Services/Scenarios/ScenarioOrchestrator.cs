@@ -103,18 +103,19 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 return;
             }
 
+            using var lockScope = _scenarioActionLock.EnterScope();
+
             var spawnedActorCount = Orchestrations.Sum(o => o.Scenario.Npcs.Count);
             if (spawnedActorCount + scenarioData.Npcs.Count > config.ActorSoftLimit) {
                 pluginLog.Warning("Cannot load scenario {FileName}: would exceed NPC limit ({Current}+{Required}/{Max})", [data.FileName, spawnedActorCount, scenarioData.Npcs.Count, config.ActorSoftLimit]);
                 return;
             }
 
-            if (objectTable.ClientObjects.Count() + scenarioData.Npcs.Count > config.ActorHardLimit) {
-                pluginLog.Warning("Cannot load scenario {FileName}: would exceed game object limit ({Current}+{Required}/{Max})", [data.FileName, objectTable.ClientObjects.Count(), scenarioData.Npcs.Count, config.ActorHardLimit]);
+            var objectTableActorCount = objectTable.ClientObjects.Count();
+            if (objectTableActorCount + scenarioData.Npcs.Count > config.ActorHardLimit) {
+                pluginLog.Warning("Cannot load scenario {FileName}: would exceed game object limit ({Current}+{Required}/{Max})", [data.FileName, objectTableActorCount, scenarioData.Npcs.Count, config.ActorHardLimit]);
                 return;
             }
-
-            using var lockScope = _scenarioActionLock.EnterScope();
 
             var scenarioInstance = ParseScenarioData(scenarioData);
             pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), data.FileName]);
@@ -153,7 +154,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                     scenarioNpcObject.AddAction(npcAction);
                 }
             } else {
-                // if no actions are defined, add a default wait action to prevent the scenario from immedialy looping.
+                // if no actions are defined, add a default wait action to prevent the scenario from immediately looping.
                 scenarioNpcObject.AddAction(new ScenarioNpcWaitingAction());
             }
 
@@ -186,8 +187,10 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
             // If there are no NPCs in the scenario, there's no need to advance it.
             // This can happen if the scenario is new and simply does not contain anything yet OR if all NPCs were removed due to character destruction (while zone changing for example) or other reasons.
-            if (orchestration.Scenario.Npcs.Count == 0)
+            if (orchestration.Scenario.Npcs.Count == 0) {
+                removableList.Add(orchestration);
                 continue;
+            }
 
             if (!orchestration.Scenario.IsFinished) {
                 orchestration.Scenario.Advance(time);
