@@ -204,7 +204,14 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
             }
             orchestration.Scenario.WaitForNextRun(time);
         }
-        removableList.ForEach(UnloadOrchestration);
+
+        if (removableList.Count > 0) {
+            removableList.ForEach(r => {
+                UnloadOrchestration(r);
+                Orchestrations.Remove(r);
+            });
+            OnOrchestrationsChanged?.Invoke();
+        }
     }
 
     public void Unload() {

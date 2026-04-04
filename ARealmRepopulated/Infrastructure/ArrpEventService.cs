@@ -53,8 +53,8 @@ public class ArrpEventService : IDisposable {
         => _isTerritoryReady = false;
 
     private void Framework_Update(IFramework framework) {
-        TerritoryCheck();
         CutsceneCheck();
+        TerritoryCheck();
     }
 
     private unsafe void TerritoryCheck() {
