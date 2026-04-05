@@ -271,12 +271,19 @@ public partial class ScenarioEditorWindow(
 
         ArrpGuiAlignment.CenterText(loc["ScenarioEditor_ActorData_Manage_Select"]);
         ImGui.SameLine();
+        if (ScenarioObject.Npcs.Any(x => x.Actions.Count == 0)) {
+            ArrpGuiHelper.InlineIcon(FontAwesomeIcon.ExclamationTriangle, tooltip: loc["ScenarioEditor_ActorData_Manage_SelectIssue"], spacing: 6, uiColor: ImGuiColors.DalamudYellow);
+        }
         using (var combo = ImRaii.Combo("##scenarioEditorWindowNpcSelection", SelectedScenarioNpc == null ? loc["ScenarioEditor_ActorData_Manage_SelectHint"] : SelectedScenarioNpc.Name, ImGuiComboFlags.None)) {
             if (combo.Success) {
                 var scenarioNpcs = ScenarioObject.Npcs.ToList();
                 for (var npcIndex = 0; npcIndex < scenarioNpcs.Count; npcIndex++) {
                     var npc = scenarioNpcs[npcIndex];
                     var npcSelected = npc == SelectedScenarioNpc;
+
+                    if (npc.Actions.Count == 0) {
+                        ArrpGuiHelper.InlineIcon(FontAwesomeIcon.ExclamationTriangle, spacing: 6, uiColor: ImGuiColors.DalamudYellow);
+                    }
 
                     if (ImGui.Selectable($"{npc.Name}##scenarioEditorSelectedNpc{npcIndex}", npcSelected)) {
                         ResetSelectedNpc(npc);

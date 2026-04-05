@@ -14,11 +14,18 @@ public class ArrpEventService : IDisposable {
     private readonly IPluginLog _log;
 
     private bool _isTerritoryReady = true;
+    private bool _wasCutsceneActive;
 
     public event Action<LocationData>? OnTerritoryLoadFinished;
+    public event Action? OnCutsceneStarted;
+    public event Action? OnCutsceneEnded;
     private bool IsBetweenZones =>
         _condition[ConditionFlag.BetweenAreas] ||
         _condition[ConditionFlag.BetweenAreas51];
+
+    public bool IsInCutscene =>
+        _condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+        _condition[ConditionFlag.WatchingCutscene78];
 
     public bool IsTerritoryReady => _isTerritoryReady;
     public LocationData CurrentLocation { get; private set; } = new LocationData();
@@ -34,6 +41,8 @@ public class ArrpEventService : IDisposable {
         framework.Update += Framework_Update;
         clientState.TerritoryChanged += ClientState_TerritoryChanged;
         clientState.Login += ClientState_Login;
+
+        _wasCutsceneActive = IsInCutscene;
     }
 
     public void Arm()
@@ -45,20 +54,37 @@ public class ArrpEventService : IDisposable {
     private void ClientState_TerritoryChanged(ushort obj)
         => _isTerritoryReady = false;
 
-    private void Framework_Update(IFramework framework)
-        => TerritoryCheck();
+    private void Framework_Update(IFramework framework) {
+        CutsceneCheck();
+        TerritoryCheck();
+    }
 
     private unsafe void TerritoryCheck() {
         if (_isTerritoryReady) {
             return;
         }
 
-        if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones) {
+        if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones && !IsInCutscene) {
             _isTerritoryReady = true;
             _log.Debug($"Territory changed to {_clientState.TerritoryType}. Zone ready.");
             CurrentLocation = RetrieveCurrentLocation();
             OnTerritoryLoadFinished?.Invoke(CurrentLocation);
         }
+    }
+
+    private void CutsceneCheck() {
+        var isCutsceneActive = IsInCutscene;
+        switch (_wasCutsceneActive, isCutsceneActive) {
+            case (false, true):
+                _log.Debug("Cutscene started.");
+                OnCutsceneStarted?.Invoke();
+                break;
+            case (true, false):
+                _log.Debug("Cutscene ended.");
+                OnCutsceneEnded?.Invoke();
+                break;
+        }
+        _wasCutsceneActive = isCutsceneActive;
     }
 
     private unsafe LocationData RetrieveCurrentLocation() {

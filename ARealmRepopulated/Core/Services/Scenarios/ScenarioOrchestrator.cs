@@ -36,6 +36,27 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         }
     }
 
+    private void EventService_OnCutsceneStarted() {
+        if (Orchestrations.Count == 0)
+            return;
+
+        pluginLog.Info("Cutscene started. Unloading scenarios to free resources.");
+        Unload();
+    }
+
+    private void EventService_OnCutsceneEnded() {
+        if (!config.AutoLoadScenarios)
+            return;
+
+        if (!eventService.IsTerritoryReady) {
+            pluginLog.Info("Cutscene ended but territory is not ready. Deferring reload to territory handler.");
+            return;
+        }
+
+        pluginLog.Info("Cutscene ended. Reloading scenarios.");
+        Load(eventService.CurrentLocation);
+    }
+
     private void ScenarioFileManager_ScenarioFileChanged(ScenarioFileData metaData)
         => LoadFile(metaData);
 
@@ -65,17 +86,43 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
     private void LoadFile(ScenarioFileData data) {
 
-        if (!eventService.CurrentLocation.IsInSameLocation(data.MetaData.Location))
-            return;
-
         UnloadFile(data);
+
+        if (!data.MetaData.Enabled) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Scenario file is disabled", [data.FileName]);
+            return;
+        }
+
+        if (!eventService.CurrentLocation.IsInSameLocation(data.MetaData.Location)) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Location does not match", [data.FileName]);
+            return;
+        }
+
+        if (eventService.IsInCutscene) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Cutscene is running", [data.FileName]);
+            return;
+        }
 
         if (fileManager.LoadScenarioFile(data) is ScenarioData scenarioData) {
 
-            if (!scenarioData.Enabled)
+            if (scenarioData.Npcs.Count == 0) {
+                pluginLog.Warning("Cannot load scenario {FileName}: No actors defined", [data.FileName]);
                 return;
+            }
 
             using var lockScope = _scenarioActionLock.EnterScope();
+
+            var spawnedActorCount = Orchestrations.Sum(o => o.Scenario.Npcs.Count);
+            if (spawnedActorCount + scenarioData.Npcs.Count > config.ActorSoftLimit) {
+                pluginLog.Warning("Cannot load scenario {FileName}: would exceed NPC limit ({Current}+{Required}/{Max})", [data.FileName, spawnedActorCount, scenarioData.Npcs.Count, config.ActorSoftLimit]);
+                return;
+            }
+
+            var objectTableActorCount = objectTable.ClientObjects.Count();
+            if (objectTableActorCount + scenarioData.Npcs.Count > config.ActorHardLimit) {
+                pluginLog.Warning("Cannot load scenario {FileName}: would exceed game object limit ({Current}+{Required}/{Max})", [data.FileName, objectTableActorCount, scenarioData.Npcs.Count, config.ActorHardLimit]);
+                return;
+            }
 
             var scenarioInstance = ParseScenarioData(scenarioData);
             pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), data.FileName]);
@@ -113,12 +160,14 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
                 foreach (var npcAction in scenarioNpc.Actions) {
                     scenarioNpcObject.AddAction(npcAction);
                 }
+            } else {
+                // if no actions are defined, add a default wait action to prevent the scenario from immediately looping.
+                scenarioNpcObject.AddAction(new ScenarioNpcWaitingAction());
+            }
 
-                // attach a sync node at the end to make sure the scenario actually finishes.
-                if (scenarioNpc.Actions.LastOrDefault() is not ScenarioNpcSyncAction) {
-                    scenarioNpcObject.AddAction(new ScenarioNpcSyncAction());
-                }
-
+            // attach a sync node at the end to make sure the scenario actually finishes.
+            if (scenarioNpc.Actions.LastOrDefault() is not ScenarioNpcSyncAction) {
+                scenarioNpcObject.AddAction(new ScenarioNpcSyncAction());
             }
 
             npc.Draw();
@@ -143,6 +192,13 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
         var removableList = new List<Orchestration>();
         foreach (var orchestration in Orchestrations) {
 
+            // If there are no NPCs in the scenario, there's no need to advance it.
+            // This can happen if the scenario is new and simply does not contain anything yet OR if all NPCs were removed due to character destruction (while zone changing for example) or other reasons.
+            if (orchestration.Scenario.Npcs.Count == 0) {
+                removableList.Add(orchestration);
+                continue;
+            }
+
             if (!orchestration.Scenario.IsFinished) {
                 orchestration.Scenario.Advance(time);
                 continue;
@@ -155,7 +211,14 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
             }
             orchestration.Scenario.WaitForNextRun(time);
         }
-        removableList.ForEach(UnloadOrchestration);
+
+        if (removableList.Count > 0) {
+            removableList.ForEach(r => {
+                UnloadOrchestration(r);
+                Orchestrations.Remove(r);
+            });
+            OnOrchestrationsChanged?.Invoke();
+        }
     }
 
     public void Unload() {
@@ -185,6 +248,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     public void Initialize() {
         hooks.OnCharacterDestroyed += Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished += EventService_OnTerritoryReady;
+        eventService.OnCutsceneStarted += EventService_OnCutsceneStarted;
+        eventService.OnCutsceneEnded += EventService_OnCutsceneEnded;
         framework.Update += Framework_Update;
         fileManager.OnScenarioFileChanged += ScenarioFileManager_ScenarioFileChanged;
         fileManager.OnScenarioFileRemoved += ScenarioFileManager_ScenarioFileRemoved;
@@ -193,6 +258,8 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
     public void Dispose() {
         hooks.OnCharacterDestroyed -= Game_CharacterDestroyed;
         eventService.OnTerritoryLoadFinished -= EventService_OnTerritoryReady;
+        eventService.OnCutsceneStarted -= EventService_OnCutsceneStarted;
+        eventService.OnCutsceneEnded -= EventService_OnCutsceneEnded;
         framework.Update -= Framework_Update;
         fileManager.OnScenarioFileRemoved -= ScenarioFileManager_ScenarioFileRemoved;
         fileManager.OnScenarioFileChanged -= ScenarioFileManager_ScenarioFileChanged;
