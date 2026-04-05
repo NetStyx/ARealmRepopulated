@@ -86,17 +86,24 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
     private void LoadFile(ScenarioFileData data) {
 
-        if (!eventService.CurrentLocation.IsInSameLocation(data.MetaData.Location))
-            return;
-
         UnloadFile(data);
 
-        if (fileManager.LoadScenarioFile(data) is ScenarioData scenarioData) {
+        if (!data.MetaData.Enabled) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Scenario file is disabled", [data.FileName]);
+            return;
+        }
 
-            if (!scenarioData.Enabled) {
-                pluginLog.Warning("Cannot load scenario {FileName}: Scenario file is disabled", [data.FileName]);
-                return;
-            }
+        if (!eventService.CurrentLocation.IsInSameLocation(data.MetaData.Location)) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Location does not match", [data.FileName]);
+            return;
+        }
+
+        if (eventService.IsInCutscene) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Cutscene is running", [data.FileName]);
+            return;
+        }
+
+        if (fileManager.LoadScenarioFile(data) is ScenarioData scenarioData) {
 
             if (scenarioData.Npcs.Count == 0) {
                 pluginLog.Warning("Cannot load scenario {FileName}: No actors defined", [data.FileName]);
