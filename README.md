@@ -9,7 +9,7 @@ A Dalamud plugin for custom NPC scenarios and interactions in Final Fantasy XIV
 [![Build Status](https://github.com/NetStyx/ARealmRepopulated/actions/workflows/dotnet.yml/badge.svg)](https://github.com/NetStyx/ARealmRepopulated/actions/workflows/dotnet.yml)
 [![License: MIT](https://img.shields.io/badge/License-AGPL--v3-blue.svg)](https://github.com/NetStyx/ARealmRepopulated/blob/main/LICENSE.md)
 [![Latest Release](https://img.shields.io/github/v/release/NetStyx/ARealmRepopulated?include_prereleases)](https://github.com/NetStyx/ARealmRepopulated/releases)
-[![AI-DECLARATION: assist](https://img.shields.io/badge/ai_declaration-assist-fef9c3)](https://ai-declaration.md)
+[![AI-DECLARATION: assist](https://img.shields.io/badge/ai_declaration-assist-fef9c3)](https://github.com/NetStyx/ARealmRepopulated/blob/main/AI-DECLARATION.md)
 
 </div>
 
