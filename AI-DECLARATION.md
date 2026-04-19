@@ -1,15 +1,19 @@
 ---
-version: "0.1.1"
+version: "0.1.2"
 level: assist
 processes:
+  design: none
   implementation: hint
   testing: assist
   documentation: assist
   review: hint
+  deployment: none
 components:
   ARealmRepopulated: hint
   ARealmRepopulated.Tests: assist
 ---
+
+This format is based on [AI-DECLARATION.md](https://ai-declaration.md/en/0.1.2).
 
 ## Notes
 
