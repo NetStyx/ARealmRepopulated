@@ -6,6 +6,7 @@
     <File Path=".editorconfig" />
     <File Path=".github/workflows/dotnet.yml" />
     <File Path=".gitignore" />
+    <File Path="AI-DECLARATION.md" />
     <File Path="LICENSE.md" />
     <File Path="README.md" />
   </Folder>
