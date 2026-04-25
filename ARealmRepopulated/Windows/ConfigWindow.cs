@@ -21,9 +21,11 @@ public class ConfigWindow(
     IServiceProvider serviceProvider,
     IPluginLog log,
     IClientState state,
+    IObjectTable objectTable,
     ArrpTranslation loc,
     PluginConfig _config,
     ScenarioFileManager _fileManager,
+    ScenarioOrchestrator _orchestrator,
     DebugOverlay _debugOverlay,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
@@ -63,22 +65,66 @@ public class ConfigWindow(
     public override void Draw() {
         DrawMainContent();
 
-        ImGui.Separator();
-        using var t = ImRaii.Table("##WindowControlTable", 3);
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        //ImGui.Separator();
+        using var t = ImRaii.Table("##WindowControlTable", 3, ImGuiTableFlags.None);
         if (!t.Success)
             return;
 
         ImGui.TableSetupColumn("##configWindowControlStrech", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn("##configWindowControlClose", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("##configWindowControlPadding", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
+        ImGui.TableSetupColumn("##configWindowControlPaddingRight", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
+
+        DrawScenarioObjectConsumption();
+
         ImGui.TableNextColumn();
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         if (ImGui.Button(loc["ListWnd_Close"])) {
             this.IsOpen = false;
         }
+    }
+
+    private void DrawScenarioObjectConsumption() {
+        var totalLoadedScenarios = _orchestrator.Orchestrations.Count;
+        var totalEnabledScenarios = _fileManager.GetScenarioFiles().Count(s => s.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location));
+
+        var totalLoadedNpcs = _orchestrator.Orchestrations.Sum(o => o.Scenario.Npcs.Count);
+        var softLimit = _config.ActorSoftLimit;
+
+        var totalClientObjects = objectTable.ClientObjects.Count();
+        var hardLimit = _config.ActorHardLimit;
+
+        var statusColor = totalLoadedNpcs >= softLimit - 10
+            ? ArrpGuiColors.ArrpRed
+            : totalLoadedNpcs >= softLimit - 50
+                ? ArrpGuiColors.ArrpYellow
+                : ArrpGuiColors.ArrpGreen;
+
+        using var objectCountTable = ImRaii.Table("##configWindowObjectConsumptionTable", 4);
+        if (!objectCountTable.Success)
+            return;
+
+        ImGui.TableSetupColumn("##configWindowStatsScenarios", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##configWindowStatsConsumption", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##configWindowStatsSoftLimit", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##configWindowStatsHardLimit", ImGuiTableColumnFlags.WidthFixed);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+
+        ImGui.Text($"{loc["ListWnd_ObjectConsumption_ScenarioCount"]}:  {totalLoadedScenarios} / {totalEnabledScenarios}       {loc["ListWnd_ObjectConsumption_SoftLimit"]}:");
+
+        ImGui.TableNextColumn();
+        using (ImRaii.PushColor(ImGuiCol.Text, statusColor)) {
+            ImGui.Text($"{totalLoadedNpcs} / {softLimit}");
+        }
+
+        ImGui.TableNextColumn();
+        ArrpGuiAlignment.Center();
+
+        ImGuiComponents.HelpMarker($"{loc["ListWnd_ObjectConsumption_HardLimit"]} {totalClientObjects} / {hardLimit}");
     }
 
     private void DrawMainContent() {
@@ -142,6 +188,18 @@ public class ConfigWindow(
         }
         using (ImRaii.Disabled())
             ImGui.TextWrapped(loc["ListWnd_Options_DebugOverlay_Desc"]);
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        var actorSoftLimit = _config.ActorSoftLimit;
+
+        ImGui.Text(loc["ListWnd_Options_SoftLimit_Option"]);
+        ImGui.SameLine();
+        if (ImGui.SliderInt("##sliderSoftLimit", ref actorSoftLimit, 10, PluginConfig.MaxActorSoftLimit)) {
+            _config.ActorSoftLimit = actorSoftLimit;
+            _config.Save();
+        }
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped(loc["ListWnd_Options_SoftLimit_Desc", _config.ActorHardLimit]);
     }
 
     private string _searchScenarioText = string.Empty;

@@ -624,4 +624,19 @@
   <data name="ScenarioEditor_ActorData_Manage_SelectIssue" xml:space="preserve">
     <value>One of the actors does not have actions attached to it. A default wait action will be used, so the actor will do nothing. Scenario looping will be blocked until resolved.</value>
   </data>
+  <data name="ListWnd_ObjectConsumption_ScenarioCount" xml:space="preserve">
+    <value>Loaded Scenarios</value>
+  </data>
+  <data name="ListWnd_ObjectConsumption_SoftLimit" xml:space="preserve">
+    <value>Spawned Actors</value>
+  </data>
+  <data name="ListWnd_ObjectConsumption_HardLimit" xml:space="preserve">
+    <value>Total object limit</value>
+  </data>
+  <data name="ListWnd_Options_SoftLimit_Desc" xml:space="preserve">
+    <value>The soft limit defines how much actors overall can be spawned across all scenarios. There is also a hard limit ({0} overall objects) which restricts the spawn of actors when the game itself creates additonal NPCs (eg.: during cutscenes)</value>
+  </data>
+  <data name="ListWnd_Options_SoftLimit_Option" xml:space="preserve">
+    <value>Actor Soft Limit</value>
+  </data>
 </root>
