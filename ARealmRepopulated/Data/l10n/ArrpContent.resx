@@ -639,4 +639,10 @@
   <data name="ListWnd_Options_SoftLimit_Option" xml:space="preserve">
     <value>Actor Soft Limit</value>
   </data>
+  <data name="DtrBar_LoadedScenarios" xml:space="preserve">
+    <value>Loaded scenarios:</value>
+  </data>
+  <data name="DtrBar_LoadedActors" xml:space="preserve">
+    <value>Loaded actors:</value>
+  </data>
 </root>

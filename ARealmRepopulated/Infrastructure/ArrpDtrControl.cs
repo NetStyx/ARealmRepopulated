@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Windows;
 using Dalamud.Game.Gui.Dtr;
@@ -6,7 +7,7 @@ using Dalamud.Plugin.Services;
 
 namespace ARealmRepopulated.Infrastructure;
 
-public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, IClientState clientState, IDtrBar dalamudDtrBar, IServiceProvider serviceProvider) : IDisposable {
+public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, ArrpTranslation loc, IClientState clientState, IDtrBar dalamudDtrBar, IServiceProvider serviceProvider) : IDisposable {
 
     private IDtrBarEntry? _dtrBarEntry = null;
 
@@ -41,12 +42,17 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, I
     }
 
     private void UpdateDtrText() {
+        if (_dtrBarEntry == null)
+            return;
+
         switch (manager.Orchestrations.Count) {
             case 0:
-                _dtrBarEntry?.Text = $"\uE083 \uE043";
+                _dtrBarEntry.Text = $"\uE083 \uE043";
+                _dtrBarEntry.Tooltip = null;
                 break;
             default:
-                _dtrBarEntry?.Text = $"\uE083 {manager.Orchestrations.Count}";
+                _dtrBarEntry.Text = $"\uE083 {manager.Orchestrations.Count}";
+                _dtrBarEntry.Tooltip = $"{loc["DtrBar_LoadedScenarios"]} {manager.Orchestrations.Count}\n{loc["DtrBar_LoadedActors"]} {manager.Orchestrations.Sum(n => n.Scenario.Npcs.Count)}";
                 break;
         }
     }

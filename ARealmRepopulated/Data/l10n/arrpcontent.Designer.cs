@@ -61,6 +61,24 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loaded actors:.
+        /// </summary>
+        public static string DtrBar_LoadedActors {
+            get {
+                return ResourceManager.GetString("DtrBar_LoadedActors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded scenarios:.
+        /// </summary>
+        public static string DtrBar_LoadedScenarios {
+            get {
+                return ResourceManager.GetString("DtrBar_LoadedScenarios", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close Configuration.
         /// </summary>
         public static string ListWnd_Close {
