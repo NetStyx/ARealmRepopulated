@@ -624,4 +624,25 @@
   <data name="ScenarioEditor_ActorData_Manage_SelectIssue" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ListWnd_ObjectConsumption_ScenarioCount" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_ObjectConsumption_SoftLimit" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_ObjectConsumption_HardLimit" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Options_SoftLimit_Desc" xml:space="preserve">
+    <value>a {0}</value>
+  </data>
+  <data name="ListWnd_Options_SoftLimit_Option" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="DtrBar_LoadedScenarios" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="DtrBar_LoadedActors" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

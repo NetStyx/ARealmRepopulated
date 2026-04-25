@@ -61,11 +61,56 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loaded actors:.
+        /// </summary>
+        public static string DtrBar_LoadedActors {
+            get {
+                return ResourceManager.GetString("DtrBar_LoadedActors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded scenarios:.
+        /// </summary>
+        public static string DtrBar_LoadedScenarios {
+            get {
+                return ResourceManager.GetString("DtrBar_LoadedScenarios", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close Configuration.
         /// </summary>
         public static string ListWnd_Close {
             get {
                 return ResourceManager.GetString("ListWnd_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total object limit.
+        /// </summary>
+        public static string ListWnd_ObjectConsumption_HardLimit {
+            get {
+                return ResourceManager.GetString("ListWnd_ObjectConsumption_HardLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded Scenarios.
+        /// </summary>
+        public static string ListWnd_ObjectConsumption_ScenarioCount {
+            get {
+                return ResourceManager.GetString("ListWnd_ObjectConsumption_ScenarioCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Spawned Actors.
+        /// </summary>
+        public static string ListWnd_ObjectConsumption_SoftLimit {
+            get {
+                return ResourceManager.GetString("ListWnd_ObjectConsumption_SoftLimit", resourceCulture);
             }
         }
         
@@ -120,6 +165,24 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ListWnd_Options_DtrBar_Option {
             get {
                 return ResourceManager.GetString("ListWnd_Options_DtrBar_Option", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The soft limit defines how much actors overall can be spawned across all scenarios. There is also a hard limit ({0} overall objects) which restricts the spawn of actors when the game itself creates additonal NPCs (eg.: during cutscenes).
+        /// </summary>
+        public static string ListWnd_Options_SoftLimit_Desc {
+            get {
+                return ResourceManager.GetString("ListWnd_Options_SoftLimit_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Actor Soft Limit.
+        /// </summary>
+        public static string ListWnd_Options_SoftLimit_Option {
+            get {
+                return ResourceManager.GetString("ListWnd_Options_SoftLimit_Option", resourceCulture);
             }
         }
         

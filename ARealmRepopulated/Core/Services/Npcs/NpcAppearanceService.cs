@@ -12,7 +12,9 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         None = 0,
         Idle = 3,
         Walking = 13,
-        Running = 22
+        WalkingArmed = 41,
+        Running = 22,
+        RunningArmed = 50
     }
 
     public void Apply(Character* chara, NpcAppearanceData file) {
@@ -124,30 +126,34 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         var emoteEntry = dataCache.GetEmote(emote);
 
         if (character->Mode == CharacterModes.InPositionLoop) {
-
             var timelineId = (ushort)emoteEntry.ActionTimeline[2].RowId;
             if (timelineId != 0) {
 
                 if (emoteEntry.EmoteMode.Value.EndEmote.RowId == emote) {
                     character->SetMode(CharacterModes.Normal, 0);
                 }
-                character->Timeline.TimelineSequencer.PlayTimeline(timelineId);
-            }
 
+                RunEmote(character, emoteEntry);
+            }
         } else {
             if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId) {
                 if (emoteEntry.EmoteMode.Value.ConditionMode != 0) {
                     character->SetMode((CharacterModes)emoteEntry.EmoteMode.Value.ConditionMode, (byte)emoteEntry.EmoteMode.RowId);
                 }
             }
-            character->Timeline.TimelineSequencer.PlayTimeline((ushort)emoteEntry.ActionTimeline[0].RowId);
+
+            RunEmote(character, emoteEntry);
 
             // we control the execution position manually, so reset any draw offset applied by emote
             if (character->DrawOffset != FFXIVClientStructs.FFXIV.Common.Math.Vector3.Zero) {
                 character->SetDrawOffset(0, 0, 0);
             }
         }
+    }
 
+    private void RunEmote(BattleChara* character, Lumina.Excel.Sheets.Emote emoteEntry) {
+        character->Timeline.TimelineSequencer.PlayTimeline((ushort)emoteEntry.ActionTimeline[0].RowId);
+        character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
     }
 
     public bool IsPlayingEmote(BattleChara* character, ushort emoteId) {
@@ -194,16 +200,24 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     }
 
     public void SetAnimation(BattleChara* character, Animations animation) {
+
         var animationCode = (ushort)animation;
+        if (character->Timeline.IsWeaponDrawn) {
+            if (animation == Animations.Walking)
+                animationCode = (ushort)Animations.WalkingArmed;
+            if (animation == Animations.Running)
+                animationCode = (ushort)Animations.RunningArmed;
+        }
+
         if (character->Timeline.BaseOverride != animationCode) {
             character->SetMode(CharacterModes.AnimLock, 0);
-            character->Timeline.BaseOverride = (ushort)animation;
+            character->Timeline.BaseOverride = animationCode;
         }
     }
 
     public Animations GetAnimation(BattleChara* character) {
         var animation = (Animations)character->Timeline.BaseOverride;
-        return Enum.IsDefined(animation) ? Animations.None : animation;
+        return !Enum.IsDefined(animation) ? Animations.None : animation;
     }
 
     public void Clone(Character* chara) {

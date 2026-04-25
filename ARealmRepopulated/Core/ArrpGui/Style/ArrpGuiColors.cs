@@ -1,3 +1,4 @@
+using Dalamud.Interface.Colors;
 using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Style;
@@ -6,6 +7,7 @@ public static class ArrpGuiColors {
 
     public static Vector4 ArrpGreen => new Vector4(0, 150, 0, 255).FromRgb();
     public static Vector4 ArrpRed => new Vector4(192, 0, 0, 255).FromRgb();
+    public static Vector4 ArrpYellow => ImGuiColors.DalamudYellow;
 
 }
 
