@@ -11,6 +11,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     public enum Animations : ushort {
         None = 0,
         Idle = 3,
+        IdleArmed = 34,
         Walking = 13,
         WalkingArmed = 41,
         Running = 22,
@@ -203,6 +204,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
         var animationCode = (ushort)animation;
         if (character->Timeline.IsWeaponDrawn) {
+            if (animation == Animations.Idle)
+                animationCode = (ushort)Animations.IdleArmed;
             if (animation == Animations.Walking)
                 animationCode = (ushort)Animations.WalkingArmed;
             if (animation == Animations.Running)
