@@ -4,7 +4,7 @@
         <Author>NetStyx</Author>
         <Name>A Realm Repopulated</Name>
         <InternalName>ARealmRepopulated</InternalName>
-        <Version>0.1.3.0</Version>
+        <Version>0.1.4.0</Version>
         <MinimumDalamudVersion>14.0.4.0</MinimumDalamudVersion>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <Punchline>The realm, now with more realm in it</Punchline>
