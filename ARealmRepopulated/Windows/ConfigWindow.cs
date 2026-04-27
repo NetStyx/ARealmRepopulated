@@ -66,7 +66,8 @@ public class ConfigWindow(
         DrawMainContent();
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        //ImGui.Separator();
+        ImGui.Separator();
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         using var t = ImRaii.Table("##WindowControlTable", 3, ImGuiTableFlags.None);
         if (!t.Success)
             return;
@@ -128,7 +129,7 @@ public class ConfigWindow(
     }
 
     private void DrawMainContent() {
-        using var child = ImRaii.Child("", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize);
+        using var child = ImRaii.Child("", new Vector2(0, -55), border: false, flags: ImGuiWindowFlags.NoResize);
         if (!child.Success)
             return;
 
@@ -190,16 +191,26 @@ public class ConfigWindow(
             ImGui.TextWrapped(loc["ListWnd_Options_DebugOverlay_Desc"]);
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        ImGui.Separator();
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var actorSoftLimit = _config.ActorSoftLimit;
 
         ImGui.Text(loc["ListWnd_Options_SoftLimit_Option"]);
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped(loc["ListWnd_Options_SoftLimit_Desc", _config.ActorHardLimit]);
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+        ImGui.Text(PluginConfig.ActorSoftLimitMin.ToString());
         ImGui.SameLine();
-        if (ImGui.SliderInt("##sliderSoftLimit", ref actorSoftLimit, 10, PluginConfig.MaxActorSoftLimit)) {
+
+        if (ImGui.SliderInt("##sliderSoftLimit", ref actorSoftLimit, PluginConfig.ActorSoftLimitMin, PluginConfig.ActorSoftLimitMax)) {
             _config.ActorSoftLimit = actorSoftLimit;
             _config.Save();
         }
-        using (ImRaii.Disabled())
-            ImGui.TextWrapped(loc["ListWnd_Options_SoftLimit_Desc", _config.ActorHardLimit]);
+        ImGui.SameLine();
+        ImGui.Text(PluginConfig.ActorSoftLimitMax.ToString());
+
     }
 
     private string _searchScenarioText = string.Empty;

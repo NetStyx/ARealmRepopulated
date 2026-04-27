@@ -17,7 +17,9 @@ public class PluginConfig : IPluginConfiguration {
     /// Defines the soft limit for the number of actors that can be spawned across all scenarios. Choosen to leave enough room for unrelated client objects. 
     /// This counts only against actors spawned by this plugin and does not take other allocations into account.
     /// </summary>
-    public const int MaxActorSoftLimit = 150;
+    public const int ActorSoftLimitMax = 150;
+    public const int ActorSoftLimitDefault = 100;
+    public const int ActorSoftLimitMin = 10;
 
     /// <summary>
     /// Defines the hard limit for the number of actors that can be spawned across all scenarios.
@@ -29,10 +31,10 @@ public class PluginConfig : IPluginConfiguration {
     /// <example>
     /// If, for whatever reason, there are already 50 objects present in the client object table, only 180 - 50 = 130 actors can be spawned by the plugin before reaching the hard limit even when the soft limit is not yet reached.      
     /// </example>
-    public const int MaxActorHardLimit = 180;
+    public const int ActorHardLimitMax = 180;
 
-    private int _actorSoftLimit = MaxActorSoftLimit;
-    private int _actorHardLimit = MaxActorHardLimit;
+    private int _actorSoftLimit = ActorSoftLimitDefault;
+    private int _actorHardLimit = ActorHardLimitMax;
 
     public int Version { get; set; } = 0;
 
@@ -40,12 +42,12 @@ public class PluginConfig : IPluginConfiguration {
 
     public int ActorSoftLimit {
         get => _actorSoftLimit;
-        set => _actorSoftLimit = Math.Clamp(value, 0, MaxActorSoftLimit);
+        set => _actorSoftLimit = Math.Clamp(value, ActorSoftLimitMin, ActorSoftLimitMax);
     }
 
     public int ActorHardLimit {
         get => _actorHardLimit;
-        set => _actorHardLimit = Math.Clamp(value, 0, MaxActorHardLimit);
+        set => _actorHardLimit = Math.Clamp(value, 0, ActorHardLimit);
     }
 
     public bool ShowInDtrBar { get; set; } = true;
