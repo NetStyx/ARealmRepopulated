@@ -51,7 +51,7 @@ public class ArrpEventService : IDisposable {
     private void ClientState_Login()
         => _isTerritoryReady = false;
 
-    private void ClientState_TerritoryChanged(ushort obj)
+    private void ClientState_TerritoryChanged(uint obj)
         => _isTerritoryReady = false;
 
     private void Framework_Update(IFramework framework) {
@@ -90,11 +90,11 @@ public class ArrpEventService : IDisposable {
     private unsafe LocationData RetrieveCurrentLocation() {
         LocationData zoneData;
         var housingManager = HousingManager.Instance();
-        var serverId = (int)_playerState.CurrentWorld.RowId;
+        var serverId = _playerState.CurrentWorld.RowId;
         if (housingManager != null) {
             zoneData = new LocationData(serverId, _clientState.TerritoryType, housingManager->GetCurrentDivision(), housingManager->GetCurrentWard(), housingManager->GetCurrentPlot(), housingManager->IsInside());
         } else {
-            zoneData = new LocationData(serverId, _clientState.TerritoryType, -1, -1, -1, false);
+            zoneData = new LocationData(serverId, _clientState.TerritoryType, 0, -1, -1, false);
         }
         return zoneData;
     }

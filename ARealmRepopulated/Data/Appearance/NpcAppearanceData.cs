@@ -196,7 +196,7 @@ public class WeaponModel {
             Stain1 = Stain1
         };
 
-        actor->DrawData.LoadWeapon(isMainHand ? WeaponSlot.MainHand : WeaponSlot.OffHand, wep, 0, 0, 0, 0);
+        actor->DrawData.LoadWeapon(isMainHand ? WeaponSlot.MainHand : WeaponSlot.OffHand, wep, 0, 0, 0, 0, false);
     }
 
     public static unsafe WeaponModel Read(Character* actor, WeaponSlot slot) {

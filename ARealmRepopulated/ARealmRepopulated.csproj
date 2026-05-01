@@ -4,8 +4,8 @@
         <Author>NetStyx</Author>
         <Name>A Realm Repopulated</Name>
         <InternalName>ARealmRepopulated</InternalName>
-        <Version>0.1.4.0</Version>
-        <MinimumDalamudVersion>14.0.4.0</MinimumDalamudVersion>
+        <Version>0.1.4.1</Version>
+        <MinimumDalamudVersion>14.0.5.2</MinimumDalamudVersion>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <Punchline>The realm, now with more realm in it</Punchline>
         <Description>This plugin aims to give players the ability to add more flavor npcs to the common areas of the game.</Description>
