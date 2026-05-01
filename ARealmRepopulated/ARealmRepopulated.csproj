@@ -12,7 +12,7 @@
         <ApplicableVersion>any</ApplicableVersion>
         <RepoUrl>https://github.com/NetStyx/ARealmRepopulated/</RepoUrl>
         <Tags>npc;flavor;customizable</Tags>
-        <CategoryTags>debug;test</CategoryTags>        
+        <CategoryTags>utility;social</CategoryTags>        
         <LoadRequiredState>1</LoadRequiredState>
         <LoadSync>true</LoadSync>
         <CanUnloadAsync>false</CanUnloadAsync>
