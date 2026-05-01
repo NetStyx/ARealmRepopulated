@@ -4,7 +4,7 @@
         <Author>NetStyx</Author>
         <Name>A Realm Repopulated</Name>
         <InternalName>ARealmRepopulated</InternalName>
-        <Version>0.1.4.1</Version>
+        <Version>0.1.4.2</Version>
         <MinimumDalamudVersion>14.0.5.2</MinimumDalamudVersion>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <Punchline>The realm, now with more realm in it</Punchline>
@@ -12,8 +12,7 @@
         <ApplicableVersion>any</ApplicableVersion>
         <RepoUrl>https://github.com/NetStyx/ARealmRepopulated/</RepoUrl>
         <Tags>npc;flavor;customizable</Tags>
-        <CategoryTags>debug;test</CategoryTags>
-        <DalamudApiLevel>14</DalamudApiLevel>
+        <CategoryTags>debug;test</CategoryTags>        
         <LoadRequiredState>1</LoadRequiredState>
         <LoadSync>true</LoadSync>
         <CanUnloadAsync>false</CanUnloadAsync>
