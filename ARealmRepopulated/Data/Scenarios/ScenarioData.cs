@@ -26,9 +26,9 @@ public class ScenarioFileMetaData : IScenarioMetaData {
 }
 
 public class ScenarioLocation {
-    public int Territory { get; set; }
-    public int Server { get; set; }
-    public int HousingDivision { get; set; }
+    public uint Territory { get; set; }
+    public uint Server { get; set; }
+    public uint HousingDivision { get; set; }
     public int HousingWard { get; set; }
     public int HousingPlot { get; set; }
 }
