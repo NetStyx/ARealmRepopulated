@@ -186,18 +186,10 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
         log.Verbose($"Playing timeline {timelineId} on character {character->GetName()}");
-        //if (character->Timeline.TimelineSequencer.TimelineIds[0] != timelineId)
-        //{
-        //var actionTimeline = dataManager.GetExcelSheet<ActionTimeline>();
-        //var timelineData = actionTimeline.GetRow(timelineId);
 
-        //character->Timeline.PlayActionTimeline
-
-        //character->SetMode(CharacterModes.Normal, timelineData.ActionTimelineIDMode);
-
-        //character->Timeline.PlayActionTimeline(, timelineData.);
-
-        //}
+        var actionTimeline = dataCache.GetActionTimeline(timelineId);
+        character->SetMode(CharacterModes.None, actionTimeline.ActionTimelineIDMode);
+        character->Timeline.PlayActionTimeline((ushort)actionTimeline.RowId);
     }
 
     public void SetAnimation(BattleChara* character, Animations animation) {

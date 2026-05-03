@@ -50,6 +50,10 @@ public partial class ScenarioEditorWindow {
         if (ImGui.Selectable(loc["ScenarioEditor_ActorData_Actions_ASync_Short"])) {
             AddAction(new ScenarioNpcSyncAction());
         }
+
+        if (ImGui.Selectable(loc["ScenarioEditor_ActorData_Actions_ATimeline_Short"])) {
+            AddAction(new ScenarioNpcTimelineAction());
+        }
     }
 
     private void DrawCurrentActionBar() {
@@ -109,6 +113,26 @@ public partial class ScenarioEditorWindow {
 
     private void DrawSyncAction(ScenarioNpcSyncAction syncAction) {
 
+    }
+
+    private void DrawTimelineAction(ScenarioNpcTimelineAction timelineAction) {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATimeline_Caption"]);
+        ImGui.TableNextColumn();
+
+        var timelineId = timelineAction.TimelineId;
+        if (ImGui.InputUShort("##scenarioNpcTimelineActionId", ref timelineId)) {
+            timelineAction.TimelineId = timelineId;
+        }
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TableNextColumn();
+        var resetLoop = timelineAction.ResetMode;
+        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Actions_ATimeline_ResetMode"]}##scenarioNpcTimelineActionResetMode", ref resetLoop)) {
+            timelineAction.ResetMode = resetLoop;
+        }
     }
 
     private void DrawRotationAction(ScenarioNpcRotationAction rotationAction) {

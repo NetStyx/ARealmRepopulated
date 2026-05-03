@@ -10,11 +10,13 @@ namespace ARealmRepopulated.Infrastructure;
 public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<TerritoryType> _territoryTypeSheet = null!;
     private ExcelSheet<Emote> _emoteTypeSheet = null!;
+    private ExcelSheet<ActionTimeline> _actionTimelineSheet = null!;
     private ExcelSheet<Item> _itemSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
 
     public void Populate() {
         _territoryTypeSheet = dataManager.GetExcelSheet<TerritoryType>();
+        _actionTimelineSheet = dataManager.GetExcelSheet<ActionTimeline>();
         _emoteTypeSheet = dataManager.GetExcelSheet<Emote>();
         _itemSheet = dataManager.GetExcelSheet<Item>();
     }
@@ -49,6 +51,9 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
 
         return modelCache;
     }
+
+    public ActionTimeline GetActionTimeline(ushort actionTimelineId)
+        => _actionTimelineSheet.GetRow(actionTimelineId);
 
     public Emote GetEmote(ushort emoteId)
         => _emoteTypeSheet.GetRow(emoteId);

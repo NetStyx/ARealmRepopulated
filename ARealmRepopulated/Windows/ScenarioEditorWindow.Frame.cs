@@ -112,6 +112,11 @@ public partial class ScenarioEditorWindow(
             help: (a) => loc["ScenarioEditor_ActorData_Actions_ASync_Desc"],
             draw: DrawSyncAction
         );
+        _actionUiRegistry.Register<ScenarioNpcTimelineAction>(
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ATimeline_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_ATimeline_Desc"],
+            draw: DrawTimelineAction
+        );
 
     }
 

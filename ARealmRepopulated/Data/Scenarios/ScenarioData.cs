@@ -60,6 +60,7 @@ public class ScenarioNpcData {
 [JsonDerivedType(typeof(ScenarioNpcEmoteAction), typeDiscriminator: "Emote")]
 [JsonDerivedType(typeof(ScenarioNpcIdleAction), typeDiscriminator: "Idle")]
 [JsonDerivedType(typeof(ScenarioNpcSyncAction), typeDiscriminator: "Sync")]
+[JsonDerivedType(typeof(ScenarioNpcTimelineAction), typeDiscriminator: "Timeline")]
 public abstract class ScenarioNpcAction {
     internal int ScenarioKey { get; set; } = 0;
 
@@ -151,6 +152,7 @@ public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, false) {
 
 public class ScenarioNpcTimelineAction : ScenarioNpcAction {
     public ushort TimelineId { get; set; }
+    public bool ResetMode { get; set; } = true;
 
     public override string ToString() => $"Timeline [ID: {TimelineId}; Duration: {Duration}]";
 }

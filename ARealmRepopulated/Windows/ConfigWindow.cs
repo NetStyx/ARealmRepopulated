@@ -214,6 +214,7 @@ public class ConfigWindow(
     }
 
     private string _searchScenarioText = string.Empty;
+    private bool _displayCurrentLocationOnly = true;
     private void ScenarioTab() {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
@@ -251,7 +252,15 @@ public class ConfigWindow(
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Scan_Desc"]);
             });
-            DrawCenteredHeaderCell(1, () => ImGui.Text(loc["ListWnd_Scenario_Header_Location"]));
+            DrawCenteredHeaderCell(1, () => {
+                ImGui.Checkbox("##scenarioLocationHeaderScoped", ref _displayCurrentLocationOnly);
+                if (ImGui.IsItemHovered()) {
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Header_Location_Scoped_Desc"]);
+                }
+
+                ImGui.SameLine();
+                ImGui.Text(loc["ListWnd_Scenario_Header_Location"]);
+            });
             DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
             DrawCenteredHeaderCell(3, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
@@ -277,6 +286,7 @@ public class ConfigWindow(
             });
 
             var scenarioFiles = _fileManager.GetScenarioFiles()
+                .Where(s => !_displayCurrentLocationOnly || eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))
                 .Where(s => s.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
                 .OrderBy(s => s.MetaData.Location.Territory == state.TerritoryType ? 0 : 1)
                 .ThenBy(s => s.MetaData.Location.Territory)

@@ -27,6 +27,8 @@ public class ArrpTranslation {
                 _cache[key] = value;
             }
 
+            value ??= key;
+
             if (obj != null && obj.Length > 0) {
                 return string.Format(value, obj);
             } else {

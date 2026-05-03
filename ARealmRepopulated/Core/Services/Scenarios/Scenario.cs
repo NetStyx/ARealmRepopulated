@@ -5,6 +5,7 @@ using ARealmRepopulated.Core.Services.Scenarios.Actions.Pathing.Segments;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
@@ -60,8 +61,8 @@ public unsafe class Scenario(IPluginLog log) {
         Npcs.ForEach(n => n.Advance(_state, time));
     }
 
-    public void Proximity(Vector3 playerPosition) {
-        Npcs.ForEach(n => n.Proximity(playerPosition));
+    public void Proximity(BattleChara* character) {
+        Npcs.ForEach(n => n.Proximity(character));
     }
 }
 
@@ -86,7 +87,8 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     public ScenarioNpcActionExecution CurrentAction { get; private set; } = ScenarioNpcActionExecution.Default;
 
     private readonly TimeSpan _proximityTimeout = TimeSpan.FromSeconds(15);
-    private readonly float _proximityDistance = 10f;
+    private readonly float _proximityChatDistance = 10f;
+    private readonly float _proximityLookDistance = 4f;
 
     public void AddAction(params ScenarioNpcAction[] actions) {
         var scenarioKey = 1;
@@ -152,7 +154,23 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
     }
 
-    public void Proximity(Vector3 player) {
+    public void Proximity(BattleChara* player) {
+
+        var distance = Actor.GetDistanceTo(player->Position);
+
+        if (distance > _proximityChatDistance) {
+            CurrentAction.IsInProximity = false;
+            return;
+        }
+
+        if (distance > _proximityLookDistance) {
+            Actor.LookAtNothing();
+        } else {
+            Actor.LookAt(player);
+        }
+
+        CurrentAction.IsInProximity = true;
+
         var proximityText = CurrentAction.Action.NpcTalk;
         if (string.IsNullOrWhiteSpace(proximityText)) {
             return;
@@ -167,12 +185,6 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             return;
         }
 
-        if (Actor.GetDistanceTo(player) > _proximityDistance) {
-            CurrentAction.IsInProximity = false;
-            return;
-        }
-
-        CurrentAction.IsInProximity = true;
         CurrentAction.ProximityExecuted = true;
 
         float wordsPerMinute = 150;
@@ -234,10 +246,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
     }
 
-    private void AdvanceTimeline(ScenarioNpcTimelineAction action, TimeSpan _) {
+    private void AdvanceTimeline(ScenarioNpcTimelineAction action, TimeSpan delta) {
         if (CurrentAction.CurrentDuration == 0f) {
-            CurrentAction.CurrentDuration = 0.1f;
             Actor.PlayTimeline(action.TimelineId);
+        }
+
+        CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
+
+        if (CurrentAction.IsDurationExeeded) {
+            CurrentAction.IsFinished = true;
+            if (action.ResetMode) {
+                Actor.ResetMode();
+            }
         }
     }
 
@@ -370,6 +390,11 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
                 break;
 
+            case ScenarioNpcTimelineAction timeline:
+                execution.IsInfinite = false;
+                execution.TargetDuration = timeline.Duration;
+                break;
+
             case ScenarioNpcEmoteAction emote:
                 execution.IsInfinite = false;
                 execution.TargetDuration = emote.Duration;
@@ -377,7 +402,6 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
             case ScenarioNpcMovementAction:
             case ScenarioNpcRotationAction:
-            case ScenarioNpcTimelineAction:
             case ScenarioNpcSpawnAction:
             case ScenarioNpcDespawnAction:
             case ScenarioNpcIdleAction:

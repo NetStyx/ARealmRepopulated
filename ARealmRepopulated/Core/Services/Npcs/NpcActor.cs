@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.Services.Chat;
+using ARealmRepopulated.Core.Services.LookAt;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
@@ -9,7 +10,7 @@ using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService, ChatBubbleService cbs) {
+public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, LookAtService lookAtService, NpcAppearanceService appearanceService, ChatBubbleService cbs) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
@@ -104,6 +105,18 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
 
     public float GetDistanceTo(Vector3 target)
         => Vector3.Distance(_actor->Position, target);
+
+    public void LookAt(BattleChara* target) {
+        if (!lookAtService.IsLookingAt(_actor, target)) {
+            lookAtService.LookAt(_actor, target);
+        }
+    }
+
+    public void LookAtNothing() {
+        if (lookAtService.IsLookingAtSomething(_actor)) {
+            lookAtService.LookAtNothing(_actor);
+        }
+    }
 
     public void PlayTimeline(ushort timelineId)
         => appearanceService.PlayTimeline(_actor, timelineId);

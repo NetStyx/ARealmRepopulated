@@ -259,6 +259,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Displays only the scenarios in the current location when selected..
+        /// </summary>
+        public static string ListWnd_Scenario_Header_Location_Scoped_Desc {
+            get {
+                return ResourceManager.GetString("ListWnd_Scenario_Header_Location_Scoped_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Title.
         /// </summary>
         public static string ListWnd_Scenario_Header_Title {
@@ -786,6 +795,42 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_ActorData_Actions_ATalk_Short {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATalk_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timeline ID.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_Caption {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Caption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plays a animation from the pool of action timelines. Note that not every animation is compatible with every model..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset to an default animation state after this action ends. If unchecked, it continous to loop the animation when supported.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_ResetMode {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_ResetMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timeline.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_Short {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Short", resourceCulture);
             }
         }
         

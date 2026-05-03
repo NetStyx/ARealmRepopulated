@@ -10,7 +10,16 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog pluginLog, IObjectTable objectTable, IServiceProvider serviceProvider, ScenarioFileManager fileManager, PluginConfig config, NpcServices npcServices, ArrpGameHooks hooks, ArrpEventService eventService) : IDisposable {
+public unsafe class ScenarioOrchestrator(
+    IFramework framework,
+    IPluginLog pluginLog,
+    IObjectTable objectTable,
+    IServiceProvider serviceProvider,
+    ScenarioFileManager fileManager,
+    PluginConfig config,
+    NpcServices npcServices,
+    ArrpGameHooks hooks,
+    ArrpEventService eventService) : IDisposable {
 
     private readonly Lock _scenarioActionLock = new();
     private const float ProximityCheckInterval = 0.5f;
@@ -185,7 +194,7 @@ public unsafe class ScenarioOrchestrator(IFramework framework, IPluginLog plugin
 
         _lastProximityCheck += (float)time.TotalSeconds;
         if (_lastProximityCheck > ProximityCheckInterval) {
-            Orchestrations.ForEach(s => s.Scenario.Proximity(objectTable.LocalPlayer!.Position));
+            Orchestrations.ForEach(s => s.Scenario.Proximity((BattleChara*)objectTable.LocalPlayer!.Address));
             _lastProximityCheck = 0f;
         }
 
