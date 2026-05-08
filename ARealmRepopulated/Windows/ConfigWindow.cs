@@ -32,7 +32,7 @@ public class ConfigWindow(
     ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
 
     protected override void SetWindowOptions() {
-        Size = new Vector2(232, 90);
+        Size = new Vector2(750, 630);
         SizeCondition = ImGuiCond.FirstUseEver;
         Flags |= ImGuiWindowFlags.NoCollapse;
         this.AllowPinning = false;
