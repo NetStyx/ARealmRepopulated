@@ -25,7 +25,7 @@ public class OnboardingWindow(
     Plugin plugin,
     PluginConfig config) : ADalamudWindow("###ARealmRepopulatedOnboardingWindow"), IDisposable {
     protected override void SetWindowOptions() {
-        Size = new Vector2(232, 90);
+        Size = new Vector2(780, 400);
         SizeCondition = ImGuiCond.FirstUseEver;
         Flags |= ImGuiWindowFlags.NoCollapse;
         this.AllowPinning = false;
