@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Scenarios;
@@ -237,6 +238,7 @@ public class ConfigWindow(
         using (var t = ImRaii.Table("##AvailableScenarioTable", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY)) {
             if (!t.Success)
                 return;
+
             ImGui.TableSetupColumn("##scenarioRefreshHeader", ImGuiTableColumnFlags.WidthFixed, 25);
             ImGui.TableSetupColumn("##scenarioLocationHeader", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("##scenarioTitleHeader", ImGuiTableColumnFlags.WidthStretch);
@@ -245,14 +247,14 @@ public class ConfigWindow(
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableHeadersRow();
 
-            DrawCenteredHeaderCell(0, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
                 if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Recycle)) {
                     _fileManager.ScanScenarioFiles();
                 }
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Scan_Desc"]);
             });
-            DrawCenteredHeaderCell(1, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(1, () => {
                 ImGui.Checkbox("##scenarioLocationHeaderScoped", ref _displayCurrentLocationOnly);
                 if (ImGui.IsItemHovered()) {
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Header_Location_Scoped_Desc"]);
@@ -261,8 +263,8 @@ public class ConfigWindow(
                 ImGui.SameLine();
                 ImGui.Text(loc["ListWnd_Scenario_Header_Location"]);
             });
-            DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
-            DrawCenteredHeaderCell(3, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
+            ArrpGuiHelper.DrawCenteredHeaderCell(3, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
                     if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
                         serviceProvider.GetService<ScenarioEditorWindow>()!.CreateScenario();
@@ -368,12 +370,5 @@ public class ConfigWindow(
             }
 
         }
-    }
-
-    private static void DrawCenteredHeaderCell(int column, Action draw) {
-        ImGui.TableSetColumnIndex(column);
-        using var id = ImRaii.PushId(column);
-        ArrpGuiAlignment.Center();
-        draw();
     }
 }

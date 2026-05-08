@@ -1,5 +1,6 @@
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
@@ -65,6 +66,16 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
 
+}
+
+public static class EmoteExtensions {
+    public static bool IsLooping(this Emote emote) {
+        if (!emote.EmoteMode.IsValid)
+            return false;
+
+        var emoteCondition = (CharacterModes)emote.EmoteMode.Value.ConditionMode;
+        return emoteCondition == CharacterModes.EmoteLoop || emoteCondition == CharacterModes.InPositionLoop;
+    }
 }
 
 public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {

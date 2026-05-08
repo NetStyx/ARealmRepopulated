@@ -49,6 +49,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
             .AddSingleton<ArrpGuiEmotePicker>()
+            .AddSingleton<ArrpGuiNpcPicker>()
             .AddSingleton<FileDialogManager>()
             .AddWindow<ConfigWindow>()
             .AddWindow<OnboardingWindow>()

@@ -651,13 +651,16 @@
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Caption" xml:space="preserve">
     <value>Timeline ID</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Actions_ATimeline_ResetMode" xml:space="preserve">
-    <value>Reset to an default animation state after this action ends. If unchecked, it continous to loop the animation when supported</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Desc" xml:space="preserve">
     <value>Plays a animation from the pool of action timelines. Note that not every animation is compatible with every model.</value>
   </data>
   <data name="ListWnd_Scenario_Header_Location_Scoped_Desc" xml:space="preserve">
     <value>Displays only the scenarios in the current location when selected.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_SelectHint" xml:space="preserve">
+    <value>Select the animation that is currently played by a nearby NPC.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_ResetMode" xml:space="preserve">
+    <value>End animation after finishing this action.</value>
   </data>
 </root>

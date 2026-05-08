@@ -817,11 +817,20 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reset to an default animation state after this action ends. If unchecked, it continous to loop the animation when supported.
+        ///   Looks up a localized string similar to End animation after finishing this action..
         /// </summary>
         public static string ScenarioEditor_ActorData_Actions_ATimeline_ResetMode {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_ResetMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the animation that is currently played by a nearby NPC..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_SelectHint {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_SelectHint", resourceCulture);
             }
         }
         

@@ -3,6 +3,7 @@ using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
+using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
@@ -125,59 +126,24 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     public void PlayEmote(BattleChara* character, ushort emote) {
 
         var emoteEntry = dataCache.GetEmote(emote);
+        var emoteId = (ushort)emoteEntry.EmoteMode.RowId;
 
-        if (character->Mode == CharacterModes.InPositionLoop) {
-            var timelineId = (ushort)emoteEntry.ActionTimeline[2].RowId;
-            if (timelineId != 0) {
-
-                if (emoteEntry.EmoteMode.Value.EndEmote.RowId == emote) {
-                    character->SetMode(CharacterModes.Normal, 0);
-                }
-
-                RunEmote(character, emoteEntry);
-            }
-        } else {
-            if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId) {
-                if (emoteEntry.EmoteMode.Value.ConditionMode != 0) {
-                    character->SetMode((CharacterModes)emoteEntry.EmoteMode.Value.ConditionMode, (byte)emoteEntry.EmoteMode.RowId);
-                }
-            }
-
-            RunEmote(character, emoteEntry);
-
-            // we control the execution position manually, so reset any draw offset applied by emote
-            if (character->DrawOffset != FFXIVClientStructs.FFXIV.Common.Math.Vector3.Zero) {
-                character->SetDrawOffset(0, 0, 0);
-            }
-        }
-    }
-
-    private void RunEmote(BattleChara* character, Lumina.Excel.Sheets.Emote emoteEntry) {
-        character->Timeline.TimelineSequencer.PlayTimeline((ushort)emoteEntry.ActionTimeline[0].RowId);
+        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
+        character->EmoteController.PlayEmote((uint)emoteEntry.RowId, &emoteOption);
         character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
-    }
 
-    public bool IsPlayingEmote(BattleChara* character, ushort emoteId) {
-        var emote = dataCache.GetEmote(emoteId);
-        var emoteTimelineIds = new List<uint>();
-        foreach (var emoteTimeline in emote.ActionTimeline) {
-            if (emoteTimeline.Value.RowId == 0)
-                continue;
-
-            emoteTimelineIds.Add(emoteTimeline.Value.RowId);
+        // we control the execution position manually, so reset any draw offset applied by emote
+        if (character->DrawOffset != FFXIVClientStructs.FFXIV.Common.Math.Vector3.Zero) {
+            character->SetDrawOffset(0, 0, 0);
         }
 
-        var timelineSequencer = character->Timeline.TimelineSequencer;
-        for (var timelineIndex = 0; timelineIndex < timelineSequencer.TimelineIds.Length; timelineIndex++) {
-            if (timelineSequencer.TimelineIds[timelineIndex] == 0)
-                continue;
-
-            if (emoteTimelineIds.Contains(timelineSequencer.TimelineIds[timelineIndex]))
-                return true;
-
-        }
-        return false;
     }
+
+    public bool IsPlayingEmote(BattleChara* character, ushort emoteId)
+        => character->EmoteController.EmoteId == emoteId;
+
+    public bool IsPlayingEmote(BattleChara* character)
+        => character->EmoteController.EmoteId != 0;
 
     public bool IsRepeatingEmote(ushort emote) {
         var conditionMode = (CharacterModes)dataCache.GetEmote(emote).EmoteMode.Value.ConditionMode;

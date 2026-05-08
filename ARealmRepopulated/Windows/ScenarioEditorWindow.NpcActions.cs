@@ -115,7 +115,7 @@ public partial class ScenarioEditorWindow {
 
     }
 
-    private void DrawTimelineAction(ScenarioNpcTimelineAction timelineAction) {
+    private unsafe void DrawTimelineAction(ScenarioNpcTimelineAction timelineAction) {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATimeline_Caption"]);
@@ -124,6 +124,17 @@ public partial class ScenarioEditorWindow {
         var timelineId = timelineAction.TimelineId;
         if (ImGui.InputUShort("##scenarioNpcTimelineActionId", ref timelineId)) {
             timelineAction.TimelineId = timelineId;
+        }
+
+        ImGui.SameLine();
+        if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.WandMagicSparkles)) {
+            npcPicker.OpenPopup();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_ATimeline_SelectHint"]);
+
+        if (npcPicker.Popup(out var npc)) {
+            timelineAction.TimelineId = npc->Timeline.TimelineSequencer.GetSlotTimeline(0);
         }
 
         ImGui.TableNextRow();
@@ -323,24 +334,19 @@ public partial class ScenarioEditorWindow {
 
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.WandMagicSparkles)) {
-            ImGui.OpenPopup("EmotePicker");
+            emotePicker.OpenPopup();
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_AEmote_SelectHint"]);
 
-        using (var popup = ImRaii.Popup("EmotePicker")) {
-            if (popup.Success) {
-                if (emotePicker.Open(out var emoteId)) {
-                    emoteAction.Emote = emoteId;
-                }
-            }
+        if (emotePicker.Popup(out var emoteId)) {
+            emoteAction.Emote = emoteId;
         }
 
         if (emoteid == 0 || !emoteRow.EmoteMode.IsValid)
             return;
 
         var emoteCondition = (CharacterModes)emoteRow.EmoteMode.Value.ConditionMode;
-
         if (emoteCondition != CharacterModes.EmoteLoop && emoteCondition != CharacterModes.InPositionLoop) {
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
