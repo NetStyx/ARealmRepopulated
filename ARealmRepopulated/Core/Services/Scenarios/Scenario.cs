@@ -208,7 +208,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         Actor.Fade(-0.10f);
         if (Actor.IsFadedOut()) {
             Actor.Despawn();
-            Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
+            Actor.SetMovementAnimation(NpcAppearanceService.Animations.Idle);
             CurrentAction.IsFinished = true;
         }
     }
@@ -266,7 +266,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         if (!CurrentAction.Pathfinder.IsPathReady)
             return;
 
-        Actor.SetAnimation(CurrentAction.Pathfinder.CurrentSpeed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
+        Actor.SetMovementAnimation(CurrentAction.Pathfinder.CurrentSpeed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
 
         if (!CurrentAction.Pathfinder.IsUserReady) {
             var currentRotation = Actor.GetRotation();
@@ -284,8 +284,8 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         CurrentAction.Pathfinder.Update((float)delta.TotalSeconds, out var nextPos, out var yaw);
         if (CurrentAction.Pathfinder.IsFinished) {
-            if (_scenarioActions.TryPeek(out var nextAction) && nextAction is not ScenarioNpcMovementAction) {
-                Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
+            if (!IsNextActionMovementRelated()) {
+                Actor.SetMovementAnimation(NpcAppearanceService.Animations.Idle);
             }
             CurrentAction.IsFinished = true;
         } else {
@@ -298,7 +298,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     private void AdvanceSimpleMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration = 0.1f;
-            Actor.SetAnimation(action.Speed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
+            Actor.SetMovementAnimation(action.Speed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
         }
 
         var currentRotation = Actor.GetRotation();
@@ -319,9 +319,10 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         if (targetPosition.X == newPosition.X && targetPosition.Z == newPosition.Z) {
             Actor.SetPosition(action.TargetPosition);
-            if (_scenarioActions.TryPeek(out var nextAction) && nextAction is not ScenarioNpcMovementAction) {
-                Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
+            if (!IsNextActionMovementRelated()) {
+                Actor.SetMovementAnimation(NpcAppearanceService.Animations.Idle);
             }
+
             CurrentAction.IsFinished = true;
         } else {
             Actor.SetPosition(newPosition);
@@ -334,7 +335,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         if (CurrentAction.CurrentDuration == 0f) {
             CurrentAction.CurrentDuration = 0.1f;
-            Actor.SetAnimation(NpcAppearanceService.Animations.Walking);
+            Actor.SetMovementAnimation(NpcAppearanceService.Animations.Walking);
         }
 
         var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
@@ -343,7 +344,9 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         Actor.SetRotation(newRotation);
 
         if (RotationExtension.AlmostEqual(newRotation, action.TargetRotation)) {
-            Actor.SetAnimation(NpcAppearanceService.Animations.Idle);
+            if (!IsNextActionMovementRelated()) {
+                Actor.SetMovementAnimation(NpcAppearanceService.Animations.Idle);
+            }
             CurrentAction.IsFinished = true;
         }
     }
@@ -431,6 +434,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
     }
 
+    private bool IsNextActionMovementRelated() {
+
+        if (_scenarioActions.TryPeek(out var nextAction) &&
+            (nextAction is ScenarioNpcMovementAction
+            || nextAction is ScenarioNpcPathAction
+            || nextAction is ScenarioNpcRotationAction
+            )) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 public class ScenarioNpcActionExecution {

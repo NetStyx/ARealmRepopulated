@@ -130,8 +130,8 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Loo
     public bool IsLoopingEmote(ushort emoteid)
         => appearanceService.IsRepeatingEmote(emoteid);
 
-    public void SetAnimation(Animations animation)
-        => appearanceService.SetAnimation(_actor, animation);
+    public void SetMovementAnimation(Animations animation)
+        => appearanceService.SetMovementAnimation(_actor, animation);
 
     public Animations GetAnimation()
         => appearanceService.GetAnimation(_actor);
