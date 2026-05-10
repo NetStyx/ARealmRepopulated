@@ -48,18 +48,6 @@ public class ConfigWindow(
         GC.SuppressFinalize(this);
     }
 
-    public override void OnOpen() {
-        base.OnOpen();
-
-        if (_config.EnableScenarioDebugOverlay)
-            _debugOverlay.Hook();
-    }
-
-    public override void OnClose() {
-        base.OnClose();
-        _debugOverlay.Unhook();
-    }
-
     private void UpdateWindowTitle()
         => this.WindowName = $"{loc["ListWnd_Title"]}###ARealmRepopulatedConfigWindow";
 
@@ -179,14 +167,10 @@ public class ConfigWindow(
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var scenarioDebugOverlay = _config.EnableScenarioDebugOverlay;
         if (ImGui.Checkbox(loc["ListWnd_Options_DebugOverlay_Option"], ref scenarioDebugOverlay)) {
-            if (scenarioDebugOverlay) {
-                _debugOverlay.Hook();
-            } else {
-                _debugOverlay.Unhook();
-            }
-
             _config.EnableScenarioDebugOverlay = scenarioDebugOverlay;
             _config.Save();
+
+            _debugOverlay.ValidateHook();
         }
         using (ImRaii.Disabled())
             ImGui.TextWrapped(loc["ListWnd_Options_DebugOverlay_Desc"]);

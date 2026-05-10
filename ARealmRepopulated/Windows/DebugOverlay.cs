@@ -1,3 +1,4 @@
+using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
@@ -11,7 +12,7 @@ using CameraManager = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager
 
 namespace ARealmRepopulated.Windows;
 
-public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IClientState clientState, IGameGui gui) : IDisposable {
+public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IClientState clientState, IGameGui gui, IPluginLog log, PluginConfig _config) : IDisposable {
 
     private readonly Lock _scenarioAccessLock = new();
     private readonly List<ScenarioEditorWindow> _openEditors = [];
@@ -25,21 +26,45 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     private Vector3 _npcTrace = Vector3.Zero;
 
+    private bool _isHooked = false;
+
     public void AddEditor(ScenarioEditorWindow scenarioObject) {
         using var _ = _scenarioAccessLock.EnterScope();
         _openEditors.Add(scenarioObject);
+
+        ValidateHook();
     }
 
     public void RemoveEditor(ScenarioEditorWindow scenarioObject) {
         using var _ = _scenarioAccessLock.EnterScope();
         _openEditors.Remove(scenarioObject);
+
+        ValidateHook();
     }
 
-    public void Hook()
-        => pluginInterface.UiBuilder.Draw += Draw;
+    public void ValidateHook() {
+        using var _ = _scenarioAccessLock.EnterScope();
 
-    public void Unhook()
-        => pluginInterface.UiBuilder.Draw -= Draw;
+        if (_openEditors.Count == 0 || !_config.EnableScenarioDebugOverlay) {
+
+            if (!_isHooked)
+                return;
+
+            log.Information("Unhooking debug overlay from draw event.");
+            pluginInterface.UiBuilder.Draw -= Draw;
+            _isHooked = false;
+
+        } else {
+
+            if (_isHooked)
+                return;
+
+            log.Information("Hooking debug overlay to draw event.");
+            pluginInterface.UiBuilder.Draw += Draw;
+            _isHooked = true;
+
+        }
+    }
 
     private void Draw() {
         ImGuiHelpers.ForceNextWindowMainViewport();
