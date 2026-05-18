@@ -118,11 +118,11 @@ public class ConfigWindow(
     }
 
     private void DrawMainContent() {
-        using var child = ImRaii.Child("", new Vector2(0, -55), border: false, flags: ImGuiWindowFlags.NoResize);
+        using var child = ImRaii.Child("##configWindowMainContentArea", new Vector2(0, -55), border: false, flags: ImGuiWindowFlags.NoResize);
         if (!child.Success)
             return;
 
-        using var tabBar = ImRaii.TabBar("", ImGuiTabBarFlags.NoTooltip);
+        using var tabBar = ImRaii.TabBar("##configWindowMainTabBar", ImGuiTabBarFlags.NoTooltip);
         if (!tabBar.Success)
             return;
 
