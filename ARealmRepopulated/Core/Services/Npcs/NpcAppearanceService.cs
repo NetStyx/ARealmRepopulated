@@ -128,15 +128,20 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
 
         if (character->EmoteController.IsEmoting()) {
-            // the requested emote is actually the cancel emote counterpart of the currently playing emote. So instead of requeing the same emote,
-            // we cancel the current one to prevent visual bugs of emote cancelling and restarting immediately
             var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
             if (currentEmote.HasCancelEmote && currentEmote.EmoteMode.Value.EndEmote.RowId == emote) {
+                // the requested emote is actually the cancel emote counterpart of the currently playing emote. So instead of requeing the same emote,
+                // we cancel the current one to prevent visual bugs of emote cancelling and restarting immediately
                 character->EmoteController.PlayEmote(0, &emoteOption);
+            } else {
+                if (emoteEntry.RowId != currentEmote.RowId) {
+                    character->EmoteController.PlayEmote((uint)emoteEntry.RowId, &emoteOption);
+                }
             }
         } else {
             character->EmoteController.PlayEmote((uint)emoteEntry.RowId, &emoteOption);
         }
+
         character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
 
         // we control the execution position manually, so reset any draw offset applied by emote
