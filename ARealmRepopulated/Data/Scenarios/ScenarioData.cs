@@ -142,6 +142,9 @@ public class ScenarioNpcEmoteAction : ScenarioNpcAction {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool StayInEmotePose { get; set; } = false;
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool InteractWithLayout { get; set; } = false;
+
     public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; StayInEmotePose: {StayInEmotePose}]";
 }
 
@@ -151,10 +154,13 @@ public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, false) {
 }
 
 public class ScenarioNpcTimelineAction : ScenarioNpcAction {
-    public ushort TimelineId { get; set; }
-    public bool ResetMode { get; set; } = true;
+    public List<TimelineActionSlot> ActionSlots { get; set; } = [];
 
-    public override string ToString() => $"Timeline [ID: {TimelineId}; Duration: {Duration}]";
+    public override string ToString() => $"Timeline [ID: {string.Join(",", ActionSlots.Select(x => x.TimelineId.ToString()))}; Duration: {Duration}]";
+}
+
+public class TimelineActionSlot {
+    public ushort TimelineId { get; set; } = 0;
 }
 
 public class ScenarioNpcSyncAction() : ScenarioNpcAction(false, false) {

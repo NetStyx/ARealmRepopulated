@@ -1,7 +1,9 @@
 using ARealmRepopulated.Core.Services.Chat;
+using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.Services.LookAt;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -10,7 +12,14 @@ using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, LookAtService lookAtService, NpcAppearanceService appearanceService, ChatBubbleService cbs) {
+public unsafe class NpcActor(
+    IFramework framework,
+    IObjectTable objectTable,
+    ArrpDataCache dataCache,
+    LayoutWorldService envService,
+    LookAtService lookAtService,
+    NpcAppearanceService appearanceService,
+    ChatBubbleService cbs) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
@@ -18,6 +27,8 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Loo
 
     private bool _isReady = false;
     private BattleChara* _actor = null;
+
+    private Vector3 _emoteOffset = Vector3.Zero;
 
     public IntPtr Address { get => new(_actor); }
 
@@ -95,10 +106,10 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Loo
     }
 
     public void SetRotationToward(Vector3 target)
-        => SetRotation(_actor->Position.DirectionTo(target));
+        => SetRotation(PositionExtensions.DirectionTo(_actor->Position, target));
 
     public void SetRotationToward(GameObject* target)
-        => SetRotation(_actor->Position.DirectionTo(target->Position));
+        => SetRotation(PositionExtensions.DirectionTo(_actor->Position, target->Position));
 
     public float GetDistanceTo(GameObject* target)
         => GetDistanceTo(target->Position);
@@ -121,8 +132,44 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Loo
     public void PlayTimeline(ushort timelineId)
         => appearanceService.PlayTimeline(_actor, timelineId);
 
-    public void PlayEmote(ushort emoteid)
-        => appearanceService.PlayEmote(_actor, emoteid);
+    public bool IsPlayingTimeline(ushort timelineId)
+        => appearanceService.IsPlayingTimeline(_actor, timelineId);
+
+    public void PlayEmote(ushort emoteid, bool interactWithLayout = false) {
+        var emoteEntry = dataCache.GetEmote(emoteid);
+        var keepDrawOffset = interactWithLayout || _actor->DrawOffset != Vector3.Zero;
+
+        if (interactWithLayout && emoteEntry.InteractsWithLayout(out var layoutInteraction)) {
+            if (layoutInteraction.LayoutInteractionEmoteId != emoteEntry.RowId)
+                emoteEntry = dataCache.GetEmote(layoutInteraction.LayoutInteractionEmoteId);
+
+            if (envService.CheckSnapableLayout((Character*)_actor, 2f, layoutInteraction.LayoutObjectTarget, out var target, out var yaw)) {
+
+                if (layoutInteraction.LayoutObjectTarget == LayoutTarget.Chair) {
+                    _emoteOffset = new Vector3(target.X, _actor->Position.Y, target.Z);
+                }
+
+                _actor->SetPosition(target.X, target.Y, target.Z);
+                _actor->SetRotation(yaw);
+            }
+        }
+
+        appearanceService.PlayEmote(_actor, emoteEntry);
+
+        // we control the position of the emote execution by hand so we need to reset the draw offset for emotes that change it,
+        // but only if we're not trying to interact with a layout or if a previous action hasn't already changed the draw offset        
+        if (!keepDrawOffset) {
+            _actor->SetDrawOffset(0, 0, 0);
+        }
+    }
+
+    public void RestoreEmote() {
+        if (_emoteOffset != Vector3.Zero) {
+            _actor->Position = _emoteOffset.Forward(_actor->Rotation, 0.42f);
+            _actor->SetDrawOffset(0, 0, 0);
+            _emoteOffset = Vector3.Zero;
+        }
+    }
 
     public bool IsPlayingEmote(ushort emoteid)
         => appearanceService.IsPlayingEmote(_actor, emoteid);

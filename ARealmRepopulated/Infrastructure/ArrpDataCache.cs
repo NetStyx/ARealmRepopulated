@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -5,6 +6,7 @@ using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ARealmRepopulated.Infrastructure;
 
@@ -56,7 +58,10 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     public ActionTimeline GetActionTimeline(ushort actionTimelineId)
         => _actionTimelineSheet.GetRow(actionTimelineId);
 
-    public Emote GetEmote(ushort emoteId)
+    public List<ActionTimeline> GetActionTimelines()
+        => [.. _actionTimelineSheet];
+
+    public Emote GetEmote(uint emoteId)
         => _emoteTypeSheet.GetRow(emoteId);
 
     public List<Emote> GetEmotes()
@@ -69,6 +74,20 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
 }
 
 public static class EmoteExtensions {
+
+    /// <summary>
+    /// There are emotes which have interactions with nearby layout objects, such as sitting on a chair or lying on a bed.
+    /// Notably: 
+    /// 0xD (Doze -> If a bed is near, prevents execution and instead plays 0x58)
+    /// 0x58 (Sleep -> If a bed is near, you lie on it)
+    /// 0x32 (Sit -> If a sitable position is near, you sit on it)
+    /// </summary>  
+    private static readonly Dictionary<uint, EmoteLayoutInteraction> LayoutInteractionOverrides = new() {
+        { 0xD, new EmoteLayoutInteraction(0xD, 0x58, LayoutTarget.Bed) },
+        { 0x58, new EmoteLayoutInteraction(0x58, 0x58, LayoutTarget.Bed) },
+        { 0x32, new EmoteLayoutInteraction(0x32, 0x32, LayoutTarget.Chair) }
+    };
+
     public static bool IsLooping(this Emote emote) {
         if (!emote.EmoteMode.IsValid)
             return false;
@@ -76,6 +95,25 @@ public static class EmoteExtensions {
         var emoteCondition = (CharacterModes)emote.EmoteMode.Value.ConditionMode;
         return emoteCondition == CharacterModes.EmoteLoop || emoteCondition == CharacterModes.InPositionLoop;
     }
+
+    public static bool InteractsWithLayout(this Emote emote)
+        => InteractsWithLayout(emote.RowId);
+
+    public static bool InteractsWithLayout(uint emoteId) {
+        return LayoutInteractionOverrides.ContainsKey(emoteId);
+    }
+
+    public static bool InteractsWithLayout(this Emote emote, [NotNullWhen(true)] out EmoteLayoutInteraction? layoutInteraction) {
+        if (LayoutInteractionOverrides.TryGetValue(emote.RowId, out var emoteOverride)) {
+            layoutInteraction = emoteOverride;
+            return true;
+        }
+
+        layoutInteraction = null;
+        return false;
+    }
+
+    public record EmoteLayoutInteraction(uint OriginalEmoteId, uint LayoutInteractionEmoteId, LayoutTarget LayoutObjectTarget);
 }
 
 public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {

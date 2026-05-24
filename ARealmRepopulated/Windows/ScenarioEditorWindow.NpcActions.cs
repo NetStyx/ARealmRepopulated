@@ -1,6 +1,8 @@
+using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -27,6 +29,10 @@ public partial class ScenarioEditorWindow {
             AddAction(new ScenarioNpcEmoteAction());
         }
 
+        if (ImGui.Selectable(loc["ScenarioEditor_ActorData_Actions_ATimeline_Short"])) {
+            AddAction(new ScenarioNpcTimelineAction());
+        }
+
         if (ImGui.Selectable(loc["ScenarioEditor_ActorData_Actions_ASpawn_Short"])) {
             AddAction(new ScenarioNpcSpawnAction());
         }
@@ -51,9 +57,6 @@ public partial class ScenarioEditorWindow {
             AddAction(new ScenarioNpcSyncAction());
         }
 
-        if (ImGui.Selectable(loc["ScenarioEditor_ActorData_Actions_ATimeline_Short"])) {
-            AddAction(new ScenarioNpcTimelineAction());
-        }
     }
 
     private void DrawCurrentActionBar() {
@@ -118,32 +121,92 @@ public partial class ScenarioEditorWindow {
     private unsafe void DrawTimelineAction(ScenarioNpcTimelineAction timelineAction) {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATimeline_Caption"]);
-        ImGui.TableNextColumn();
-
-        var timelineId = timelineAction.TimelineId;
-        if (ImGui.InputUShort("##scenarioNpcTimelineActionId", ref timelineId)) {
-            timelineAction.TimelineId = timelineId;
-        }
-
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.WandMagicSparkles)) {
+        ImGui.Separator();
+        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.WandMagicSparkles, loc["ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc"], new Vector2(100, 0))) {
             npcPicker.OpenPopup();
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_ATimeline_SelectHint"]);
+            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc_Desc"]);
 
         if (npcPicker.Popup(out var npc)) {
-            timelineAction.TimelineId = npc->Timeline.TimelineSequencer.GetSlotTimeline(0);
+
+            timelineAction.ActionSlots.Clear();
+            var timelineSequencer = npc->Timeline.TimelineSequencer;
+            foreach (var timelineId in timelineSequencer.TimelineIds) {
+                if (timelineId == 0)
+                    continue;
+
+                timelineAction.ActionSlots.Add(new TimelineActionSlot { TimelineId = timelineId });
+            }
         }
 
-        ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.TableNextColumn();
-        var resetLoop = timelineAction.ResetMode;
-        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Actions_ATimeline_ResetMode"]}##scenarioNpcTimelineActionResetMode", ref resetLoop)) {
-            timelineAction.ResetMode = resetLoop;
+        ImGui.Separator();
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+        using var child = ImRaii.Child("##scenarioNpcTimelineActionSlotsChild", new Vector2(0, -20));
+        if (!child.Success)
+            return;
+
+        using var table = ImRaii.Table("##scenarioNpcTimelineActionSlotTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.Borders);
+        if (!table.Success)
+            return;
+
+        ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableControlCol", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableActionCol", ImGuiTableColumnFlags.WidthFixed, 100);
+        ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableWarnCol", ImGuiTableColumnFlags.WidthStretch);
+
+        ImGui.TableSetupScrollFreeze(0, 1);
+        ImGui.TableHeadersRow();
+
+        ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus)) {
+                timelineAction.ActionSlots.Add(new TimelineActionSlot());
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_Desc"]);
+        });
+        ArrpGuiHelper.DrawCenteredHeaderCell(1, () => ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineId"]));
+        ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineKey"]));
+
+        for (var i = 0; i < timelineAction.ActionSlots.Count; i++) {
+            var slot = timelineAction.ActionSlots[i];
+
+            var slotTimeline = slot.TimelineId;
+
+            ImGui.TableNextRow();
+
+            ImGui.TableNextColumn();
+            if (ImGuiComponents.IconButton($"##scenarioNpcTimelineActionTimelineRemove{i}", FontAwesomeIcon.Trash)) {
+                timelineAction.ActionSlots.Remove(slot);
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot"]);
+
+            ImGui.TableNextColumn();
+            if (ImGui.InputUShort($"##scenarioNpcTimelineActionTimelineId{i}", ref slotTimeline, 0, 0)) {
+                slot.TimelineId = slotTimeline;
+            }
+
+            ImGui.SameLine();
+
+            timelinePicker.SetPopupName($"TimelinePicker{i}");
+            if (ImGuiComponents.IconButton($"##scenarioNpcTimelineActionTimelinePick{i}", FontAwesomeIcon.List)) {
+                timelinePicker.OpenPopup();
+            }
+
+            if (timelinePicker.Popup(out var pickedTimeline)) {
+                slot.TimelineId = (ushort)pickedTimeline.Value.RowId;
+            }
+
+            var timelineData = dataCache.GetActionTimeline(slotTimeline);
+
+            ImGui.TableNextColumn();
+            ImGui.Text($"{timelineData.Key}");
+
         }
+
     }
 
     private void DrawRotationAction(ScenarioNpcRotationAction rotationAction) {
@@ -231,7 +294,7 @@ public partial class ScenarioEditorWindow {
 
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_APath_AddPoint"]);
+            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Actions_APath_AddPoint_Desc"]);
 
         ImGui.TableNextColumn();
         ImGui.Separator();
@@ -363,6 +426,16 @@ public partial class ScenarioEditorWindow {
             var endloop = emoteAction.StayInEmotePose;
             if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Actions_AEmote_StayInPos"]}##scenarioNpcEmoteActionStayInPoseAfterEnd", ref endloop)) {
                 emoteAction.StayInEmotePose = endloop;
+            }
+        }
+
+        if (emoteRow.InteractsWithLayout()) {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
+            var interactWithLayout = emoteAction.InteractWithLayout;
+            if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Actions_AEmote_InteractWithLayout"]}##scenarioNpcEmoteActionInteractWithLayout", ref interactWithLayout)) {
+                emoteAction.InteractWithLayout = interactWithLayout;
             }
         }
 

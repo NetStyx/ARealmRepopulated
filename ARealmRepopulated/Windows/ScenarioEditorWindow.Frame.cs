@@ -33,6 +33,7 @@ public partial class ScenarioEditorWindow(
     ArrpEventService eventService,
     ArrpGuiEmotePicker emotePicker,
     ArrpGuiNpcPicker npcPicker,
+    ArrpGuiTimelinePicker timelinePicker,
     ArrpTranslation loc,
     FileDialogManager fileDialogManager,
     IObjectTable objectTable,

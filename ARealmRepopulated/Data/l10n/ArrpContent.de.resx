@@ -648,7 +648,7 @@
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Short" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Caption" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineId" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Desc" xml:space="preserve">
@@ -657,10 +657,28 @@
   <data name="ListWnd_Scenario_Header_Location_Scoped_Desc" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Actions_ATimeline_SelectHint" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc_Desc" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_ResetMode" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_InteractWithLayout" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineKey" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot" xml:space="preserve">
     <value>a</value>
   </data>
 </root>

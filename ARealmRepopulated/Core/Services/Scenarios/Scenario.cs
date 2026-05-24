@@ -219,21 +219,25 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             return;
 
         if ((action.Loop && !Actor.IsPlayingEmote(action.Emote)) || CurrentAction.CurrentDuration == 0f) {
-            Actor.PlayEmote(action.Emote);
+            Actor.PlayEmote(action.Emote, action.InteractWithLayout);
         }
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
         if (!action.Loop) {
             if (!Actor.IsPlayingEmote(action.Emote) || (Actor.IsLoopingEmote(action.Emote) && CurrentAction.IsDurationExeeded)) {
                 CurrentAction.IsFinished = true;
-                if (!action.StayInEmotePose)
+                if (!action.StayInEmotePose) {
+                    Actor.RestoreEmote();
                     Actor.ResetMode();
+                }
             }
         } else {
             if (CurrentAction.IsDurationExeeded) {
                 CurrentAction.IsFinished = true;
-                if (!action.StayInEmotePose)
+                if (!action.StayInEmotePose) {
+                    Actor.RestoreEmote();
                     Actor.ResetMode();
+                }
             }
         }
     }
@@ -248,17 +252,28 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
     private void AdvanceTimeline(ScenarioNpcTimelineAction action, TimeSpan delta) {
         if (CurrentAction.CurrentDuration == 0f) {
-            Actor.PlayTimeline(action.TimelineId);
+            Actor.SetMode(CharacterModes.None, 0);
+            foreach (var timeline in action.ActionSlots) {
+                Actor.PlayTimeline(timeline.TimelineId);
+            }
         }
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
 
-        if (CurrentAction.IsDurationExeeded) {
-            CurrentAction.IsFinished = true;
-            if (action.ResetMode) {
-                Actor.ResetMode();
+        if (CurrentAction.IsEndless) {
+            var isFinished = true;
+            foreach (var timeline in action.ActionSlots) {
+                if (Actor.IsPlayingTimeline(timeline.TimelineId)) {
+                    isFinished = false;
+                    break;
+                }
             }
+
+            CurrentAction.IsFinished = isFinished;
+        } else if (CurrentAction.IsDurationExeeded) {
+            CurrentAction.IsFinished = true;
         }
+
     }
 
     private void AdvancePathMovement(ScenarioNpcPathAction action, TimeSpan delta) {
@@ -270,7 +285,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         if (!CurrentAction.Pathfinder.IsUserReady) {
             var currentRotation = Actor.GetRotation();
-            var targetRotation = Actor.GetPosition().DirectionTo(action.Points.First().Point);
+            var targetRotation = PositionExtensions.DirectionTo(Actor.GetPosition(), action.Points.First().Point);
             if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
                 var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
                 var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);
@@ -302,7 +317,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
 
         var currentRotation = Actor.GetRotation();
-        var targetRotation = Actor.GetPosition().DirectionTo(action.TargetPosition);
+        var targetRotation = PositionExtensions.DirectionTo(Actor.GetPosition(), action.TargetPosition);
         if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
             var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
             var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);
@@ -360,11 +375,11 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     }
 
     private void AdvanceTime(TimeSpan delta) {
-        if (CurrentAction == null)
+        if (CurrentAction == null || CurrentAction.IsEndless)
             return;
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
-        if (CurrentAction.CurrentDuration > CurrentAction.TargetDuration)
+        if (CurrentAction.IsDurationExeeded)
             CurrentAction.IsFinished = true;
     }
 
@@ -393,14 +408,9 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
                 break;
 
-            case ScenarioNpcTimelineAction timeline:
+            case var t when t is ScenarioNpcTimelineAction || t is ScenarioNpcEmoteAction:
                 execution.IsInfinite = false;
-                execution.TargetDuration = timeline.Duration;
-                break;
-
-            case ScenarioNpcEmoteAction emote:
-                execution.IsInfinite = false;
-                execution.TargetDuration = emote.Duration;
+                execution.TargetDuration = t.Duration;
                 break;
 
             case ScenarioNpcMovementAction:
@@ -456,7 +466,10 @@ public class ScenarioNpcActionExecution {
 
     public bool IsDurationExeeded
         => TargetDuration > 0 && CurrentDuration > 0 && CurrentDuration > TargetDuration;
+    public bool IsEndless
+        => TargetDuration == 0;
 
+    //TODO: Remove and just check if IsEndless equals true
     public bool IsInfinite { get; set; } = true;
     public bool IsFinished { get; set; } = false;
 

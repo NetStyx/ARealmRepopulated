@@ -529,6 +529,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allow interaction with environment.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_AEmote_InteractWithLayout {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_AEmote_InteractWithLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loop emote for duration.
         /// </summary>
         public static string ScenarioEditor_ActorData_Actions_AEmote_Loop {
@@ -799,11 +808,38 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Timeline ID.
+        ///   Looks up a localized string similar to Add Timeline.
         /// </summary>
-        public static string ScenarioEditor_ActorData_Actions_ATimeline_Caption {
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot {
             get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Caption", resourceCulture);
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy NPC.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select the animation that is currently played by a nearby NPC..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Define another timeline that should be played in parallel when executing this action..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_Desc", resourceCulture);
             }
         }
         
@@ -817,6 +853,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove the timeline entry.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to End animation after finishing this action..
         /// </summary>
         public static string ScenarioEditor_ActorData_Actions_ATimeline_ResetMode {
@@ -826,20 +871,29 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select the animation that is currently played by a nearby NPC..
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Actions_ATimeline_SelectHint {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_SelectHint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Timeline.
         /// </summary>
         public static string ScenarioEditor_ActorData_Actions_ATimeline_Short {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timeline ID.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineId {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineKey {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineKey", resourceCulture);
             }
         }
         
