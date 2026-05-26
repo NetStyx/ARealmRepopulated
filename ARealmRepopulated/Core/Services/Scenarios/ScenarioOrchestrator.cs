@@ -160,13 +160,17 @@ public unsafe class ScenarioOrchestrator(
 
             }
             var scenarioNpcObject = serviceProvider.GetRequiredService<ScenarioNpc>();
-            scenarioNpcObject.ScenarioInstance = scenario.ScenarioInstance;
             scenarioNpcObject.Actor = npc;
             scenarioNpcObject.Id = scenarioNpcIndex;
             scenarioNpcObject.Name = scenarioNpc.Name;
+            scenarioNpcObject.Behavior = scenarioNpc.Behavior;
+            scenarioNpcObject.ScenarioInstance = scenario.ScenarioInstance;
 
             if (scenarioNpc.Actions.Count > 0) {
                 foreach (var npcAction in scenarioNpc.Actions) {
+                    if (!npcAction.Enabled)
+                        continue;
+
                     scenarioNpcObject.AddAction(npcAction);
                 }
             } else {

@@ -3,6 +3,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Common.Math;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ARealmRepopulated.Core.Services.LayoutWorld;
 
@@ -23,7 +24,7 @@ public unsafe class LayoutWorldService : IDisposable {
         _log = log;
     }
 
-    public bool CheckSnapableLayout(Character* character, float searchRange, LayoutTarget targetType, out Vector3 snapObjectPosition, out float snapObjectRotation) {
+    public bool CheckSnapableLayout(Character* character, float searchRange, LayoutTarget targetType, [NotNullWhen(true)] out SnapSearchResult? result) {
 
         var searchQuery = new SnapSearchQuery(character->Position, targetType, searchRange);
 
@@ -38,13 +39,11 @@ public unsafe class LayoutWorldService : IDisposable {
         }
 
         if (possibleCandidates.OrderBy(c => c.DistanceSquared).FirstOrDefault() is var closestSnapResult) {
-            snapObjectPosition = closestSnapResult.ObjectPosition;
-            snapObjectRotation = closestSnapResult.SnapFacing;
+            result = new SnapSearchResult { SnapPosition = closestSnapResult.ObjectPosition, SnapFacing = closestSnapResult.SnapFacing, LayoutInstance = (ILayoutInstance*)closestSnapResult.LayoutInstance };
             return true;
         }
 
-        snapObjectPosition = Vector3.Zero;
-        snapObjectRotation = 0f;
+        result = null;
         return false;
     }
 
@@ -95,7 +94,7 @@ public unsafe class LayoutWorldService : IDisposable {
         if (snap->Type != (byte)searchQuery.TargetType)
             return false;
 
-        candidate = new SnapLayoutCandidate(position, rotation, facing, snap->AllowedSideMask, snap->Type);
+        candidate = new SnapLayoutCandidate((nint)instance, position, rotation, facing, snap->AllowedSideMask, snap->Type);
         return true;
     }
 
@@ -122,7 +121,7 @@ public unsafe class LayoutWorldService : IDisposable {
             return false;
         }
 
-        result = new CalculatedSnapPosition(candidate.Position, candidate.Facing, best.SnapPosition, best.SnapFacing, best.Side, best.DistanceSquared);
+        result = new CalculatedSnapPosition(candidate.LayoutInstance, candidate.Position, candidate.Facing, best.SnapPosition, best.SnapFacing, best.Side, best.DistanceSquared);
         return true;
     }
 

@@ -7,6 +7,7 @@ using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
 using System.Diagnostics.CodeAnalysis;
+using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Infrastructure;
 
@@ -87,6 +88,19 @@ public static class EmoteExtensions {
         { 0x58, new EmoteLayoutInteraction(0x58, 0x58, LayoutTarget.Bed) },
         { 0x32, new EmoteLayoutInteraction(0x32, 0x32, LayoutTarget.Chair) }
     };
+
+    private static readonly Dictionary<uint, PoseType> EmotePoseType = new(){
+        { 0xD, PoseType.Doze },
+        { 0x58, PoseType.Doze },
+        { 0x32, PoseType.Sit }
+    };
+
+    public static PoseType GetPoseType(this Emote emote) {
+        if (EmotePoseType.TryGetValue(emote.RowId, out var poseType))
+            return poseType;
+
+        return PoseType.Idle;
+    }
 
     public static bool IsLooping(this Emote emote) {
         if (!emote.EmoteMode.IsValid)

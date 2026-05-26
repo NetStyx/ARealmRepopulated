@@ -2,6 +2,7 @@ using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Lumina.Excel.Sheets;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
@@ -124,26 +125,26 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
     }
 
-    public void PlayEmote(BattleChara* character, Emote emoteEntry) {
+    public void PlayEmote(BattleChara* character, Emote emoteEntry, ILayoutInstance* layoutInstance = null) {
 
-        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
+        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1, Layout = layoutInstance };
 
         if (character->EmoteController.IsEmoting()) {
             var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
-            if (currentEmote.HasCancelEmote && currentEmote.EmoteMode.Value.EndEmote.RowId == emoteEntry.RowId) {
-                // the requested emote is actually the cancel emote counterpart of the currently playing emote. So instead of requeing the same emote,
-                // we cancel the current one to prevent visual bugs of emote cancelling and restarting immediately
-                character->EmoteController.PlayEmote(0, &emoteOption);
-            } else {
-                if (emoteEntry.RowId != currentEmote.RowId) {
-                    character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
-                }
+            if (emoteEntry.RowId != currentEmote.RowId) {
+                character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
             }
         } else {
             character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
         }
 
+        character->EmoteController.CurrentPoseType = emoteEntry.GetPoseType();
         character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
+    }
+
+    public bool IsCancelEmote(BattleChara* character, Emote targetEmote) {
+        var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
+        return currentEmote.HasCancelEmote && currentEmote.EmoteMode.Value.EndEmote.RowId == targetEmote.RowId;
     }
 
     public void CancelEmote(BattleChara* character) {

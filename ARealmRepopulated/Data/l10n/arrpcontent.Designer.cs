@@ -1447,6 +1447,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Track player position.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Behavior_TrackPlayer {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Behavior_TrackPlayer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select the actor to edit here. You can define the actions for each actor individually..
         /// </summary>
         public static string ScenarioEditor_ActorData_Desc {

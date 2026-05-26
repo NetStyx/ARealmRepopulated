@@ -75,9 +75,8 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     public Guid ScenarioInstance { get; set; } = Guid.Empty;
     public int Id { get; set; } = 0;
     public string Name { get; set; } = "";
-
     public int CurrentScenarioSegment { get; set; } = 0;
-
+    public ScenarioNpcBehaviorData Behavior { get; set; } = new();
     public NpcActor Actor { get; set; } = null!;
 
     private List<ScenarioNpcAction> _actions { get; set; } = [];
@@ -163,10 +162,12 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             return;
         }
 
-        if (distance > _proximityLookDistance) {
-            Actor.LookAtNothing();
-        } else {
-            Actor.LookAt(player);
+        if (Behavior.TrackPlayer) {
+            if (distance > _proximityLookDistance) {
+                Actor.LookAtNothing();
+            } else {
+                Actor.LookAt(player);
+            }
         }
 
         CurrentAction.IsInProximity = true;
@@ -223,19 +224,20 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
+
+        var isLoopingEmote = Actor.IsLoopingEmote(action.Emote);
+
         if (!action.Loop) {
-            if (!Actor.IsPlayingEmote(action.Emote) || (Actor.IsLoopingEmote(action.Emote) && CurrentAction.IsDurationExeeded)) {
+            if (!Actor.IsPlayingEmote(action.Emote) || (isLoopingEmote && CurrentAction.IsDurationExeeded)) {
                 CurrentAction.IsFinished = true;
-                if (!action.StayInEmotePose) {
-                    Actor.RestoreEmote();
+                if (isLoopingEmote && !action.StayInEmotePose) {
                     Actor.ResetMode();
                 }
             }
         } else {
             if (CurrentAction.IsDurationExeeded) {
                 CurrentAction.IsFinished = true;
-                if (!action.StayInEmotePose) {
-                    Actor.RestoreEmote();
+                if (isLoopingEmote && !action.StayInEmotePose) {
                     Actor.ResetMode();
                 }
             }

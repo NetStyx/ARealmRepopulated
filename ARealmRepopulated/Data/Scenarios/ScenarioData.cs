@@ -47,7 +47,11 @@ public class ScenarioNpcData {
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
     public List<ScenarioNpcAction> Actions { get; set; } = [];
+    public ScenarioNpcBehaviorData Behavior { get; set; } = new();
+}
 
+public class ScenarioNpcBehaviorData {
+    public bool TrackPlayer { get; set; } = true;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$action")]
@@ -63,6 +67,10 @@ public class ScenarioNpcData {
 [JsonDerivedType(typeof(ScenarioNpcTimelineAction), typeDiscriminator: "Timeline")]
 public abstract class ScenarioNpcAction {
     internal int ScenarioKey { get; set; } = 0;
+
+    [DefaultValue(true)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Enabled { get; set; } = true;
 
     [DefaultValue("")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

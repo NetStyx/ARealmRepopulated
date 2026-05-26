@@ -143,15 +143,26 @@ public unsafe class NpcActor(
             if (layoutInteraction.LayoutInteractionEmoteId != emoteEntry.RowId)
                 emoteEntry = dataCache.GetEmote(layoutInteraction.LayoutInteractionEmoteId);
 
-            if (envService.CheckSnapableLayout((Character*)_actor, 2f, layoutInteraction.LayoutObjectTarget, out var target, out var yaw)) {
+            if (envService.CheckSnapableLayout((Character*)_actor, 2f, layoutInteraction.LayoutObjectTarget, out var snapResult)) {
 
                 if (layoutInteraction.LayoutObjectTarget == LayoutTarget.Chair) {
-                    _emoteOffset = new Vector3(target.X, _actor->Position.Y, target.Z);
+                    _emoteOffset = new Vector3(snapResult.SnapPosition.X, _actor->Position.Y, snapResult.SnapPosition.Z);
                 }
 
-                _actor->SetPosition(target.X, target.Y, target.Z);
-                _actor->SetRotation(yaw);
+                _actor->SetPosition(snapResult.SnapPosition.X, snapResult.SnapPosition.Y, snapResult.SnapPosition.Z);
+                _actor->SetRotation(snapResult.SnapFacing);
             }
+        }
+
+        // the only emote that currently has a cancel emote is the sitting emote. So.. if this returns true, it means we are executing sitting and standing up,
+        // which means we should also undo any snap chenanigans we did to the position of the npc.
+        if (appearanceService.IsCancelEmote(_actor, emoteEntry)) {
+            if (_emoteOffset != Vector3.Zero) {
+                _actor->Position = _emoteOffset.Forward(_actor->Rotation, 0.42f);
+                _actor->SetDrawOffset(0, 0, 0);
+                _emoteOffset = Vector3.Zero;
+            }
+            SetMode(CharacterModes.Normal);
         }
 
         appearanceService.PlayEmote(_actor, emoteEntry);
@@ -160,14 +171,6 @@ public unsafe class NpcActor(
         // but only if we're not trying to interact with a layout or if a previous action hasn't already changed the draw offset        
         if (!keepDrawOffset) {
             _actor->SetDrawOffset(0, 0, 0);
-        }
-    }
-
-    public void RestoreEmote() {
-        if (_emoteOffset != Vector3.Zero) {
-            _actor->Position = _emoteOffset.Forward(_actor->Rotation, 0.42f);
-            _actor->SetDrawOffset(0, 0, 0);
-            _emoteOffset = Vector3.Zero;
         }
     }
 

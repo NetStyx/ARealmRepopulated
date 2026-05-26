@@ -26,6 +26,11 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     private Vector3 _npcTrace = Vector3.Zero;
 
+    private static readonly ImGuiWindowFlags DebugOverlayWindowFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings |
+                                                            ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs |
+                                                            ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBackground |
+                                                            ImGuiWindowFlags.NoNav;
+
     private bool _isHooked = false;
 
     public void AddEditor(ScenarioEditorWindow scenarioObject) {
@@ -71,14 +76,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         ImGui.SetNextWindowPos(ImGui.GetMainViewport().Pos);
         ImGui.SetNextWindowSize(ImGui.GetMainViewport().Size);
 
-        if (!ImGui.Begin("###ScenarioDebugOverlay",
-            ImGuiWindowFlags.NoDecoration
-            | ImGuiWindowFlags.NoSavedSettings
-            | ImGuiWindowFlags.NoMove
-            | ImGuiWindowFlags.NoInputs
-            | ImGuiWindowFlags.NoFocusOnAppearing
-            | ImGuiWindowFlags.NoBackground
-            | ImGuiWindowFlags.NoNav)) {
+        if (!ImGui.Begin("###ScenarioDebugOverlay", DebugOverlayWindowFlags)) {
             ImGui.End();
             return;
         }
@@ -121,23 +119,23 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         var drawing = ImGui.GetWindowDrawList();
         foreach (var npcs in data.ScenarioObject.Npcs) {
 
+            var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
+            if (!renderStartPosition)
+                continue;
+
             if (data.SelectedScenarioNpc != npcs)
                 continue;
 
-            var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
-            if (renderStartPosition) {
-                drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
-                drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
+            drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
+            drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
 
-                //DrawGizmo(npcs);
-                if (data.SelectedScenarioNpcAction == null) {
-                    var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
-                    var npcRotation = npcs.Rotation;
+            if (data.SelectedScenarioNpcAction == null) {
+                var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
+                var npcRotation = npcs.Rotation;
 
-                    if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
-                        npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
-                        npcs.Rotation = npcRotation;
-                    }
+                if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
+                    npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
+                    npcs.Rotation = npcRotation;
                 }
 
             }

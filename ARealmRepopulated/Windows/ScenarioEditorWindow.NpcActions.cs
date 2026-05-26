@@ -153,7 +153,7 @@ public partial class ScenarioEditorWindow {
         if (!table.Success)
             return;
 
-        ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableControlCol", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableControlCol", ImGuiTableColumnFlags.WidthFixed, 30);
         ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableActionCol", ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("##scenarioNpcTimelineActionSlotsTableWarnCol", ImGuiTableColumnFlags.WidthStretch);
 

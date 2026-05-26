@@ -22,6 +22,12 @@ public readonly record struct SnapSearchQuery(
     float SearchRadius
 );
 
+public unsafe class SnapSearchResult {
+    public Vector3 SnapPosition { get; init; }
+    public float SnapFacing { get; init; }
+    public ILayoutInstance* LayoutInstance { get; init; }
+}
+
 public readonly record struct SnapSideChoice(
     SnapSideMask Side = SnapSideMask.None,
     Vector3 SnapPosition = default,
@@ -30,6 +36,7 @@ public readonly record struct SnapSideChoice(
 );
 
 public readonly record struct SnapLayoutCandidate(
+    nint LayoutInstance,
     Vector3 Position,
     Quaternion Rotation,
     float Facing,
@@ -38,6 +45,7 @@ public readonly record struct SnapLayoutCandidate(
 );
 
 public readonly record struct CalculatedSnapPosition(
+    nint LayoutInstance,
     Vector3 ObjectPosition,
     float ObjectFacing,
     Vector3 SnapPosition,

@@ -188,6 +188,13 @@ public partial class ScenarioEditorWindow {
         if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"]}##npcAppearanceEditorSetupHideHeadgear", ref hideHeadgear)) {
             SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
         }
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        var trackPlayer = SelectedScenarioNpc.Behavior.TrackPlayer;
+        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Behavior_TrackPlayer"]}##npcBehaviorEditorSetupTrackPlayer", ref trackPlayer)) {
+            SelectedScenarioNpc.Behavior.TrackPlayer = trackPlayer;
+        }
     }
 
     private void DrawNpcCustomizeAppearanceInfo() {

@@ -574,9 +574,14 @@ public partial class ScenarioEditorWindow(
                         npcActionShortName += $" [{syncActionCount}]";
                     }
 
-                    if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected)) {
+                    ImGui.PushStyleColor(ImGuiCol.Text, npcAction.Enabled ? ImGuiColors.DalamudWhite : ImGuiColors.DalamudGrey2);
+                    if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected, ImGuiSelectableFlags.AllowDoubleClick)) {
+                        if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left)) {
+                            npcAction.Enabled = !npcAction.Enabled;
+                        }
                         ResetSelectedAction(npcAction);
                     }
+                    ImGui.PopStyleColor();
 
                     if (npcAction is ScenarioNpcSyncAction) {
                         ImGui.Separator();
