@@ -106,10 +106,10 @@ public unsafe class NpcActor(
     }
 
     public void SetRotationToward(Vector3 target)
-        => SetRotation(PositionExtensions.DirectionTo(_actor->Position, target));
+        => SetRotation(_actor->Position.DirectionTo(target));
 
     public void SetRotationToward(GameObject* target)
-        => SetRotation(PositionExtensions.DirectionTo(_actor->Position, target->Position));
+        => SetRotation(_actor->Position.DirectionTo(target->Position));
 
     public float GetDistanceTo(GameObject* target)
         => GetDistanceTo(target->Position);

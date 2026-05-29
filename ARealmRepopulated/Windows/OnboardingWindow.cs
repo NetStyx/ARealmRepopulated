@@ -111,7 +111,7 @@ public class OnboardingWindow(
         var playerYaw = objects.LocalPlayer.Rotation;
 
         var npcPos = playerPos.Forward(playerYaw, 1.5f);
-        var npcYaw = PositionExtensions.DirectionTo(npcPos, playerPos);
+        var npcYaw = npcPos.DirectionTo(playerPos);
 
         var scenario = new ScenarioData { Description = loc["OnboardingWnd_Scenario_Desc"], Title = loc["OnboardingWnd_Scenario_Title"], Looping = true, LoopDelay = 5 };
         eventService.CurrentLocation.UpdateScenarioLocation(scenario.Location);

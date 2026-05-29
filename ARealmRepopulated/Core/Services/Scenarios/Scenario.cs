@@ -287,7 +287,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         if (!CurrentAction.Pathfinder.IsUserReady) {
             var currentRotation = Actor.GetRotation();
-            var targetRotation = PositionExtensions.DirectionTo(Actor.GetPosition(), action.Points.First().Point);
+            var targetRotation = Actor.GetPosition().DirectionTo(action.Points.First().Point);
             if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
                 var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
                 var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);
@@ -319,7 +319,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
 
         var currentRotation = Actor.GetRotation();
-        var targetRotation = PositionExtensions.DirectionTo(Actor.GetPosition(), action.TargetPosition);
+        var targetRotation = Actor.GetPosition().DirectionTo(action.TargetPosition);
         if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
             var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
             var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);

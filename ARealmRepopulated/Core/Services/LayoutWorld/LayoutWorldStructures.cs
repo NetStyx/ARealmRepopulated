@@ -8,10 +8,10 @@ namespace ARealmRepopulated.Core.Services.LayoutWorld;
 public enum SnapSideMask : byte {
     None = 0,
 
-    Base = 1 << 0,       // 1, object facing
-    Right = 1 << 1,      // 2, object facing + 90°
-    Opposite = 1 << 2,   // 4, object facing + 180°
-    Left = 1 << 3,       // 8, object facing - 90°
+    Base = 1 << 0,       // 1, object rotation
+    Right = 1 << 1,      // 2, object rotation + 90°
+    Opposite = 1 << 2,   // 4, object rotation + 180°
+    Left = 1 << 3,       // 8, object rotation - 90°
 
     All = Base | Right | Opposite | Left,
 }
@@ -28,30 +28,25 @@ public unsafe class SnapSearchResult {
     public ILayoutInstance* LayoutInstance { get; init; }
 }
 
-public readonly record struct SnapSideChoice(
-    SnapSideMask Side = SnapSideMask.None,
-    Vector3 SnapPosition = default,
-    float SnapFacing = 0f,
-    float DistanceSquared = 0f
-);
-
-public readonly record struct SnapLayoutCandidate(
+// Unified snap position structure combining layout candidate and calculated snap data
+public readonly record struct SnapPosition(
     nint LayoutInstance,
-    Vector3 Position,
-    Quaternion Rotation,
-    float Facing,
+    Vector3 ObjectPosition,
+    float ObjectFacing,
+    Vector3 CalculatedSnapPosition,
+    float CalculatedSnapFacing,
+    SnapSideMask SelectedSide,
+    float DistanceSquared,
     SnapSideMask AllowedSideMask,
     byte CandidateType
 );
 
-public readonly record struct CalculatedSnapPosition(
-    nint LayoutInstance,
-    Vector3 ObjectPosition,
-    float ObjectFacing,
-    Vector3 SnapPosition,
-    float SnapFacing,
-    SnapSideMask SideMask,
-    float DistanceSquared
+// Internal intermediate result for side evaluation during calculation
+internal readonly record struct SnapSideChoice(
+    SnapSideMask Side = SnapSideMask.None,
+    Vector3 SnapPosition = default,
+    float SnapFacing = 0f,
+    float DistanceSquared = 0f
 );
 
 // FUN_140e10980:

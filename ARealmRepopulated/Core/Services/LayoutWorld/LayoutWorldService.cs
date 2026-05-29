@@ -31,7 +31,7 @@ public unsafe class LayoutWorldService : IDisposable {
         var snapCandidates = BuildSnapCandidateList(FFXIVClientStructs.FFXIV.Client.LayoutEngine.LayoutWorld.Instance()->ActiveLayout, searchQuery);
         snapCandidates.AddRange(BuildSnapCandidateList(FFXIVClientStructs.FFXIV.Client.LayoutEngine.LayoutWorld.Instance()->GlobalLayout, searchQuery));
 
-        var possibleCandidates = new List<CalculatedSnapPosition>();
+        var possibleCandidates = new List<SnapPosition>();
         foreach (var candidate in snapCandidates) {
             if (TryCalculateSnapPosition(candidate, character->Position, out var snapResult)) {
                 possibleCandidates.Add(snapResult);
@@ -39,7 +39,7 @@ public unsafe class LayoutWorldService : IDisposable {
         }
 
         if (possibleCandidates.OrderBy(c => c.DistanceSquared).FirstOrDefault() is var closestSnapResult) {
-            result = new SnapSearchResult { SnapPosition = closestSnapResult.ObjectPosition, SnapFacing = closestSnapResult.SnapFacing, LayoutInstance = (ILayoutInstance*)closestSnapResult.LayoutInstance };
+            result = new SnapSearchResult { SnapPosition = closestSnapResult.ObjectPosition, SnapFacing = closestSnapResult.CalculatedSnapFacing, LayoutInstance = (ILayoutInstance*)closestSnapResult.LayoutInstance };
             return true;
         }
 
@@ -47,19 +47,19 @@ public unsafe class LayoutWorldService : IDisposable {
         return false;
     }
 
-    private List<SnapLayoutCandidate> BuildSnapCandidateList(LayoutManager* layoutManager, SnapSearchQuery searchQuery) {
+    private List<SnapPosition> BuildSnapCandidateList(LayoutManager* layoutManager, SnapSearchQuery searchQuery) {
 
         var chairMarkerInstances = layoutManager->InstancesByType[InstanceType.ChairMarker];
         if (chairMarkerInstances == null)
             return [];
 
-        var result = new List<SnapLayoutCandidate>();
+        var result = new List<SnapPosition>();
         foreach (var (id, instance) in *chairMarkerInstances.Value) {
             var layoutInstance = instance.Value;
             if (layoutInstance == null)
                 continue;
 
-            if (!TryReadSnapLayoutCandidate(layoutInstance, searchQuery, out var candidate))
+            if (!TryReadSnapPosition(layoutInstance, searchQuery, out var candidate))
                 continue;
 
             result.Add(candidate);
@@ -68,7 +68,7 @@ public unsafe class LayoutWorldService : IDisposable {
         return result;
     }
 
-    private bool TryReadSnapLayoutCandidate(ILayoutInstance* instance, SnapSearchQuery searchQuery, out SnapLayoutCandidate candidate) {
+    private bool TryReadSnapPosition(ILayoutInstance* instance, SnapSearchQuery searchQuery, out SnapPosition candidate) {
         candidate = default;
 
         if (instance == null)
@@ -94,11 +94,11 @@ public unsafe class LayoutWorldService : IDisposable {
         if (snap->Type != (byte)searchQuery.TargetType)
             return false;
 
-        candidate = new SnapLayoutCandidate((nint)instance, position, rotation, facing, snap->AllowedSideMask, snap->Type);
+        candidate = new SnapPosition((nint)instance, position, facing, default, 0f, SnapSideMask.None, float.MaxValue, snap->AllowedSideMask, snap->Type);
         return true;
     }
 
-    public static bool TryCalculateSnapPosition(SnapLayoutCandidate candidate, Vector3 npcPosition, out CalculatedSnapPosition result) {
+    public static bool TryCalculateSnapPosition(SnapPosition candidate, Vector3 npcPosition, out SnapPosition result) {
         ReadOnlySpan<SnapSideMask> sides = [SnapSideMask.Base, SnapSideMask.Right, SnapSideMask.Opposite, SnapSideMask.Left];
 
         var best = new SnapSideChoice(DistanceSquared: float.MaxValue);
@@ -106,8 +106,8 @@ public unsafe class LayoutWorldService : IDisposable {
             if ((candidate.AllowedSideMask & side) == 0)
                 continue;
 
-            var snapFacing = FacingForSide(candidate.Facing, side);
-            var snapPosition = candidate.Position.Forward(snapFacing, SnapOffsets[0]);
+            var snapFacing = FacingForSide(candidate.ObjectFacing, side);
+            var snapPosition = candidate.ObjectPosition.Forward(snapFacing, SnapOffsets[0]);
 
             var distanceSq = npcPosition.DistanceSquaredTo(snapPosition);
             if (distanceSq >= best.DistanceSquared)
@@ -121,7 +121,12 @@ public unsafe class LayoutWorldService : IDisposable {
             return false;
         }
 
-        result = new CalculatedSnapPosition(candidate.LayoutInstance, candidate.Position, candidate.Facing, best.SnapPosition, best.SnapFacing, best.Side, best.DistanceSquared);
+        result = candidate with {
+            CalculatedSnapPosition = best.SnapPosition,
+            CalculatedSnapFacing = best.SnapFacing,
+            SelectedSide = best.Side,
+            DistanceSquared = best.DistanceSquared
+        };
         return true;
     }
 

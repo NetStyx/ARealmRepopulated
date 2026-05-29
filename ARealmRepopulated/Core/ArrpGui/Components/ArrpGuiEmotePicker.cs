@@ -48,8 +48,9 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
 
         var emoteSheet = dataCache.GetEmotes();
         var emoteFilter = string.IsNullOrWhiteSpace(_emoteSearch) ? emoteSheet : emoteSheet.Where(e =>
-            e.Name.ToString().Contains(_emoteSearch, StringComparison.InvariantCultureIgnoreCase)
-            || (e.TextCommand.ToString()?.Contains(_emoteSearch, StringComparison.InvariantCultureIgnoreCase) ?? false)
+            e.Name.ToString().Contains(_emoteSearch, StringComparison.OrdinalIgnoreCase)
+            || e.RowId.ToString().Contains(_emoteSearch, StringComparison.OrdinalIgnoreCase)
+            || (e.TextCommand.ToString()?.Contains(_emoteSearch, StringComparison.OrdinalIgnoreCase) ?? false)
         );
 
         emoteFilter = emoteFilter.OrderBy(e => e.EmoteCategory.RowId);
@@ -65,8 +66,9 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
 
             var iconId = emoteRow.Icon;
             if (iconId == 0) {
-                iconId = emoteFilter.Where(e => e.Icon > 0 && e.Name == emoteRow.Name).FirstOrDefault().Icon;
-                if (iconId != 0) {
+                var alternateEmote = dataCache.GetEmotes().FirstOrDefault(e => e.Icon > 0 && e.Name == emoteName);
+                if (alternateEmote.RowId != 0 && alternateEmote.Icon != 0) {
+                    iconId = alternateEmote.Icon;
                     emoteName += " (Alt.)";
                 }
             }
@@ -82,7 +84,7 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
             }
 
             ImGui.TableNextColumn();
-            ImGui.Text(emoteCategory);
+            ImGui.Text($"{emoteCategory}\n#{emoteRow.RowId}");
 
             ImGui.TableNextColumn();
             if (ImGui.Selectable($"{emoteName}\n{emoteCommand}##emotePicker{emoteRow.RowId}", false, ImGuiSelectableFlags.SpanAllColumns, new Vector2(0, 32))) {

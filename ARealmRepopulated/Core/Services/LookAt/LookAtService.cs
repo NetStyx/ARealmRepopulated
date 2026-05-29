@@ -9,6 +9,16 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.LookAt;
 
+/// <summary>
+/// Provides functionality to set the look-at target of client objects without having to set a hard-/ or soft-target.
+/// </summary>
+/// <remarks>
+/// - The service hooks into CharacterLookAtController::UpdateLookAt and checks if the character is set to look at something. 
+/// If not, it checks if the character is in the _currentlyLookingAt dictionary and if so, it sets the look-at target to the target stored in the dictionary.
+/// - The service also hooks into CharacterLookAtController::ResetLookAt and prevents the game from resetting the look-at target if the character is in the _currentlyLookingAt dictionary.
+/// 
+/// I do that because it seems like setting the target on these entities have some interactions with the player object ... which i want to avoid at all cost.
+/// </remarks>
 public unsafe class LookAtService : IDisposable {
 
     private readonly IPluginLog _log;

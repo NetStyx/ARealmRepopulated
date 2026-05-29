@@ -9,8 +9,7 @@ public static class RotationExtension {
         => MathF.Abs(currentRotation - targetRotation) <= epsilon;
 
     public static float RotateToward(float currentRotation, float targetRotation, float distance) {
-        var deltaRotation = targetRotation - currentRotation;
-        deltaRotation = NormalizeRadians(deltaRotation);
+        var deltaRotation = NormalizeRadians(targetRotation - currentRotation);
 
         if (MathF.Abs(deltaRotation) <= distance)
             return targetRotation;
