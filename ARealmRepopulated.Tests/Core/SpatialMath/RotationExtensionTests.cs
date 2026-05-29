@@ -52,7 +52,7 @@ public class RotationExtensionTests {
     public void AngleTowards_ReturnsCorrectAngle() {
         var from = new Vector3(0f, 0f, 0f);
         var to = new Vector3(1f, 0f, 0f);
-        var angle = from.AngleTowards(to);
+        var angle = from.DirectionTo(to);
         // atan2(1, 0) = PI/2
         angle.ShouldBe(MathF.PI / 2f, 0.0001f);
     }
@@ -61,7 +61,7 @@ public class RotationExtensionTests {
     public void AngleTowards_PositiveZ_ReturnsZero() {
         var from = new Vector3(0f, 0f, 0f);
         var to = new Vector3(0f, 0f, 1f);
-        var angle = from.AngleTowards(to);
+        var angle = from.DirectionTo(to);
         // atan2(0, 1) = 0
         angle.ShouldBe(0f, 0.0001f);
     }

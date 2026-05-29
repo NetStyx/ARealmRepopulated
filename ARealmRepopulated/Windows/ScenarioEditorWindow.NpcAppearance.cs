@@ -64,18 +64,19 @@ public partial class ScenarioEditorWindow {
         }
     }
 
-    private void DrawNpcBaseAppearanceInfo() {
+    private unsafe void DrawNpcBaseAppearanceInfo() {
         if (SelectedScenarioNpc == null)
             return;
 
         ImGui.TextDisabled(loc["ScenarioEditor_ActorData_Appearance_Setup_Desc"]);
 
         if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.PeoplePulling, loc["ScenarioEditor_ActorData_Appearance_Setup_PickNpc"], new Vector2(200, 0))) {
-            ImGui.OpenPopup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup");
+            npcPicker.OpenPopup();
         }
-        using (var popup = ImRaii.Popup("ArrpScenarioNpcGeneralEditAppearanceNpcPickerPopup")) {
-            if (popup.Success) {
-                DrawNpcPickerPopup();
+        if (npcPicker.Popup(out var npc)) {
+            var currentTargetAppearance = ExportCurrentCharacter(npc);
+            if (currentTargetAppearance != null) {
+                SelectedScenarioNpc.Appearance = currentTargetAppearance;
             }
         }
 
@@ -186,6 +187,13 @@ public partial class ScenarioEditorWindow {
         ImGui.TableNextColumn();
         if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"]}##npcAppearanceEditorSetupHideHeadgear", ref hideHeadgear)) {
             SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
+        }
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        var trackPlayer = SelectedScenarioNpc.Behavior.TrackPlayer;
+        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Behavior_TrackPlayer"]}##npcBehaviorEditorSetupTrackPlayer", ref trackPlayer)) {
+            SelectedScenarioNpc.Behavior.TrackPlayer = trackPlayer;
         }
     }
 

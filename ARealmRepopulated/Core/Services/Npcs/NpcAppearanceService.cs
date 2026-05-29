@@ -2,7 +2,10 @@ using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using Lumina.Excel.Sheets;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
+using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
@@ -122,62 +125,38 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
     }
 
-    public void PlayEmote(BattleChara* character, ushort emote) {
+    public void PlayEmote(BattleChara* character, Emote emoteEntry, ILayoutInstance* layoutInstance = null) {
 
-        var emoteEntry = dataCache.GetEmote(emote);
+        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1, Layout = layoutInstance };
 
-        if (character->Mode == CharacterModes.InPositionLoop) {
-            var timelineId = (ushort)emoteEntry.ActionTimeline[2].RowId;
-            if (timelineId != 0) {
-
-                if (emoteEntry.EmoteMode.Value.EndEmote.RowId == emote) {
-                    character->SetMode(CharacterModes.Normal, 0);
-                }
-
-                RunEmote(character, emoteEntry);
+        if (character->EmoteController.IsEmoting()) {
+            var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
+            if (emoteEntry.RowId != currentEmote.RowId) {
+                character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
             }
         } else {
-            if (character->Timeline.TimelineSequencer.TimelineIds[0] != emoteEntry.ActionTimeline[0].RowId) {
-                if (emoteEntry.EmoteMode.Value.ConditionMode != 0) {
-                    character->SetMode((CharacterModes)emoteEntry.EmoteMode.Value.ConditionMode, (byte)emoteEntry.EmoteMode.RowId);
-                }
-            }
-
-            RunEmote(character, emoteEntry);
-
-            // we control the execution position manually, so reset any draw offset applied by emote
-            if (character->DrawOffset != FFXIVClientStructs.FFXIV.Common.Math.Vector3.Zero) {
-                character->SetDrawOffset(0, 0, 0);
-            }
+            character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
         }
-    }
 
-    private void RunEmote(BattleChara* character, Lumina.Excel.Sheets.Emote emoteEntry) {
-        character->Timeline.TimelineSequencer.PlayTimeline((ushort)emoteEntry.ActionTimeline[0].RowId);
+        character->EmoteController.CurrentPoseType = emoteEntry.GetPoseType();
         character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
     }
 
-    public bool IsPlayingEmote(BattleChara* character, ushort emoteId) {
-        var emote = dataCache.GetEmote(emoteId);
-        var emoteTimelineIds = new List<uint>();
-        foreach (var emoteTimeline in emote.ActionTimeline) {
-            if (emoteTimeline.Value.RowId == 0)
-                continue;
-
-            emoteTimelineIds.Add(emoteTimeline.Value.RowId);
-        }
-
-        var timelineSequencer = character->Timeline.TimelineSequencer;
-        for (var timelineIndex = 0; timelineIndex < timelineSequencer.TimelineIds.Length; timelineIndex++) {
-            if (timelineSequencer.TimelineIds[timelineIndex] == 0)
-                continue;
-
-            if (emoteTimelineIds.Contains(timelineSequencer.TimelineIds[timelineIndex]))
-                return true;
-
-        }
-        return false;
+    public bool IsCancelEmote(BattleChara* character, Emote targetEmote) {
+        var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
+        return currentEmote.HasCancelEmote && currentEmote.EmoteMode.Value.EndEmote.RowId == targetEmote.RowId;
     }
+
+    public void CancelEmote(BattleChara* character) {
+        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
+        character->EmoteController.PlayEmote(0, &emoteOption);
+    }
+
+    public bool IsPlayingEmote(BattleChara* character, ushort emoteId)
+        => character->EmoteController.EmoteId == emoteId;
+
+    public bool IsPlayingEmote(BattleChara* character)
+        => character->EmoteController.EmoteId != 0;
 
     public bool IsRepeatingEmote(ushort emote) {
         var conditionMode = (CharacterModes)dataCache.GetEmote(emote).EmoteMode.Value.ConditionMode;
@@ -186,35 +165,36 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
         log.Verbose($"Playing timeline {timelineId} on character {character->GetName()}");
-        //if (character->Timeline.TimelineSequencer.TimelineIds[0] != timelineId)
-        //{
-        //var actionTimeline = dataManager.GetExcelSheet<ActionTimeline>();
-        //var timelineData = actionTimeline.GetRow(timelineId);
-
-        //character->Timeline.PlayActionTimeline
-
-        //character->SetMode(CharacterModes.Normal, timelineData.ActionTimelineIDMode);
-
-        //character->Timeline.PlayActionTimeline(, timelineData.);
-
-        //}
+        character->Timeline.PlayActionTimeline(timelineId);
     }
 
-    public void SetAnimation(BattleChara* character, Animations animation) {
+    public bool IsPlayingTimeline(BattleChara* character, ushort timelineId)
+        => character->Timeline.TimelineSequencer.TimelineIds.Contains(timelineId);
 
-        var animationCode = (ushort)animation;
+    public void SetMovementAnimation(BattleChara* character, Animations animation) {
+
         if (character->Timeline.IsWeaponDrawn) {
             if (animation == Animations.Idle)
-                animationCode = (ushort)Animations.IdleArmed;
+                animation = Animations.IdleArmed;
             if (animation == Animations.Walking)
-                animationCode = (ushort)Animations.WalkingArmed;
+                animation = Animations.WalkingArmed;
             if (animation == Animations.Running)
-                animationCode = (ushort)Animations.RunningArmed;
+                animation = Animations.RunningArmed;
         }
 
-        if (character->Timeline.BaseOverride != animationCode) {
-            character->SetMode(CharacterModes.AnimLock, 0);
-            character->Timeline.BaseOverride = animationCode;
+        var animationCode = (ushort)animation;
+        if (animation == Animations.Idle || animation == Animations.IdleArmed) {
+            if (character->Mode != CharacterModes.Normal) {
+                log.Verbose($"Resetting character {character->GetName()} to normal mode");
+                character->SetMode(CharacterModes.Normal, 0);
+                character->Timeline.BaseOverride = 0;
+            }
+        } else {
+            if (character->Timeline.BaseOverride != animationCode) {
+                log.Verbose($"Locking character {character->GetName()} to animation {animation}");
+                character->SetMode(CharacterModes.AnimLock, 0);
+                character->Timeline.BaseOverride = animationCode;
+            }
         }
     }
 

@@ -1,3 +1,4 @@
+using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
@@ -11,7 +12,7 @@ using CameraManager = FFXIVClientStructs.FFXIV.Client.Game.Control.CameraManager
 
 namespace ARealmRepopulated.Windows;
 
-public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IClientState clientState, IGameGui gui) : IDisposable {
+public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable objectTable, IClientState clientState, IGameGui gui, IPluginLog log, PluginConfig _config) : IDisposable {
 
     private readonly Lock _scenarioAccessLock = new();
     private readonly List<ScenarioEditorWindow> _openEditors = [];
@@ -25,35 +26,57 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
     private Vector3 _npcTrace = Vector3.Zero;
 
+    private static readonly ImGuiWindowFlags DebugOverlayWindowFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoSavedSettings |
+                                                            ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoInputs |
+                                                            ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBackground |
+                                                            ImGuiWindowFlags.NoNav;
+
+    private bool _isHooked = false;
+
     public void AddEditor(ScenarioEditorWindow scenarioObject) {
         using var _ = _scenarioAccessLock.EnterScope();
         _openEditors.Add(scenarioObject);
+
+        ValidateHook();
     }
 
     public void RemoveEditor(ScenarioEditorWindow scenarioObject) {
         using var _ = _scenarioAccessLock.EnterScope();
         _openEditors.Remove(scenarioObject);
+
+        ValidateHook();
     }
 
-    public void Hook()
-        => pluginInterface.UiBuilder.Draw += Draw;
+    public void ValidateHook() {
+        using var _ = _scenarioAccessLock.EnterScope();
 
-    public void Unhook()
-        => pluginInterface.UiBuilder.Draw -= Draw;
+        if (_openEditors.Count == 0 || !_config.EnableScenarioDebugOverlay) {
+
+            if (!_isHooked)
+                return;
+
+            log.Information("Unhooking debug overlay from draw event.");
+            pluginInterface.UiBuilder.Draw -= Draw;
+            _isHooked = false;
+
+        } else {
+
+            if (_isHooked)
+                return;
+
+            log.Information("Hooking debug overlay to draw event.");
+            pluginInterface.UiBuilder.Draw += Draw;
+            _isHooked = true;
+
+        }
+    }
 
     private void Draw() {
         ImGuiHelpers.ForceNextWindowMainViewport();
         ImGui.SetNextWindowPos(ImGui.GetMainViewport().Pos);
         ImGui.SetNextWindowSize(ImGui.GetMainViewport().Size);
 
-        if (!ImGui.Begin("###ScenarioDebugOverlay",
-            ImGuiWindowFlags.NoDecoration
-            | ImGuiWindowFlags.NoSavedSettings
-            | ImGuiWindowFlags.NoMove
-            | ImGuiWindowFlags.NoInputs
-            | ImGuiWindowFlags.NoFocusOnAppearing
-            | ImGuiWindowFlags.NoBackground
-            | ImGuiWindowFlags.NoNav)) {
+        if (!ImGui.Begin("###ScenarioDebugOverlay", DebugOverlayWindowFlags)) {
             ImGui.End();
             return;
         }
@@ -96,23 +119,23 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         var drawing = ImGui.GetWindowDrawList();
         foreach (var npcs in data.ScenarioObject.Npcs) {
 
+            var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
+            if (!renderStartPosition)
+                continue;
+
             if (data.SelectedScenarioNpc != npcs)
                 continue;
 
-            var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
-            if (renderStartPosition) {
-                drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
-                drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
+            drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
+            drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
 
-                //DrawGizmo(npcs);
-                if (data.SelectedScenarioNpcAction == null) {
-                    var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
-                    var npcRotation = npcs.Rotation;
+            if (data.SelectedScenarioNpcAction == null) {
+                var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
+                var npcRotation = npcs.Rotation;
 
-                    if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
-                        npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
-                        npcs.Rotation = npcRotation;
-                    }
+                if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
+                    npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
+                    npcs.Rotation = npcRotation;
                 }
 
             }

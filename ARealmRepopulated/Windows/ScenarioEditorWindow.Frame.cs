@@ -9,7 +9,6 @@ using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -33,6 +32,8 @@ public partial class ScenarioEditorWindow(
     ArrpCharacterCreationData characterCreationData,
     ArrpEventService eventService,
     ArrpGuiEmotePicker emotePicker,
+    ArrpGuiNpcPicker npcPicker,
+    ArrpGuiTimelinePicker timelinePicker,
     ArrpTranslation loc,
     FileDialogManager fileDialogManager,
     IObjectTable objectTable,
@@ -111,6 +112,11 @@ public partial class ScenarioEditorWindow(
             shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ASync_Short"],
             help: (a) => loc["ScenarioEditor_ActorData_Actions_ASync_Desc"],
             draw: DrawSyncAction
+        );
+        _actionUiRegistry.Register<ScenarioNpcTimelineAction>(
+            shortName: (a) => loc["ScenarioEditor_ActorData_Actions_ATimeline_Short"],
+            help: (a) => loc["ScenarioEditor_ActorData_Actions_ATimeline_Desc"],
+            draw: DrawTimelineAction
         );
 
     }
@@ -497,53 +503,6 @@ public partial class ScenarioEditorWindow(
         DrawNpcAppearanceInfo();
     }
 
-    private unsafe void DrawNpcPickerPopup() {
-        using var t = ImRaii.Table("###ArrpNpcInspectorListTable", 1, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersOuter, new Vector2(200, -1));
-        if (!t.Success)
-            return;
-
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, -1);
-
-        var selectionFound = false;
-        var npcObjectList = objectTable.Where(o
-            => (o.ObjectKind == ObjectKind.BattleNpc || o.ObjectKind == ObjectKind.EventNpc)).ToList();
-        foreach (var npcObject in npcObjectList) {
-
-            var characterRef = (Character*)npcObject.Address;
-            if (characterRef->DrawObject == null) {
-                continue;
-            }
-
-            if (objectTable.LocalPlayer != null && Vector3.Distance(objectTable.LocalPlayer.Position, npcObject.Position) > 10) {
-                continue;
-            }
-
-            var npcName = npcObject.Name.ToString();
-            if (string.IsNullOrWhiteSpace(npcName)) {
-                npcName = $"Unnamed NPC {npcObject.ObjectIndex}";
-            }
-
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-
-            if (ImGui.Selectable($"{npcName}###ArrpNpcInspectorSelectionName{npcObject.Address}", false, ImGuiSelectableFlags.None)) {
-                var currentTargetAppearance = ExportCurrentCharacter(characterRef);
-                if (currentTargetAppearance != null) {
-                    SelectedScenarioNpc?.Appearance = currentTargetAppearance;
-                }
-            } else if (ImGui.IsItemHovered()) {
-                selectionFound = true;
-                debugOverlay.SetNpcTrace(npcObject.Position);
-            }
-
-        }
-
-        if (!selectionFound) {
-            debugOverlay.ClearNpcTrace();
-        }
-
-    }
-
     private void DrawNpcActionTab() {
         if (SelectedScenarioNpc == null)
             return;
@@ -615,9 +574,14 @@ public partial class ScenarioEditorWindow(
                         npcActionShortName += $" [{syncActionCount}]";
                     }
 
-                    if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected)) {
+                    ImGui.PushStyleColor(ImGuiCol.Text, npcAction.Enabled ? ImGuiColors.DalamudWhite : ImGuiColors.DalamudGrey2);
+                    if (ImGui.Selectable($"{npcActionShortName}##scenarioEditorSelectedNpc{actionIndex}", npcActionSelected, ImGuiSelectableFlags.AllowDoubleClick)) {
+                        if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left)) {
+                            npcAction.Enabled = !npcAction.Enabled;
+                        }
                         ResetSelectedAction(npcAction);
                     }
+                    ImGui.PopStyleColor();
 
                     if (npcAction is ScenarioNpcSyncAction) {
                         ImGui.Separator();

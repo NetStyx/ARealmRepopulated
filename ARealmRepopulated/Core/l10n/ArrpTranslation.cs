@@ -1,10 +1,11 @@
+using Dalamud.Plugin.Services;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
 
 namespace ARealmRepopulated.Core.l10n;
 
-public class ArrpTranslation {
+public class ArrpTranslation(IPluginLog log) {
 
     public event Action OnLocalizationChanged = null!;
 
@@ -25,6 +26,12 @@ public class ArrpTranslation {
             if (!_cache.TryGetValue(key, out var value)) {
                 value = _rm.GetString(key, _culture)!;
                 _cache[key] = value;
+            }
+
+            if (value == null) {
+                value = key;
+                _cache[key] = value;
+                log.Warning($"Translation for key '{key}' not found.");
             }
 
             if (obj != null && obj.Length > 0) {

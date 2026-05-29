@@ -1,20 +1,26 @@
+using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
+using System.Diagnostics.CodeAnalysis;
+using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Infrastructure;
 
 public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<TerritoryType> _territoryTypeSheet = null!;
     private ExcelSheet<Emote> _emoteTypeSheet = null!;
+    private ExcelSheet<ActionTimeline> _actionTimelineSheet = null!;
     private ExcelSheet<Item> _itemSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
 
     public void Populate() {
         _territoryTypeSheet = dataManager.GetExcelSheet<TerritoryType>();
+        _actionTimelineSheet = dataManager.GetExcelSheet<ActionTimeline>();
         _emoteTypeSheet = dataManager.GetExcelSheet<Emote>();
         _itemSheet = dataManager.GetExcelSheet<Item>();
     }
@@ -50,7 +56,13 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         return modelCache;
     }
 
-    public Emote GetEmote(ushort emoteId)
+    public ActionTimeline GetActionTimeline(ushort actionTimelineId)
+        => _actionTimelineSheet.GetRow(actionTimelineId);
+
+    public List<ActionTimeline> GetActionTimelines()
+        => [.. _actionTimelineSheet];
+
+    public Emote GetEmote(uint emoteId)
         => _emoteTypeSheet.GetRow(emoteId);
 
     public List<Emote> GetEmotes()
@@ -60,6 +72,62 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
 
+}
+
+public static class EmoteExtensions {
+
+    /// <summary>
+    /// There are emotes which have interactions with nearby layout objects, such as sitting on a chair or lying on a bed.
+    /// Notably: 
+    /// 0xD (Doze -> If a bed is near, prevents execution and instead plays 0x58)
+    /// 0x58 (Sleep -> If a bed is near, you lie on it)
+    /// 0x32 (Sit -> If a sitable position is near, you sit on it)
+    /// </summary>  
+    private static readonly Dictionary<uint, EmoteLayoutInteraction> LayoutInteractionOverrides = new() {
+        { 0xD, new EmoteLayoutInteraction(0xD, 0x58, LayoutTarget.Bed) },
+        { 0x58, new EmoteLayoutInteraction(0x58, 0x58, LayoutTarget.Bed) },
+        { 0x32, new EmoteLayoutInteraction(0x32, 0x32, LayoutTarget.Chair) }
+    };
+
+    private static readonly Dictionary<uint, PoseType> EmotePoseType = new(){
+        { 0xD, PoseType.Doze },
+        { 0x58, PoseType.Doze },
+        { 0x32, PoseType.Sit }
+    };
+
+    public static PoseType GetPoseType(this Emote emote) {
+        if (EmotePoseType.TryGetValue(emote.RowId, out var poseType))
+            return poseType;
+
+        return PoseType.Idle;
+    }
+
+    public static bool IsLooping(this Emote emote) {
+        if (!emote.EmoteMode.IsValid)
+            return false;
+
+        var emoteCondition = (CharacterModes)emote.EmoteMode.Value.ConditionMode;
+        return emoteCondition == CharacterModes.EmoteLoop || emoteCondition == CharacterModes.InPositionLoop;
+    }
+
+    public static bool InteractsWithLayout(this Emote emote)
+        => InteractsWithLayout(emote.RowId);
+
+    public static bool InteractsWithLayout(uint emoteId) {
+        return LayoutInteractionOverrides.ContainsKey(emoteId);
+    }
+
+    public static bool InteractsWithLayout(this Emote emote, [NotNullWhen(true)] out EmoteLayoutInteraction? layoutInteraction) {
+        if (LayoutInteractionOverrides.TryGetValue(emote.RowId, out var emoteOverride)) {
+            layoutInteraction = emoteOverride;
+            return true;
+        }
+
+        layoutInteraction = null;
+        return false;
+    }
+
+    public record EmoteLayoutInteraction(uint OriginalEmoteId, uint LayoutInteractionEmoteId, LayoutTarget LayoutObjectTarget);
 }
 
 public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {

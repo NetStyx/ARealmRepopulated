@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Scenarios;
@@ -45,18 +46,6 @@ public class ConfigWindow(
     public void Dispose() {
         loc.OnLocalizationChanged -= UpdateWindowTitle;
         GC.SuppressFinalize(this);
-    }
-
-    public override void OnOpen() {
-        base.OnOpen();
-
-        if (_config.EnableScenarioDebugOverlay)
-            _debugOverlay.Hook();
-    }
-
-    public override void OnClose() {
-        base.OnClose();
-        _debugOverlay.Unhook();
     }
 
     private void UpdateWindowTitle()
@@ -129,11 +118,11 @@ public class ConfigWindow(
     }
 
     private void DrawMainContent() {
-        using var child = ImRaii.Child("", new Vector2(0, -55), border: false, flags: ImGuiWindowFlags.NoResize);
+        using var child = ImRaii.Child("##configWindowMainContentArea", new Vector2(0, -55), border: false, flags: ImGuiWindowFlags.NoResize);
         if (!child.Success)
             return;
 
-        using var tabBar = ImRaii.TabBar("", ImGuiTabBarFlags.NoTooltip);
+        using var tabBar = ImRaii.TabBar("##configWindowMainTabBar", ImGuiTabBarFlags.NoTooltip);
         if (!tabBar.Success)
             return;
 
@@ -178,14 +167,10 @@ public class ConfigWindow(
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         var scenarioDebugOverlay = _config.EnableScenarioDebugOverlay;
         if (ImGui.Checkbox(loc["ListWnd_Options_DebugOverlay_Option"], ref scenarioDebugOverlay)) {
-            if (scenarioDebugOverlay) {
-                _debugOverlay.Hook();
-            } else {
-                _debugOverlay.Unhook();
-            }
-
             _config.EnableScenarioDebugOverlay = scenarioDebugOverlay;
             _config.Save();
+
+            _debugOverlay.ValidateHook();
         }
         using (ImRaii.Disabled())
             ImGui.TextWrapped(loc["ListWnd_Options_DebugOverlay_Desc"]);
@@ -214,6 +199,7 @@ public class ConfigWindow(
     }
 
     private string _searchScenarioText = string.Empty;
+    private bool _displayCurrentLocationOnly = true;
     private void ScenarioTab() {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
@@ -236,6 +222,7 @@ public class ConfigWindow(
         using (var t = ImRaii.Table("##AvailableScenarioTable", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY)) {
             if (!t.Success)
                 return;
+
             ImGui.TableSetupColumn("##scenarioRefreshHeader", ImGuiTableColumnFlags.WidthFixed, 25);
             ImGui.TableSetupColumn("##scenarioLocationHeader", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("##scenarioTitleHeader", ImGuiTableColumnFlags.WidthStretch);
@@ -244,16 +231,24 @@ public class ConfigWindow(
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableHeadersRow();
 
-            DrawCenteredHeaderCell(0, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
                 if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Recycle)) {
                     _fileManager.ScanScenarioFiles();
                 }
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Scan_Desc"]);
             });
-            DrawCenteredHeaderCell(1, () => ImGui.Text(loc["ListWnd_Scenario_Header_Location"]));
-            DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
-            DrawCenteredHeaderCell(3, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(1, () => {
+                ImGui.Checkbox("##scenarioLocationHeaderScoped", ref _displayCurrentLocationOnly);
+                if (ImGui.IsItemHovered()) {
+                    ImGui.SetTooltip(loc["ListWnd_Scenario_Header_Location_Scoped_Desc"]);
+                }
+
+                ImGui.SameLine();
+                ImGui.Text(loc["ListWnd_Scenario_Header_Location"]);
+            });
+            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
+            ArrpGuiHelper.DrawCenteredHeaderCell(3, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
                     if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
                         serviceProvider.GetService<ScenarioEditorWindow>()!.CreateScenario();
@@ -277,6 +272,7 @@ public class ConfigWindow(
             });
 
             var scenarioFiles = _fileManager.GetScenarioFiles()
+                .Where(s => !_displayCurrentLocationOnly || eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))
                 .Where(s => s.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
                 .OrderBy(s => s.MetaData.Location.Territory == state.TerritoryType ? 0 : 1)
                 .ThenBy(s => s.MetaData.Location.Territory)
@@ -358,12 +354,5 @@ public class ConfigWindow(
             }
 
         }
-    }
-
-    private static void DrawCenteredHeaderCell(int column, Action draw) {
-        ImGui.TableSetColumnIndex(column);
-        using var id = ImRaii.PushId(column);
-        ArrpGuiAlignment.Center();
-        draw();
     }
 }

@@ -1,6 +1,9 @@
 using ARealmRepopulated.Core.Services.Chat;
+using ARealmRepopulated.Core.Services.LayoutWorld;
+using ARealmRepopulated.Core.Services.LookAt;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -9,7 +12,14 @@ using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, NpcAppearanceService appearanceService, ChatBubbleService cbs) {
+public unsafe class NpcActor(
+    IFramework framework,
+    IObjectTable objectTable,
+    ArrpDataCache dataCache,
+    LayoutWorldService envService,
+    LookAtService lookAtService,
+    NpcAppearanceService appearanceService,
+    ChatBubbleService cbs) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
@@ -17,6 +27,8 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
 
     private bool _isReady = false;
     private BattleChara* _actor = null;
+
+    private Vector3 _emoteOffset = Vector3.Zero;
 
     public IntPtr Address { get => new(_actor); }
 
@@ -105,11 +117,62 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public float GetDistanceTo(Vector3 target)
         => Vector3.Distance(_actor->Position, target);
 
+    public void LookAt(BattleChara* target) {
+        if (!lookAtService.IsLookingAt(_actor, target)) {
+            lookAtService.LookAt(_actor, target);
+        }
+    }
+
+    public void LookAtNothing() {
+        if (lookAtService.IsLookingAtSomething(_actor)) {
+            lookAtService.LookAtNothing(_actor);
+        }
+    }
+
     public void PlayTimeline(ushort timelineId)
         => appearanceService.PlayTimeline(_actor, timelineId);
 
-    public void PlayEmote(ushort emoteid)
-        => appearanceService.PlayEmote(_actor, emoteid);
+    public bool IsPlayingTimeline(ushort timelineId)
+        => appearanceService.IsPlayingTimeline(_actor, timelineId);
+
+    public void PlayEmote(ushort emoteid, bool interactWithLayout = false) {
+        var emoteEntry = dataCache.GetEmote(emoteid);
+        var keepDrawOffset = interactWithLayout || _actor->DrawOffset != Vector3.Zero;
+
+        if (interactWithLayout && emoteEntry.InteractsWithLayout(out var layoutInteraction)) {
+            if (layoutInteraction.LayoutInteractionEmoteId != emoteEntry.RowId)
+                emoteEntry = dataCache.GetEmote(layoutInteraction.LayoutInteractionEmoteId);
+
+            if (envService.CheckSnapableLayout((Character*)_actor, 2f, layoutInteraction.LayoutObjectTarget, out var snapResult)) {
+
+                if (layoutInteraction.LayoutObjectTarget == LayoutTarget.Chair) {
+                    _emoteOffset = new Vector3(snapResult.SnapPosition.X, _actor->Position.Y, snapResult.SnapPosition.Z);
+                }
+
+                _actor->SetPosition(snapResult.SnapPosition.X, snapResult.SnapPosition.Y, snapResult.SnapPosition.Z);
+                _actor->SetRotation(snapResult.SnapFacing);
+            }
+        }
+
+        // the only emote that currently has a cancel emote is the sitting emote. So.. if this returns true, it means we are executing sitting and standing up,
+        // which means we should also undo any snap chenanigans we did to the position of the npc.
+        if (appearanceService.IsCancelEmote(_actor, emoteEntry)) {
+            if (_emoteOffset != Vector3.Zero) {
+                _actor->Position = _emoteOffset.Forward(_actor->Rotation, 0.42f);
+                _actor->SetDrawOffset(0, 0, 0);
+                _emoteOffset = Vector3.Zero;
+            }
+            SetMode(CharacterModes.Normal);
+        }
+
+        appearanceService.PlayEmote(_actor, emoteEntry);
+
+        // we control the position of the emote execution by hand so we need to reset the draw offset for emotes that change it,
+        // but only if we're not trying to interact with a layout or if a previous action hasn't already changed the draw offset        
+        if (!keepDrawOffset) {
+            _actor->SetDrawOffset(0, 0, 0);
+        }
+    }
 
     public bool IsPlayingEmote(ushort emoteid)
         => appearanceService.IsPlayingEmote(_actor, emoteid);
@@ -117,8 +180,8 @@ public unsafe class NpcActor(IFramework framework, IObjectTable objectTable, Npc
     public bool IsLoopingEmote(ushort emoteid)
         => appearanceService.IsRepeatingEmote(emoteid);
 
-    public void SetAnimation(Animations animation)
-        => appearanceService.SetAnimation(_actor, animation);
+    public void SetMovementAnimation(Animations animation)
+        => appearanceService.SetMovementAnimation(_actor, animation);
 
     public Animations GetAnimation()
         => appearanceService.GetAnimation(_actor);

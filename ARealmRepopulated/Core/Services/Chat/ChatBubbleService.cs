@@ -1,93 +1,23 @@
-using Dalamud.Hooking;
-using Dalamud.Plugin.Services;
-using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.System.String;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using InteropGenerator.Runtime;
-using System.Threading;
-using System.Timers;
-using Timer = System.Timers.Timer;
 
 namespace ARealmRepopulated.Core.Services.Chat;
 
-public unsafe class ChatBubbleService : IDisposable {
-    private readonly IPluginLog _log;
-    private readonly IClientState _state;
-
-    /// <summary>
-    /// Client::UI::Agent::AgentScreenLog.OpenBalloon()
-    /// </summary>
-    [Signature("E8 ?? ?? ?? ?? F6 86 ?? ?? ?? ?? ?? C7 46", DetourName = nameof(OpenBubbleDetour))]
-    private readonly Hook<OpenBubbleDelegate> _openBalloonHook = null!;
-    private delegate void OpenBubbleDelegate(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint);
-
-    private readonly Lock _npcTextsLock = new();
-    private readonly List<ChatBubbleEntry> _npcTexts = [];
-    private readonly Timer _cleanupTimer;
-
-    public ChatBubbleService(IGameInteropProvider provider, IClientState state, IPluginLog log) {
-        provider.InitializeFromAttributes(this);
-
-        _log = log;
-        _state = state;
-        _cleanupTimer = new Timer(TimeSpan.FromSeconds(5));
-        _cleanupTimer.Elapsed += _cleanupTimer_Elapsed;
-        _cleanupTimer.Enabled = true;
-
-        _openBalloonHook?.Enable();
-    }
-
-    private void _cleanupTimer_Elapsed(object? sender, ElapsedEventArgs e) {
-        using var _ = _npcTextsLock.EnterScope();
-        var overdueNpcTexts = _npcTexts.Where(c => c.Timeout < DateTime.Now).ToList();
-        if (overdueNpcTexts.Count > 0) {
-            overdueNpcTexts.ForEach(a => _npcTexts.Remove(a));
-        }
-    }
-
-    private void OpenBubbleDetour(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint) {
-        if (_npcTexts.FirstOrDefault(x => x.Character == (nint)character) is var entry && entry != null) {
-            using var newText = *Utf8String.FromString(entry.Text);
-            _openBalloonHook?.Original(screenLog, character, newText.StringPtr, unk, attachmentPoint);
-            return;
-        }
-        _openBalloonHook?.Original(screenLog, character, text, unk, attachmentPoint);
-    }
-
+public unsafe class ChatBubbleService {
     public void Talk(Character* character, string text, float duration) {
-        var characterAddress = (nint)character;
-        using (_npcTextsLock.EnterScope()) {
-            var existingEntry = _npcTexts.FirstOrDefault(c => c.Character == characterAddress);
-            if (existingEntry == null) {
-                _npcTexts.Add(existingEntry = new ChatBubbleEntry());
-            }
-
-            existingEntry.Character = characterAddress;
-            existingEntry.Timeout = DateTime.Now.AddSeconds(duration + 0.1);
-            existingEntry.Text = text;
-        }
-
-        character->Balloon.PlayTimer = duration;
-        character->Balloon.Type = FFXIVClientStructs.FFXIV.Client.Game.BalloonType.Timer;
-        character->Balloon.State = FFXIVClientStructs.FFXIV.Client.Game.BalloonState.Waiting;
+        using var newText = *Utf8String.FromString(text);
+        character->YellBalloon.OpenBalloon(newText, duration, true, 0, false, false, true, 0);
     }
 
-    public void Dispose() {
-        _cleanupTimer?.Dispose();
-        _openBalloonHook?.Dispose();
-        GC.SuppressFinalize(this);
-    }
 }
 
-public class ChatBubbleEntry {
-    public nint Character { get; set; } = 0;
-    public string Text { get; set; } = "";
-    public DateTime Timeout { get; set; } = DateTime.MinValue;
-}
-
-/*
- * 
+/* 
+/// <summary>
+/// Client::UI::Agent::AgentScreenLog.OpenBalloon()
+/// </summary>
+[Signature("E8 ?? ?? ?? ?? F6 86 ?? ?? ?? ?? ?? C7 46", DetourName = nameof(OpenBubbleDetour))]
+private readonly Hook<OpenBubbleDelegate> _openBalloonHook = null!;
+private delegate void OpenBubbleDelegate(AgentScreenLog* screenLog, Character* character, CStringPointer text, bool unk, int attachmentPoint);
 
 /// <summary>
 /// Definition for the minitalk call
@@ -137,8 +67,6 @@ var miniTalkArgs = new MiniTalkArgs
     Message = newString->StringPtr,
     BattleChar = (BattleChara*)gameObject
 };
-
-
 
 [StructLayout(LayoutKind.Explicit, Size = 0x20)]
 public unsafe struct MiniTalkArgs

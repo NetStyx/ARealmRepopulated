@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.ArrpGui.Style;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -21,5 +22,12 @@ public static class ArrpGuiHelper {
             ImGui.SetTooltip(tooltip);
 
         ImGui.SameLine(0, spacing.Value);
+    }
+
+    public static void DrawCenteredHeaderCell(int column, Action draw) {
+        ImGui.TableSetColumnIndex(column);
+        using var id = ImRaii.PushId(column);
+        ArrpGuiAlignment.Center();
+        draw();
     }
 }

@@ -47,7 +47,11 @@ public class ScenarioNpcData {
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
     public List<ScenarioNpcAction> Actions { get; set; } = [];
+    public ScenarioNpcBehaviorData Behavior { get; set; } = new();
+}
 
+public class ScenarioNpcBehaviorData {
+    public bool TrackPlayer { get; set; } = true;
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$action")]
@@ -60,8 +64,13 @@ public class ScenarioNpcData {
 [JsonDerivedType(typeof(ScenarioNpcEmoteAction), typeDiscriminator: "Emote")]
 [JsonDerivedType(typeof(ScenarioNpcIdleAction), typeDiscriminator: "Idle")]
 [JsonDerivedType(typeof(ScenarioNpcSyncAction), typeDiscriminator: "Sync")]
+[JsonDerivedType(typeof(ScenarioNpcTimelineAction), typeDiscriminator: "Timeline")]
 public abstract class ScenarioNpcAction {
     internal int ScenarioKey { get; set; } = 0;
+
+    [DefaultValue(true)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Enabled { get; set; } = true;
 
     [DefaultValue("")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -141,6 +150,9 @@ public class ScenarioNpcEmoteAction : ScenarioNpcAction {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool StayInEmotePose { get; set; } = false;
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool InteractWithLayout { get; set; } = false;
+
     public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; StayInEmotePose: {StayInEmotePose}]";
 }
 
@@ -150,9 +162,13 @@ public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, false) {
 }
 
 public class ScenarioNpcTimelineAction : ScenarioNpcAction {
-    public ushort TimelineId { get; set; }
+    public List<TimelineActionSlot> ActionSlots { get; set; } = [];
 
-    public override string ToString() => $"Timeline [ID: {TimelineId}; Duration: {Duration}]";
+    public override string ToString() => $"Timeline [ID: {string.Join(",", ActionSlots.Select(x => x.TimelineId.ToString()))}; Duration: {Duration}]";
+}
+
+public class TimelineActionSlot {
+    public ushort TimelineId { get; set; } = 0;
 }
 
 public class ScenarioNpcSyncAction() : ScenarioNpcAction(false, false) {
