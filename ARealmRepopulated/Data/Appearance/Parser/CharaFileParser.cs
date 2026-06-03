@@ -1,61 +1,97 @@
-using System.Numerics;
+using ARealmRepopulated.Core.Json;
+using Dalamud.Plugin.Services;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace ARealmRepopulated.Data.Appearance.Parser;
 
+/// <summary>
+/// These are usually generated from brio and anamnesis as far as i can tell and share the same format ... to an extent.
+/// </summary>
 [AppearanceParser(Priority = 1, Extension = ".chara")]
-public class AnamnesisParser : IAppearanceFileParser {
+public class CharaFileParser(IPluginLog log) : IAppearanceFileParser {
 
-    public static readonly string AnamnesisFileIdentification = "Anamnesis Character File";
+    private static JsonSerializerOptions JsonOptions => new(JsonSerializerDefaults.Web) {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
 
-    public NpcAppearanceData? TryParse(JsonObject json) {
+    public NpcAppearanceData? TryParse(byte[] data) {
 
-        if (!json.TryGetPropertyValue("TypeName", out var contentType))
+        string rawData;
+        JsonObject jsonData;
+        try {
+
+            rawData = Encoding.UTF8.GetString(data);
+            var parsedSpan = new Span<byte>(new byte[4096]);
+            if (Convert.TryFromBase64String(rawData, parsedSpan, out var writtenData)) {
+                rawData = Encoding.UTF8.GetString(parsedSpan[..writtenData]);
+            }
+        } catch (Exception ex) {
+            log.Error(ex, "Could not parse the given structure");
             return null;
+        }
 
-        if (contentType == null)
+        try {
+            jsonData = JsonSerializer.Deserialize<JsonObject>(rawData, JsonOptions) ?? [];
+        } catch (Exception ex) {
+            log.Error(ex, "Could not parse the given JSON structure");
             return null;
+        }
 
-        if (!contentType.GetValue<string>().Equals(AnamnesisFileIdentification))
+        if (jsonData == null) {
+            log.Error("Received no valid json object");
             return null;
+        }
+
+        try {
+            return TryParseInternal(jsonData);
+        } catch (Exception ex) {
+            log.Warning(ex, "Failed to parse chara file");
+            return null;
+        }
+    }
+
+    private static NpcAppearanceData? TryParseInternal(JsonObject json) {
 
         var data = new NpcAppearanceData {
-            ModelCharaId = json["ModelType"]!.GetValue<int>(),
+            ModelCharaId = json["ModelType"]!.GetInt(),
             ModelSkeletonId = 0,
 
-            Race = Enum.Parse<NpcRace>(json["Race"]!.GetValue<string>()),
-            Tribe = Enum.Parse<NpcTribe>(json["Tribe"]!.GetValue<string>()),
-            BodyType = GetBodyType(json["Age"]!.GetValue<string>()),
-            Sex = GetGender(json["Gender"]!.GetValue<string>()),
+            Race = json["Race"]!.GetEnum<NpcRace>(),
+            Tribe = json["Tribe"]!.GetEnum<NpcTribe>(),
+            BodyType = GetBodyType(json["Age"]!.GetString()),
+            Sex = GetGender(json["Gender"]!.GetString()),
 
-            Height = json["Height"]!.GetValue<byte>(),
-            Face = json["Head"]!.GetValue<byte>(),
-            HairStyle = json["Hair"]!.GetValue<byte>(),
+            Height = json["Height"]!.GetByte(),
+            Face = json["Head"]!.GetByte(),
+            HairStyle = json["Hair"]!.GetByte(),
             Highlights = json["EnableHighlights"]!.GetValue<bool>() ? (byte)128 : (byte)0,
-            SkinColor = json["Skintone"]!.GetValue<byte>(),
-            EyeColorRight = json["REyeColor"]!.GetValue<byte>(),
-            HairColor = json["HairTone"]!.GetValue<byte>(),
-            HighlightsColor = json["Highlights"]!.GetValue<byte>(),
+            SkinColor = json["Skintone"]!.GetByte(),
+            EyeColorRight = json["REyeColor"]!.GetByte(),
+            HairColor = json["HairTone"]!.GetByte(),
+            HighlightsColor = json["Highlights"]!.GetByte(),
 
-            FacialFeatures = GetFacialFeatures(json["FacialFeatures"]!.GetValue<string>()),
-            TattooColor = json["LimbalEyes"]!.GetValue<byte>(),
+            FacialFeatures = GetFacialFeatures(json["FacialFeatures"]!.GetString()),
+            TattooColor = json["LimbalEyes"]!.GetByte(),
 
-            Eyebrows = json["Eyebrows"]!.GetValue<byte>(),
-            EyeColorLeft = json["LEyeColor"]!.GetValue<byte>(),
-            EyeShape = json["Eyes"]!.GetValue<byte>(),
-            Nose = json["Nose"]!.GetValue<byte>(),
-            Jaw = json["Jaw"]!.GetValue<byte>(),
-            Lipstick = json["Mouth"]!.GetValue<byte>(),
-            LipColorFurPattern = json["LipsToneFurPattern"]!.GetValue<byte>(),
-            MuscleMass = json["EarMuscleTailSize"]!.GetValue<byte>(),
-            TailShape = json["TailEarsType"]!.GetValue<byte>(),
-            BustSize = json["Bust"]!.GetValue<byte>(),
-            FacePaint = json["FacePaint"]!.GetValue<byte>(),
-            FacePaintColor = json["FacePaintColor"]!.GetValue<byte>(),
+            Eyebrows = json["Eyebrows"]!.GetByte(),
+            EyeColorLeft = json["LEyeColor"]!.GetByte(),
+            EyeShape = json["Eyes"]!.GetByte(),
+            Nose = json["Nose"]!.GetByte(),
+            Jaw = json["Jaw"]!.GetByte(),
+            Lipstick = json["Mouth"]!.GetByte(),
+            LipColorFurPattern = json["LipsToneFurPattern"]!.GetByte(),
+            MuscleMass = json["EarMuscleTailSize"]!.GetByte(),
+            TailShape = json["TailEarsType"]!.GetByte(),
+            BustSize = json["Bust"]!.GetByte(),
+            FacePaint = json["FacePaint"]!.GetByte(),
+            FacePaintColor = json["FacePaintColor"]!.GetByte(),
 
             Transparency = json["Transparency"]!.GetValue<ushort>(),
 
-            Glasses = json["Glasses"]!["GlassesId"]!.GetValue<ushort>(),
+            Glasses = (json["Glasses"] as JsonObject)?["GlassesId"]?.GetValue<ushort>() ?? 0,
         };
 
         data.MainHand = ParseWeapon(json["MainHand"]!.AsObject());
@@ -149,13 +185,4 @@ public class AnamnesisParser : IAppearanceFileParser {
         }
         return result;
     }
-
-    private static Vector3 GetVector(string vectorString) {
-        var values = vectorString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (values == null || values.Length != 3)
-            return Vector3.Zero;
-
-        return new Vector3(float.Parse(values[0]), float.Parse(values[1]), float.Parse(values[2]));
-    }
-
 }

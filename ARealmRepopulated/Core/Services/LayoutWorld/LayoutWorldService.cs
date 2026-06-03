@@ -25,11 +25,15 @@ public unsafe class LayoutWorldService : IDisposable {
     }
 
     public bool CheckSnapableLayout(Character* character, float searchRange, LayoutTarget targetType, [NotNullWhen(true)] out SnapSearchResult? result) {
+        result = null;
+
+        var layoutWorld = FFXIVClientStructs.FFXIV.Client.LayoutEngine.LayoutWorld.Instance();
+        if (layoutWorld == null)
+            return false;
 
         var searchQuery = new SnapSearchQuery(character->Position, targetType, searchRange);
-
-        var snapCandidates = BuildSnapCandidateList(FFXIVClientStructs.FFXIV.Client.LayoutEngine.LayoutWorld.Instance()->ActiveLayout, searchQuery);
-        snapCandidates.AddRange(BuildSnapCandidateList(FFXIVClientStructs.FFXIV.Client.LayoutEngine.LayoutWorld.Instance()->GlobalLayout, searchQuery));
+        var snapCandidates = BuildSnapCandidateList(layoutWorld->ActiveLayout, searchQuery);
+        snapCandidates.AddRange(BuildSnapCandidateList(layoutWorld->GlobalLayout, searchQuery));
 
         var possibleCandidates = new List<SnapPosition>();
         foreach (var candidate in snapCandidates) {
@@ -43,14 +47,16 @@ public unsafe class LayoutWorldService : IDisposable {
             return true;
         }
 
-        result = null;
         return false;
     }
 
     private List<SnapPosition> BuildSnapCandidateList(LayoutManager* layoutManager, SnapSearchQuery searchQuery) {
 
+        if (layoutManager == null)
+            return [];
+
         var chairMarkerInstances = layoutManager->InstancesByType[InstanceType.ChairMarker];
-        if (chairMarkerInstances == null)
+        if (chairMarkerInstances == null || chairMarkerInstances.Value == null)
             return [];
 
         var result = new List<SnapPosition>();
