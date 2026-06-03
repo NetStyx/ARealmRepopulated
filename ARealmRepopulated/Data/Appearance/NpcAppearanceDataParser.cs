@@ -1,10 +1,11 @@
 using Dalamud.Plugin.Services;
 using System.IO;
-using System.Text.Json.Nodes;
+using System.Reflection;
+using System.Text;
 
 namespace ARealmRepopulated.Data.Appearance;
 
-public class NpcAppearanceDataParser(IPluginLog log) {
+public class NpcAppearanceDataParser(IServiceProvider serviceProvider, IPluginLog log) {
 
     private readonly SortedDictionary<int, IAppearanceFileParser> _parsers = [];
 
@@ -16,7 +17,8 @@ public class NpcAppearanceDataParser(IPluginLog log) {
         var parserTypes = currentAssembly.GetTypes().Where(t => t.IsAssignableTo(parserInterface) && t != parserInterface);
         foreach (var parserType in parserTypes) {
             if (Attribute.GetCustomAttribute(parserType, typeof(AppearanceParser)) is AppearanceParser parserAttribute &&
-                Activator.CreateInstance(parserType) is IAppearanceFileParser parserInstance) {
+                ActivatorUtilities.CreateInstance(serviceProvider, parserType) is IAppearanceFileParser parserInstance) {
+
                 log.Debug($"Found {parserInstance.GetType().Name}");
                 _parsers.Add(parserAttribute.Priority, parserInstance);
             }
@@ -25,49 +27,49 @@ public class NpcAppearanceDataParser(IPluginLog log) {
 
     public NpcAppearanceData? TryParseAppearanceFile(string filePath) {
 
-        if (!File.Exists(filePath))
+        var fileInfo = new FileInfo(filePath);
+        if (!fileInfo.Exists) {
+            log.Warning("The file '{File}' does not exist", [filePath]);
             return null;
-
-        try {
-            return TryParseAppearanceData(File.ReadAllText(filePath));
-        } catch (Exception ex) {
-            log.Error(ex, "The file '{File}' does not exist or is not readable", [filePath]);
         }
 
-        return null;
+        byte[] fileData = [];
+        try {
+            fileData = File.ReadAllBytes(filePath);
+        } catch (Exception ex) {
+            log.Warning(ex, "The file '{File}' is not readable", [filePath]);
+            return null;
+        }
+
+        var dedicatedParser = _parsers.Select(d => d.Value).FirstOrDefault(p => p.GetType().GetCustomAttribute<AppearanceParser>()?.Extension == fileInfo.Extension);
+        if (dedicatedParser != null) {
+            var result = dedicatedParser.TryParse(fileData);
+            if (result == null) {
+                log.Warning("The file '{File}' could not be parsed by {Parser}", [filePath, dedicatedParser.GetType().Name]);
+            }
+
+            return result;
+        }
+
+        return TryParseRawBytes(fileData);
     }
 
-    public NpcAppearanceData? TryParseAppearanceData(string appearanceData) {
+    public NpcAppearanceData? TryParseAppearanceData(string appearance) {
 
-        string rawData;
-        JsonObject jsonData;
+        byte[] stringData;
         try {
-            var parsedSpan = new Span<byte>(new byte[4096]);
-            if (Convert.TryFromBase64String(appearanceData, parsedSpan, out var writtenData)) {
-                rawData = System.Text.Encoding.UTF8.GetString(parsedSpan[..writtenData]);
-            } else {
-                rawData = appearanceData;
-            }
+            stringData = Encoding.UTF8.GetBytes(appearance);
         } catch (Exception ex) {
-            log.Error(ex, "Could not parse the given base64 structure");
+            log.Warning(ex, "Could not parse clipboard contents");
             return null;
         }
 
-        try {
-            jsonData = JsonNode.Parse(rawData)?.AsObject() ?? [];
-        } catch (Exception ex) {
-            log.Error(ex, "Could not parse the given JSON structure");
-            return null;
-        }
+        return TryParseRawBytes(stringData);
+    }
 
-        if (jsonData == null) {
-            log.Error("Received no valid json object");
-            return null;
-        }
-
+    private NpcAppearanceData? TryParseRawBytes(byte[] data) {
         foreach (var parser in _parsers) {
-
-            var result = parser.Value.TryParse(jsonData);
+            var result = parser.Value.TryParse(data);
             if (result != null)
                 return result;
         }
@@ -84,5 +86,6 @@ public class AppearanceParser : Attribute {
 }
 
 public interface IAppearanceFileParser {
-    NpcAppearanceData? TryParse(JsonObject data);
+    NpcAppearanceData? TryParse(byte[] fileData);
 }
+

@@ -263,7 +263,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
 
         if (CurrentAction.IsEndless) {
-            var isFinished = true;
+            var isFinished = action.ActionSlots.Count > 0;
             foreach (var timeline in action.ActionSlots) {
                 if (Actor.IsPlayingTimeline(timeline.TimelineId)) {
                     isFinished = false;
