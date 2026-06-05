@@ -28,7 +28,6 @@ public unsafe class SnapSearchResult {
     public ILayoutInstance* LayoutInstance { get; init; }
 }
 
-// Unified snap position structure combining layout candidate and calculated snap data
 public readonly record struct SnapPosition(
     nint LayoutInstance,
     Vector3 ObjectPosition,
@@ -41,7 +40,6 @@ public readonly record struct SnapPosition(
     byte CandidateType
 );
 
-// Internal intermediate result for side evaluation during calculation
 internal readonly record struct SnapSideChoice(
     SnapSideMask Side = SnapSideMask.None,
     Vector3 SnapPosition = default,

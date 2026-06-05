@@ -2,7 +2,6 @@ using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Lumina.Excel.Sheets;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
@@ -125,9 +124,9 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
     }
 
-    public void PlayEmote(BattleChara* character, Emote emoteEntry, ILayoutInstance* layoutInstance = null) {
+    public void PlayEmote(BattleChara* character, Emote emoteEntry) {
 
-        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1, Layout = layoutInstance };
+        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
 
         if (character->EmoteController.IsEmoting()) {
             var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);

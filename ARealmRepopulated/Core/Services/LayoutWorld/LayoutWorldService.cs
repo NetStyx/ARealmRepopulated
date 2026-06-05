@@ -17,13 +17,13 @@ public unsafe class LayoutWorldService : IDisposable {
     // decompiled values from FUN_140e10980 for snaping checks. Why those? Dont know. Do i care? Nope.
     private static readonly float[] SnapOffsets = [0.42f, 0.75f];
 
-    private readonly IPluginLog _log;
-
-    public LayoutWorldService(IGameInteropProvider provider, IPluginLog log) {
+    public LayoutWorldService(IGameInteropProvider provider) {
         provider.InitializeFromAttributes(this);
-        _log = log;
     }
 
+    /// <summary>
+    /// Checks for an layout instance of the specified type within the search range of the character and calculates the nearest snap position.
+    /// </summary>
     public bool CheckSnapableLayout(Character* character, float searchRange, LayoutTarget targetType, [NotNullWhen(true)] out SnapSearchResult? result) {
         result = null;
 
@@ -32,8 +32,7 @@ public unsafe class LayoutWorldService : IDisposable {
             return false;
 
         var searchQuery = new SnapSearchQuery(character->Position, targetType, searchRange);
-        var snapCandidates = BuildSnapCandidateList(layoutWorld->ActiveLayout, searchQuery);
-        snapCandidates.AddRange(BuildSnapCandidateList(layoutWorld->GlobalLayout, searchQuery));
+        var snapCandidates = BuildSnapCandidateList(layoutWorld->ActiveLayout, searchQuery).Union(BuildSnapCandidateList(layoutWorld->GlobalLayout, searchQuery));
 
         var possibleCandidates = new List<SnapPosition>();
         foreach (var candidate in snapCandidates) {
@@ -42,7 +41,7 @@ public unsafe class LayoutWorldService : IDisposable {
             }
         }
 
-        if (possibleCandidates.OrderBy(c => c.DistanceSquared).FirstOrDefault() is var closestSnapResult) {
+        if (possibleCandidates.Count > 0 && possibleCandidates.OrderBy(c => c.DistanceSquared).FirstOrDefault() is var closestSnapResult) {
             result = new SnapSearchResult { SnapPosition = closestSnapResult.ObjectPosition, SnapFacing = closestSnapResult.CalculatedSnapFacing, LayoutInstance = (ILayoutInstance*)closestSnapResult.LayoutInstance };
             return true;
         }
@@ -50,22 +49,24 @@ public unsafe class LayoutWorldService : IDisposable {
         return false;
     }
 
-    private List<SnapPosition> BuildSnapCandidateList(LayoutManager* layoutManager, SnapSearchQuery searchQuery) {
+    private static List<SnapPosition> BuildSnapCandidateList(LayoutManager* layoutManager, SnapSearchQuery searchQuery) {
 
         if (layoutManager == null)
             return [];
 
-        var chairMarkerInstances = layoutManager->InstancesByType[InstanceType.ChairMarker];
+        if (!layoutManager->InstancesByType.TryGetValue(InstanceType.ChairMarker, out var chairMarkerInstances, true))
+            return [];
+
         if (chairMarkerInstances == null || chairMarkerInstances.Value == null)
             return [];
 
         var result = new List<SnapPosition>();
         foreach (var (id, instance) in *chairMarkerInstances.Value) {
-            var layoutInstance = instance.Value;
-            if (layoutInstance == null)
+
+            if (instance == null || instance.Value == null)
                 continue;
 
-            if (!TryReadSnapPosition(layoutInstance, searchQuery, out var candidate))
+            if (!TryReadSnapPosition(instance.Value, searchQuery, out var candidate))
                 continue;
 
             result.Add(candidate);
@@ -74,13 +75,11 @@ public unsafe class LayoutWorldService : IDisposable {
         return result;
     }
 
-    private bool TryReadSnapPosition(ILayoutInstance* instance, SnapSearchQuery searchQuery, out SnapPosition candidate) {
+    private static bool TryReadSnapPosition(ILayoutInstance* instance, SnapSearchQuery searchQuery, out SnapPosition candidate) {
         candidate = default;
 
         if (instance == null)
             return false;
-
-        var snap = (SnapLayoutInstance*)instance;
 
         var translationPtr = instance->GetTranslationImpl();
         if (translationPtr == null)
@@ -97,6 +96,7 @@ public unsafe class LayoutWorldService : IDisposable {
         if (!searchQuery.ReferencePosition.IsInCylinderRange(position, searchQuery.SearchRadius))
             return false;
 
+        var snap = (SnapLayoutInstance*)instance;
         if (snap->Type != (byte)searchQuery.TargetType)
             return false;
 
@@ -104,7 +104,7 @@ public unsafe class LayoutWorldService : IDisposable {
         return true;
     }
 
-    public static bool TryCalculateSnapPosition(SnapPosition candidate, Vector3 npcPosition, out SnapPosition result) {
+    private static bool TryCalculateSnapPosition(SnapPosition candidate, Vector3 npcPosition, out SnapPosition result) {
         ReadOnlySpan<SnapSideMask> sides = [SnapSideMask.Base, SnapSideMask.Right, SnapSideMask.Opposite, SnapSideMask.Left];
 
         var best = new SnapSideChoice(DistanceSquared: float.MaxValue);
