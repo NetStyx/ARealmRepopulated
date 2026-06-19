@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.Services.LookAt;
@@ -19,7 +20,8 @@ public unsafe class NpcActor(
     LayoutWorldService envService,
     LookAtService lookAtService,
     NpcAppearanceService appearanceService,
-    ChatBubbleService cbs) {
+    ChatBubbleService cbs,
+    Glamourer glm) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
@@ -120,6 +122,8 @@ public unsafe class NpcActor(
     public void LookAt(BattleChara* target) {
         if (!lookAtService.IsLookingAt(_actor, target)) {
             lookAtService.LookAt(_actor, target);
+
+            glm.ApplyDesign(_actor->ObjectIndex);
         }
     }
 

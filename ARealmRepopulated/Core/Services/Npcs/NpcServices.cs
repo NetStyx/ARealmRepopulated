@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -9,7 +10,7 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable {
+public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks, Glamourer glm, Penumbra pnb) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
@@ -29,13 +30,25 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
             return false;
         }
 
+        //battleCharacter->NameId = 80000;
         battleCharacter->ObjectKind = ObjectKind.BattleNpc;
-        battleCharacter->BattleNpcSubKind = (BattleNpcSubKind)4;
+        battleCharacter->BattleNpcSubKind = BattleNpcSubKind.Player;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
+
+        if (objectTable.LocalPlayer != null) {
+            var player = (Character*)objectTable.LocalPlayer.Address;
+
+            battleCharacter->HomeWorld = player->HomeWorld;
+            battleCharacter->CurrentWorld = player->CurrentWorld;
+            //battleCharacter->OwnerId = player->EntityId;
+        }
 
         var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
         Actors.Add(npcActor);
+
+        //pnb.SetCollection(gameObjectInterface.ObjectIndex);
+        //glm.ApplyDesign(gameObjectInterface.ObjectIndex);
 
         character = npcActor;
         return true;
