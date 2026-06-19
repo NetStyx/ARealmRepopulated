@@ -2,7 +2,7 @@ using ARealmRepopulated.Data.Scenarios;
 
 namespace ARealmRepopulated.Data.Location;
 
-public record LocationData(uint Server = 0, uint TerritoryType = 0, uint HousingDivision = 0, int HousingWard = -1, int HousingPlot = -1, bool IsInsideHousing = false);
+public record LocationData(uint Server = 0, uint TerritoryType = 0, uint HousingDivision = 0, int HousingWard = -1, int HousingPlot = -1, bool IsInHousingArea = false);
 
 public static class LocationDataExtension {
 
@@ -11,7 +11,7 @@ public static class LocationDataExtension {
         if (scenario.Territory != currentLocation.TerritoryType)
             return false;
 
-        if (currentLocation.IsInsideHousing) {
+        if (currentLocation.IsInHousingArea) {
             if (scenario.Server != currentLocation.Server
                 || scenario.HousingDivision != currentLocation.HousingDivision
                 || scenario.HousingWard != currentLocation.HousingWard
