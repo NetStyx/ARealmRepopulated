@@ -1,4 +1,5 @@
 using ARealmRepopulated.Data.Location;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -39,19 +40,19 @@ public class ArrpEventService : IDisposable {
         _log = log;
 
         framework.Update += Framework_Update;
-        clientState.TerritoryChanged += ClientState_TerritoryChanged;
+        clientState.ZoneInit += ClientState_ZoneInit;
         clientState.Login += ClientState_Login;
 
         _wasCutsceneActive = IsInCutscene;
     }
 
+    private void ClientState_ZoneInit(ZoneInitEventArgs _)
+        => _isTerritoryReady = false;
+
     public void Arm()
         => _isTerritoryReady = false;
 
     private void ClientState_Login()
-        => _isTerritoryReady = false;
-
-    private void ClientState_TerritoryChanged(uint obj)
         => _isTerritoryReady = false;
 
     private void Framework_Update(IFramework framework) {
@@ -66,7 +67,7 @@ public class ArrpEventService : IDisposable {
 
         if (_objectTable.LocalPlayer != null && _clientState.TerritoryType != 0 && !IsBetweenZones && !IsInCutscene) {
             _isTerritoryReady = true;
-            _log.Debug($"Territory changed to {_clientState.TerritoryType}. Zone ready.");
+            _log.Debug($"Territory changed to {_clientState.TerritoryType}");
             CurrentLocation = RetrieveCurrentLocation();
             OnTerritoryLoadFinished?.Invoke(CurrentLocation);
         }
@@ -92,7 +93,11 @@ public class ArrpEventService : IDisposable {
         var housingManager = HousingManager.Instance();
         var serverId = _playerState.CurrentWorld.RowId;
         if (housingManager != null) {
-            zoneData = new LocationData(serverId, _clientState.TerritoryType, housingManager->GetCurrentDivision(), housingManager->GetCurrentWard(), housingManager->GetCurrentPlot(), housingManager->IsInside());
+            zoneData = new LocationData(serverId, _clientState.TerritoryType,
+                housingManager->GetCurrentDivision(),
+                housingManager->GetCurrentWard(),
+                housingManager->GetCurrentPlot(),
+                housingManager->GetCurrentHousingTerritoryType() != HousingTerritoryType.None);
         } else {
             zoneData = new LocationData(serverId, _clientState.TerritoryType, 0, -1, -1, false);
         }
@@ -101,7 +106,7 @@ public class ArrpEventService : IDisposable {
 
     public void Dispose() {
         _framework.Update -= Framework_Update;
-        _clientState.TerritoryChanged -= ClientState_TerritoryChanged;
+        _clientState.ZoneInit -= ClientState_ZoneInit;
         _clientState.Login -= ClientState_Login;
 
         GC.SuppressFinalize(this);
