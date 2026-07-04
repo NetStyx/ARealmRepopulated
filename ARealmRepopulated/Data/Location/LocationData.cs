@@ -1,8 +1,9 @@
 using ARealmRepopulated.Data.Scenarios;
+using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace ARealmRepopulated.Data.Location;
 
-public record LocationData(uint Server = 0, uint TerritoryType = 0, uint HousingDivision = 0, int HousingWard = -1, int HousingPlot = -1, bool IsInHousingArea = false);
+public record LocationData(uint Server = 0, uint TerritoryType = 0, uint HousingDivision = 0, int HousingWard = -1, int HousingPlot = -1, HousingTerritoryType HousingArea = HousingTerritoryType.None);
 
 public static class LocationDataExtension {
 
@@ -11,15 +12,19 @@ public static class LocationDataExtension {
         if (scenario.Territory != currentLocation.TerritoryType)
             return false;
 
-        if (currentLocation.IsInHousingArea) {
-            if (scenario.Server != currentLocation.Server
-                || scenario.HousingDivision != currentLocation.HousingDivision
-                || scenario.HousingWard != currentLocation.HousingWard
-                || scenario.HousingPlot != currentLocation.HousingPlot)
-                return false;
+        var isInSameLocation = true;
+        if (currentLocation.HousingArea != HousingTerritoryType.None) {
+            isInSameLocation =
+                scenario.Server == currentLocation.Server
+                && scenario.HousingDivision == currentLocation.HousingDivision
+                && scenario.HousingWard == currentLocation.HousingWard;
+
+            if (currentLocation.HousingArea == HousingTerritoryType.Indoor) {
+                isInSameLocation &= scenario.HousingPlot == currentLocation.HousingPlot;
+            }
         }
 
-        return true;
+        return isInSameLocation;
     }
 
     public static void UpdateScenarioLocation(this LocationData location, ScenarioLocation target) {
