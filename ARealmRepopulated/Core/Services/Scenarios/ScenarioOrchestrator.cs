@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Data.Location;
@@ -153,6 +154,11 @@ public unsafe class ScenarioOrchestrator(
 
             npc.SetPosition(scenarioNpc.Position, isDefault: true);
             npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
+
+            if (scenarioNpc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
+                npc.SetName($"Arrp {actorName}");
+            }
+
             if (scenarioNpc.Appearance != null) {
                 npc.SetAppearance(scenarioNpc.Appearance);
             } else {

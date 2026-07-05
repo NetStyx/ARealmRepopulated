@@ -210,8 +210,12 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         chara->CharacterSetup.CopyFromCharacter((Character*)objectTable.LocalPlayer.Address, CharacterSetupContainer.CopyFlags.ClassJob);
     }
 
-    public void SetName(Character* chara) {
-        var name = $"ARRP {chara->ObjectIndex}";
+    public void SetDefaultName(BattleChara* chara)
+        => SetName(chara, $"ARRP {chara->ObjectIndex}");
+
+    public void SetName(BattleChara* chara, string name) {
+        ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+
         for (var x = 0; x < name.Length; x++) {
             chara->Name[x] = (byte)name[x];
         }

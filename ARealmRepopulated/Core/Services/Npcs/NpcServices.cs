@@ -30,9 +30,9 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
             return false;
         }
 
-        //battleCharacter->NameId = 80000;
-        battleCharacter->ObjectKind = ObjectKind.BattleNpc;
+        battleCharacter->ObjectKind = ObjectKind.Pc;
         battleCharacter->BattleNpcSubKind = BattleNpcSubKind.Player;
+        battleCharacter->SubKind = (byte)BattleNpcSubKind.Player;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
 
         if (objectTable.LocalPlayer != null) {
@@ -40,15 +40,11 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
 
             battleCharacter->HomeWorld = player->HomeWorld;
             battleCharacter->CurrentWorld = player->CurrentWorld;
-            //battleCharacter->OwnerId = player->EntityId;
         }
 
         var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
         Actors.Add(npcActor);
-
-        //pnb.SetCollection(gameObjectInterface.ObjectIndex);
-        //glm.ApplyDesign(gameObjectInterface.ObjectIndex);
 
         character = npcActor;
         return true;

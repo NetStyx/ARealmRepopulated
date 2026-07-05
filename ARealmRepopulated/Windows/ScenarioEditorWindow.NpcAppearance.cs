@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -14,6 +15,7 @@ public partial class ScenarioEditorWindow {
         NpcBase,
         NpcCustomize,
         NpcEquipment,
+        NpcIntegration
     }
 
     private SelectedNpcAppearanceEditorTab _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcBase;
@@ -45,12 +47,17 @@ public partial class ScenarioEditorWindow {
                 if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##scenarioNpcAppearanceEditorListBoxEquipment", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcEquipment)) {
                     _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcEquipment;
                 }
+
+                if (config.RuntimeConfig.ModdingToolsInstalled) {
+                    ImGui.Separator();
+                    if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Integration"]}##scenarioNpcAppearanceEditorListBoxIntegration", _selectedNpcAppearanceEditorTab == SelectedNpcAppearanceEditorTab.NpcIntegration)) {
+                        _selectedNpcAppearanceEditorTab = SelectedNpcAppearanceEditorTab.NpcIntegration;
+                    }
+                }
             }
         }
 
         ImGui.TableNextColumn();
-        //ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, ImGui.GetColorU32(Core.ArrpGui.Style.ArrpGuiColors.ArrpRed));
-
         switch (_selectedNpcAppearanceEditorTab) {
             case SelectedNpcAppearanceEditorTab.NpcBase:
                 DrawNpcBaseAppearanceInfo();
@@ -60,6 +67,9 @@ public partial class ScenarioEditorWindow {
                 break;
             case SelectedNpcAppearanceEditorTab.NpcEquipment:
                 DrawNpcEquipmentAppearanceInfo();
+                break;
+            case SelectedNpcAppearanceEditorTab.NpcIntegration:
+                DrawNpcIntegrationInfo();
                 break;
         }
     }
@@ -279,6 +289,40 @@ public partial class ScenarioEditorWindow {
         DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingLeft"], ItemSlots.LeftRing, SelectedScenarioNpc.Appearance.LeftRing);
         DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingRight"], ItemSlots.RightRing, SelectedScenarioNpc.Appearance.RightRing);
         DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EGlasses"], SelectedScenarioNpc.Appearance.Glasses);
+
+    }
+
+    private void DrawNpcIntegrationInfo() {
+        if (SelectedScenarioNpc == null)
+            return;
+
+        using var table = ImRaii.Table("##npcIntegrationEditorValues", 2, ImGuiTableFlags.NoSavedSettings);
+        if (!table.Success)
+            return;
+
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 300);
+        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName"]);
+        ImGui.SameLine();
+        ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc"]);
+
+        ImGui.TableNextColumn();
+        var currentIdenitfer = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
+        if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: 15, flags: ImGuiInputTextFlags.CharsNoBlank)) {
+            currentIdenitfer = currentIdenitfer.Trim();
+            if (currentIdenitfer.Length > 15)
+                currentIdenitfer = currentIdenitfer[..15];
+            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentIdenitfer);
+        }
+        ImGui.SameLine();
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {
+            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, characterCreationData.GetModdingName());
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
 
     }
 

@@ -7,6 +7,7 @@ using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Infrastructure;
@@ -130,7 +131,7 @@ public static class EmoteExtensions {
     public record EmoteLayoutInteraction(uint OriginalEmoteId, uint LayoutInteractionEmoteId, LayoutTarget LayoutObjectTarget);
 }
 
-public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {
+public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {
 
     private CharacterEditorData _characterEditorData = null!;
     private ExcelSheet<CharaMakeType> _charaMakeSheet = null!;
@@ -163,6 +164,58 @@ public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager)
             raceData.HasTailEarShapes = hasTailEarShapes != null;
         }
 
+    }
+
+    [GeneratedRegex(@"^[A-Za-z]+(?:['-][A-Za-z]+)*$", RegexOptions.Compiled)]
+    private static partial Regex CharacterNameRegex();
+
+    /// <summary>
+    /// Validates that the string given conforms to the naming rules of SQEX.
+    /// See: https://support.na.square-enix.com/faqarticle.php?kid=67258&id=5382&page=1&sc=0
+    /// Also: 20 Characters Max, One Empty Space to seperate first and last name, 2 to 15 characters each, no special characters except hypen and apostrophe, no numbers. No repeated special characters, no leading or trailing special characters.
+    /// </summary>        
+    public static bool IsValidPlayerName(string name) {
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        // Must not start or end with spaces
+        if (name.StartsWith(' ') || name.EndsWith(' '))
+            return false;
+
+        // Must have exactly 2 parts: first name and last name
+        var parts = name.Trim().Split(' ');
+        if (parts.Length != 2)
+            return false;
+
+        var firstName = parts[0];
+        var lastName = parts[1];
+
+        // Each name must be between 2 and 15 characters
+        if (firstName.Length is < 2 or > 15)
+            return false;
+
+        if (lastName.Length is < 2 or > 15)
+            return false;
+
+        // Combined maximum of 20 characters (including the space separator)
+        if (name.Length > 20)
+            return false;
+
+        return CharacterNameRegex().IsMatch(firstName) && CharacterNameRegex().IsMatch(lastName);
+    }
+
+    public string GetModdingName() {
+        var chars = "abcdefghijklmnopqrstuvwxyz";
+        var stringChars = new char[15];
+        var random = new Random(Guid.NewGuid().GetHashCode());
+
+        for (var i = 0; i < stringChars.Length; i++) {
+            stringChars[i] = chars[random.Next(chars.Length)];
+        }
+
+        stringChars[0] = char.ToUpper(stringChars[0]);
+
+        return new string(stringChars);
     }
 
     public (string FirstName, string LastName) GenerateRandomName(NpcRace race = NpcRace.Unknown, NpcTribe tribe = NpcTribe.Unknown, NpcSex gender = NpcSex.Male) {

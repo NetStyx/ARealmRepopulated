@@ -50,6 +50,7 @@ public class ScenarioNpcData {
     public float Rotation { get; set; }
     public List<ScenarioNpcAction> Actions { get; set; } = [];
     public ScenarioNpcBehaviorData Behavior { get; set; } = new();
+    public Dictionary<string, string> AdditionalData { get; set; } = new();
 }
 
 public class ScenarioNpcBehaviorData {

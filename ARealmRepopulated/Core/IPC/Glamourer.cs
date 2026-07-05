@@ -1,41 +1,36 @@
+using ARealmRepopulated.Configuration;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Ipc;
 using Dalamud.Plugin.Services;
 
 namespace ARealmRepopulated.Core.IPC;
 
-public class Glamourer(IPluginLog log, IDalamudPluginInterface pluginInterface) : IIntegrationSetup, IDisposable {
+public class Glamourer(PluginConfig config, IPluginLog log, IDalamudPluginInterface pluginInterface) : IIntegrationSetup, IDisposable {
 
-    private ICallGateSubscriber<Dictionary<Guid, string>>? _getDesigns;
-    private ICallGateSubscriber<Guid, int, uint, ulong, int>? _applyDesign;
-
-    private ICallGateSubscriber<nint, int>? _onStateChanged;
+    private ICallGateSubscriber<int>? _glmApiVersion;
+    private ICallGateSubscriber<object>? _glmInitialized;
 
     public void Setup() {
-        _getDesigns = pluginInterface.GetIpcSubscriber<Dictionary<Guid, string>>("Glamourer.GetDesignList.V2");
-        _applyDesign = pluginInterface.GetIpcSubscriber<Guid, int, uint, ulong, int>("Glamourer.ApplyDesign");
-        _onStateChanged = pluginInterface.GetIpcSubscriber<nint, int>("Glamourer.StateChanged.V2");
-        _onStateChanged?.Subscribe(OnStateChanged);
+        _glmApiVersion = pluginInterface.GetIpcSubscriber<int>("Glamourer.ApiVersion");
+        _glmInitialized = pluginInterface.GetIpcSubscriber<object>("Glamourer.Initialized");
+        _glmInitialized?.Subscribe(GlamourerInitialized);
+        RetrieveGlamourerVersion();
     }
 
-    private Guid designid = Guid.Empty;
-    public void GetDesigns() {
-        var designs = _getDesigns?.InvokeFunc();
-        foreach (var design in designs ?? []) {
-            log.Information($"Design: {design.Key} - {design.Value}");
-            designid = design.Key;
-        }
-    }
+    private void GlamourerInitialized()
+        => RetrieveGlamourerVersion();
 
-    private void OnStateChanged(nint arg) {
-        log.Information($"State changed: {arg}");
-    }
-
-    public void ApplyDesign(ushort index) {
-        _applyDesign?.InvokeFunc(designid, index, 0, 0x7);
+    private void RetrieveGlamourerVersion() {
+        try {
+            var glmApiVersion = _glmApiVersion?.InvokeFunc();
+            if (glmApiVersion != null) {
+                log.Information($"Found glamourer {glmApiVersion.Value}");
+                config?.RuntimeConfig.ModdingToolsInstalled = true;
+            }
+        } catch (Exception) { }
     }
 
     public void Dispose() {
-        _onStateChanged?.Unsubscribe(OnStateChanged);
+        _glmApiVersion?.Unsubscribe(GlamourerInitialized);
     }
 }

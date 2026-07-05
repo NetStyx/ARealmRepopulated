@@ -1321,6 +1321,42 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Integration.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Integration {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stable Actor Key.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value of this field is used to override the internal actor name to allow modding tools to take over customization. It needs to follow squares naming rules (15 chars, no special chars except hypens and apostrophes, no mixed lower/upper).
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate a random, yet valid, actor name..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to NPC Model.
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_Model {
@@ -1470,15 +1506,6 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_ActorData_General_Input_Name {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_General_Input_Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The npc does not output a name at any point. Its only use is to make it easier identifyable when editing the scenario..
-        /// </summary>
-        public static string ScenarioEditor_ActorData_General_Input_NameHint {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_General_Input_NameHint", resourceCulture);
             }
         }
         

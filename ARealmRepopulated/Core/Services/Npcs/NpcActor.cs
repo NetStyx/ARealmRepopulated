@@ -1,4 +1,3 @@
-using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.Services.LookAt;
@@ -20,8 +19,7 @@ public unsafe class NpcActor(
     LayoutWorldService envService,
     LookAtService lookAtService,
     NpcAppearanceService appearanceService,
-    ChatBubbleService cbs,
-    Glamourer glm) {
+    ChatBubbleService cbs) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
@@ -40,7 +38,7 @@ public unsafe class NpcActor(
         var localPlayer = (BattleChara*)objectTable.LocalPlayer!.Address;
         this.SetRotationFrom(localPlayer);
         this.SetPositionFrom(localPlayer);
-        appearanceService.SetName((Character*)_actor);
+        this.SetName();
     }
 
     public bool IsReady() {
@@ -59,6 +57,17 @@ public unsafe class NpcActor(
         _actor->DisableDraw();
         _isReady = false;
     }
+
+    public void SetName(string name) {
+        if (ArrpCharacterCreationData.IsValidPlayerName(name)) {
+            appearanceService.SetName(_actor, name);
+        } else {
+            appearanceService.SetDefaultName(_actor);
+        }
+    }
+
+    public void SetName()
+        => appearanceService.SetDefaultName(_actor);
 
     public Vector3 GetPosition()
         => _actor->Position;
@@ -122,8 +131,6 @@ public unsafe class NpcActor(
     public void LookAt(BattleChara* target) {
         if (!lookAtService.IsLookingAt(_actor, target)) {
             lookAtService.LookAt(_actor, target);
-
-            glm.ApplyDesign(_actor->ObjectIndex);
         }
     }
 

@@ -92,8 +92,6 @@ public sealed class Plugin : IDalamudPlugin {
         _services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
         _services.EnableIntegrations();
 
-        _services.GetRequiredService<Glamourer>().GetDesigns();
-
         // set the event service to do a territory check cycle
         var eventService = _services.GetRequiredService<ArrpEventService>();
         if (!_services.GetRequiredService<PluginConfig>().OnboardingCompleted) {
