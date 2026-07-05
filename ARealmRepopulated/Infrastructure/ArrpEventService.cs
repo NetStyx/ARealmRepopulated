@@ -97,9 +97,9 @@ public class ArrpEventService : IDisposable {
                 housingManager->GetCurrentDivision(),
                 housingManager->GetCurrentWard(),
                 housingManager->GetCurrentPlot(),
-                housingManager->GetCurrentHousingTerritoryType() != HousingTerritoryType.None);
+                housingManager->GetCurrentHousingTerritoryType());
         } else {
-            zoneData = new LocationData(serverId, _clientState.TerritoryType, 0, -1, -1, false);
+            zoneData = new LocationData(Server: serverId, TerritoryType: _clientState.TerritoryType);
         }
         return zoneData;
     }
