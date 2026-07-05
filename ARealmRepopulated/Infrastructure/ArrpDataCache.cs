@@ -204,7 +204,7 @@ public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager data
         return CharacterNameRegex().IsMatch(firstName) && CharacterNameRegex().IsMatch(lastName);
     }
 
-    public string GetModdingName() {
+    public string GetRandomName() {
         var chars = "abcdefghijklmnopqrstuvwxyz";
         var stringChars = new char[15];
         var random = new Random(Guid.NewGuid().GetHashCode());

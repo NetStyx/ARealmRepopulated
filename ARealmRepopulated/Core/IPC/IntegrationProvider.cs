@@ -23,11 +23,12 @@ public static class IntegrationProvider {
         if (npcData == null) {
             return false;
         }
-        if (npcData.AdditionalData.ContainsKey(key) && string.IsNullOrWhiteSpace(value)) {
+        if (string.IsNullOrWhiteSpace(value)) {
             npcData.AdditionalData.Remove(key);
         } else {
             npcData.AdditionalData[key] = value;
         }
+
         return true;
     }
 

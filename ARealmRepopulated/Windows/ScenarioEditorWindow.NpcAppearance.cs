@@ -313,17 +313,34 @@ public partial class ScenarioEditorWindow {
         var currentIdenitfer = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
         if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: 15, flags: ImGuiInputTextFlags.CharsNoBlank)) {
             currentIdenitfer = currentIdenitfer.Trim();
+            if (currentIdenitfer.Length > 0)
+                currentIdenitfer = string.Concat(char.ToUpper(currentIdenitfer[0]), currentIdenitfer[1..currentIdenitfer.Length]);
             if (currentIdenitfer.Length > 15)
                 currentIdenitfer = currentIdenitfer[..15];
             SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentIdenitfer);
         }
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {
-            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, characterCreationData.GetModdingName());
+            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, characterCreationData.GetRandomName());
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
 
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName"]);
+        ImGui.TableNextColumn();
+        if (!string.IsNullOrWhiteSpace(currentIdenitfer)) {
+            ImGui.Text("Arrp " + currentIdenitfer);
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton("##scenarioNpcAppearanceEditorIntegrationCopyInternalName", FontAwesomeIcon.Copy)) {
+                ImGui.SetClipboardText("Arrp " + currentIdenitfer);
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Clipboard_Hint"]);
+        } else {
+            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Empty"]);
+        }
     }
 
     private static void DrawNpcModelRow(string description, byte? val) {

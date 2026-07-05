@@ -693,4 +693,13 @@
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Empty" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Clipboard_Hint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>
