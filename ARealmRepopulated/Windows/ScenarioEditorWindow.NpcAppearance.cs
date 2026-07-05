@@ -296,6 +296,9 @@ public partial class ScenarioEditorWindow {
         if (SelectedScenarioNpc == null)
             return;
 
+        ImGui.TextDisabled(loc["ScenarioEditor_ActorData_Appearance_Integration_Desc"]);
+        ImGui.Separator();
+
         using var table = ImRaii.Table("##npcIntegrationEditorValues", 2, ImGuiTableFlags.NoSavedSettings);
         if (!table.Success)
             return;
@@ -323,23 +326,18 @@ public partial class ScenarioEditorWindow {
         if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {
             SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, characterCreationData.GetRandomName());
         }
-        if (ImGui.IsItemHovered())
+        if (ImGui.IsItemHovered()) {
             ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
+        }
 
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName"]);
-        ImGui.TableNextColumn();
         if (!string.IsNullOrWhiteSpace(currentIdenitfer)) {
-            ImGui.Text("Arrp " + currentIdenitfer);
             ImGui.SameLine();
             if (ImGuiComponents.IconButton("##scenarioNpcAppearanceEditorIntegrationCopyInternalName", FontAwesomeIcon.Copy)) {
                 ImGui.SetClipboardText("Arrp " + currentIdenitfer);
             }
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Clipboard_Hint"]);
-        } else {
-            ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Empty"]);
+            if (ImGui.IsItemHovered()) {
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint"]);
+            }
         }
     }
 

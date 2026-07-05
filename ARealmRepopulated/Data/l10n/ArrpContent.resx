@@ -693,13 +693,10 @@
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint" xml:space="preserve">
     <value>Generate a random, yet valid, actor name.</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Empty" xml:space="preserve">
-    <value>Waiting for actor key</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Clipboard_Hint" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint" xml:space="preserve">
     <value>Copy to clipboard</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName" xml:space="preserve">
-    <value>Combined actor name</value>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Desc" xml:space="preserve">
+    <value>This sections manages settings for integration with other plugins. Usage is optional.</value>
   </data>
 </root>

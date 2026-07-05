@@ -1330,11 +1330,29 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This sections manages settings for integration with other plugins. Usage is optional..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Integration_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Stable Actor Key.
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy to clipboard.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint", resourceCulture);
             }
         }
         
@@ -1353,33 +1371,6 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Combined actor name.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Copy to clipboard.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Clipboard_Hint {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Clipboard_Hint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Waiting for actor key.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Empty {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Integration_Result_ActorName_Empty", resourceCulture);
             }
         }
         
