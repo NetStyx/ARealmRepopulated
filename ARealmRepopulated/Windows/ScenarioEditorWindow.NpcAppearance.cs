@@ -107,12 +107,24 @@ public partial class ScenarioEditorWindow {
             }
         }
 
+        /*        
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.SearchLocation, loc["ScenarioEditor_ActorData_Appearance_Setup_PickPreset"], new Vector2(200, 0))) {
+            bnpcPresetPicker.OpenPopup();
+        }
+        if (bnpcPresetPicker.Popup(out var bnpcPicker) && bnpcPicker.Base.HasValue && bnpcPicker.Base.Value is var npcBase) {              
+            var newAppearance = new NpcAppearanceData();
+            appearanceService.Read(npcBase, newAppearance);
+
+            SelectedScenarioNpc.Appearance = newAppearance;
+        }*/
+
         _appearanceFileImportState.CheckState(out var fileImportIcon, out var fileImportColor);
         var importFileTooltip = loc["ScenarioEditor_ActorData_Appearance_Setup_ImportFile"];
         if (_appearanceFileImportState.Result.HasValue) {
             importFileTooltip = (bool)_appearanceFileImportState.Result ? loc["ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Success"] : loc["ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Failure"];
         }
 
+        //ImGui.SameLine();
         if (ImGuiComponents.IconButtonWithText(fileImportIcon, importFileTooltip, size: new Vector2(200, 0), defaultColor: fileImportColor)) {
             fileDialogManager.OpenFileDialog($"{loc["ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Select"]}##arrpAppearanceFileSelector", "Character Files (.chara){.chara},All Files{.*}", (b, s) => {
                 if (b && s.Count > 0) {

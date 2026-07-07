@@ -124,6 +124,47 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
     }
 
+    public void Read(BNpcBase npcBase, NpcAppearanceData file) {
+
+        if (npcBase.ModelChara.IsValid && npcBase.ModelChara.RowId != 0 && npcBase.ModelChara.Value is var modelChara) {
+            file.ModelCharaId = modelChara.Model;
+            file.ModelSkeletonId = modelChara.Model;
+        }
+
+        if (npcBase.BNpcCustomize.IsValid && npcBase.BNpcCustomize.RowId != 0 && npcBase.BNpcCustomize.Value is var customize) {
+            file.Race = (NpcRace)customize.Race.RowId;
+            file.Sex = (NpcSex)customize.Gender;
+            file.BodyType = (NpcBodyType)customize.BodyType;
+            file.Height = customize.Height;
+            file.Tribe = (NpcTribe)customize.Tribe.RowId;
+            file.Face = customize.Face;
+            file.HairStyle = customize.HairStyle;
+            file.Highlights = customize.HairHighlight;
+            file.SkinColor = customize.SkinColor;
+            file.EyeColorRight = customize.EyeColor;
+            file.HairColor = customize.HairColor;
+            file.HighlightsColor = customize.HairHighlightColor;
+            file.FacialFeatures = customize.FacialFeature;
+            file.TattooColor = customize.FacialFeatureColor;
+            file.Eyebrows = customize.Eyebrows;
+            file.EyeColorLeft = customize.EyeHeterochromia;
+            file.EyeShape = customize.EyeShape;
+            file.Nose = customize.Nose;
+            file.Jaw = customize.Jaw;
+            file.Lipstick = customize.LipColor;
+            file.LipColorFurPattern = customize.FacePaintColor;
+            file.MuscleMass = customize.BustOrTone1;
+            file.TailShape = customize.ExtraFeature1;
+            file.BustSize = customize.ExtraFeature2OrBust;
+            file.FacePaint = customize.FacePaint;
+            file.FacePaintColor = customize.FacePaintColor;
+        }
+
+        if (npcBase.NpcEquip.IsValid && npcBase.NpcEquip.RowId != 0 && npcBase.NpcEquip.Value is var _) {
+            // TODO: Read equipment data from BNpcEquip if needed
+        }
+    }
+
     public void PlayEmote(BattleChara* character, Emote emoteEntry) {
 
         var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };

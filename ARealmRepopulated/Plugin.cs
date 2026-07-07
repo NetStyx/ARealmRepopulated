@@ -51,9 +51,6 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<ScenarioMigrator>()
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
-            .AddSingleton<ArrpGuiEmotePicker>()
-            .AddSingleton<ArrpGuiNpcPicker>()
-            .AddSingleton<ArrpGuiTimelinePicker>()
             .AddSingleton<FileDialogManager>()
             .AddWindow<ConfigWindow>()
             .AddWindow<OnboardingWindow>()
@@ -61,6 +58,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddTransient<NpcActor>()
             .AddTransient<Scenario>()
             .AddTransient<ScenarioNpc>()
+            .AddGuiPickers()
             .AddIntegrations();
 
         _services = serviceDescriptors.BuildServiceProvider();

@@ -16,7 +16,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
 
     private readonly Lock _npcServicesLock = new();
 
-    public unsafe bool TrySpawnNpc([NotNullWhen(true)] out NpcActor? character) {
+    public unsafe bool TrySpawnNpc(NpcSpawnOptions options, [NotNullWhen(true)] out NpcActor? character) {
 
         using var _ = _npcServicesLock.EnterScope();
 
@@ -30,9 +30,8 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
             return false;
         }
 
-        battleCharacter->ObjectKind = ObjectKind.Pc;
+        battleCharacter->ObjectKind = options.Kind;
         battleCharacter->BattleNpcSubKind = BattleNpcSubKind.Player;
-        battleCharacter->SubKind = (byte)BattleNpcSubKind.Player;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
 
         if (objectTable.LocalPlayer != null) {
@@ -44,6 +43,8 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
 
         var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
+        npcActor.SetName(options.Name);
+
         Actors.Add(npcActor);
 
         character = npcActor;
@@ -119,4 +120,11 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         hooks.OnCharacterDestroyed -= Hooks_CharacterDestroyed;
         ClearNpcs();
     }
+}
+
+public class NpcSpawnOptions {
+    public static NpcSpawnOptions Default => new();
+
+    public ObjectKind Kind { get; set; } = ObjectKind.BattleNpc;
+    public string Name { get; set; } = "";
 }

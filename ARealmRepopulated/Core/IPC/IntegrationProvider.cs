@@ -12,9 +12,9 @@ public static class IntegrationProvider {
             return false;
         }
 
-        if (npcData.AdditionalData.GetValueOrDefault(key, "") is string actorName && !string.IsNullOrEmpty(actorName)) {
-            data = actorName;
-        }
+        data = npcData.AdditionalData.GetValueOrDefault(key, "");
+        if (string.IsNullOrEmpty(data))
+            return false;
 
         return true;
     }

@@ -17,6 +17,8 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<Emote> _emoteTypeSheet = null!;
     private ExcelSheet<ActionTimeline> _actionTimelineSheet = null!;
     private ExcelSheet<Item> _itemSheet = null!;
+    private ExcelSheet<BNpcBase> _bnpcBaseSheet = null!;
+    private ExcelSheet<BNpcName> _bnpcNameSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
 
     public void Populate() {
@@ -24,6 +26,8 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         _actionTimelineSheet = dataManager.GetExcelSheet<ActionTimeline>();
         _emoteTypeSheet = dataManager.GetExcelSheet<Emote>();
         _itemSheet = dataManager.GetExcelSheet<Item>();
+        _bnpcBaseSheet = dataManager.GetExcelSheet<BNpcBase>();
+        _bnpcNameSheet = dataManager.GetExcelSheet<BNpcName>();
     }
 
     public List<Item> GetItems(Predicate<Item> a)
@@ -73,6 +77,30 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
 
+    public List<BNpcLookup> GetBNpcBases(Predicate<string> pred) {
+        return [..
+            _bnpcBaseSheet
+            .Where(b => b.ModelChara.IsValid && b.ModelChara.Value.Type == 1)
+            .Select(b => new BNpcLookup {
+                BNpcBaseId = b.RowId,
+                Base = b,
+                // that is just plainly wrong, but i have no idea how to get the name from the base, so for now we just keep it as prep work
+                Name = _bnpcNameSheet.GetRowOrDefault(b.RowId)
+            })
+            .Where(p =>
+               p.Name.HasValue && p.Name.Value.RowId != 0
+               && p.Base.HasValue && p.Base.Value.RowId != 0
+               && pred(p.Name.Value.Singular.ToString())
+            )
+        ];
+    }
+
+}
+
+public class BNpcLookup {
+    public uint BNpcBaseId { get; set; }
+    public BNpcName? Name { get; set; }
+    public BNpcBase? Base { get; set; }
 }
 
 public static class EmoteExtensions {

@@ -1357,7 +1357,7 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The value of this field is used to override the internal actor name to allow modding tools to take over customization. It needs to follow squares naming rules (15 chars, no special chars except hypens and apostrophes, no mixed lower/upper, starts with upper case).
+        ///   Looks up a localized string similar to The value of this field is used to override the internal actor name to allow modding tools to take over customization. It needs to follow squares naming rules (15 chars, no special chars except hypens and apostrophes, no mixed lower/upper, starts with upper case, no space).
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc {
             get {

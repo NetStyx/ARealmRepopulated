@@ -33,6 +33,7 @@ public partial class ScenarioEditorWindow(
     ArrpDataCache dataCache,
     ArrpCharacterCreationData characterCreationData,
     ArrpEventService eventService,
+    ArrpGuiBNpcPicker bnpcPresetPicker,
     ArrpGuiEmotePicker emotePicker,
     ArrpGuiNpcPicker npcPicker,
     ArrpGuiTimelinePicker timelinePicker,

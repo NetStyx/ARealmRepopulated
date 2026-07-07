@@ -7,6 +7,7 @@ using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
@@ -149,15 +150,18 @@ public unsafe class ScenarioOrchestrator(
 
         var scenarioNpcIndex = 0;
         foreach (var scenarioNpc in data.Npcs) {
-            if (!npcServices.TrySpawnNpc(out var npc))
+
+            var spawnOptions = new NpcSpawnOptions();
+            if (scenarioNpc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
+                spawnOptions.Kind = ObjectKind.Pc;
+                spawnOptions.Name = $"Arrp {actorName}";
+            }
+
+            if (!npcServices.TrySpawnNpc(spawnOptions, out var npc))
                 throw new InvalidOperationException($"Could not spawn all npcs.");
 
             npc.SetPosition(scenarioNpc.Position, isDefault: true);
             npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
-
-            if (scenarioNpc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
-                npc.SetName($"Arrp {actorName}");
-            }
 
             if (scenarioNpc.Appearance != null) {
                 npc.SetAppearance(scenarioNpc.Appearance);
