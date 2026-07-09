@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Supplementals;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel;
@@ -7,6 +8,7 @@ using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Infrastructure;
@@ -16,6 +18,8 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<Emote> _emoteTypeSheet = null!;
     private ExcelSheet<ActionTimeline> _actionTimelineSheet = null!;
     private ExcelSheet<Item> _itemSheet = null!;
+    private ExcelSheet<BNpcBase> _bnpcBaseSheet = null!;
+    private ExcelSheet<BNpcName> _bnpcNameSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
 
     public void Populate() {
@@ -23,6 +27,8 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         _actionTimelineSheet = dataManager.GetExcelSheet<ActionTimeline>();
         _emoteTypeSheet = dataManager.GetExcelSheet<Emote>();
         _itemSheet = dataManager.GetExcelSheet<Item>();
+        _bnpcBaseSheet = dataManager.GetExcelSheet<BNpcBase>();
+        _bnpcNameSheet = dataManager.GetExcelSheet<BNpcName>();
     }
 
     public List<Item> GetItems(Predicate<Item> a)
@@ -72,6 +78,38 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
 
+    public List<BNpcLookup> GetBNpcBases(Predicate<string> pred) {
+
+        return [.. BNpcLinkParser.Instance.NameIdToBaseIds.Keys.ToList()
+            .Select(_bnpcNameSheet.GetRowOrDefault)
+            .Where(n =>
+                n != null
+                && n.HasValue && n.Value.RowId != 0
+                && pred(n.Value.Singular.ToString()))
+            .SelectMany(n =>
+                BNpcLinkParser.Instance.GetBasesFromName(n!.Value.RowId).Select(b => new BNpcLookup {
+                    BNpcBaseId = b,
+                    Name = n.GetValueOrDefault(),
+                    Base = _bnpcBaseSheet.GetRowOrDefault(b).GetValueOrDefault()
+                }))
+            .Where(b =>
+                b.Base.ModelChara.Value.Type == 1 &&
+                (b.Base.BNpcCustomize.RowId > 0 || b.Base.NpcEquip.RowId > 0 || b.Base.ModelChara.RowId > 0)
+            )
+           ];
+    }
+
+}
+
+public class BnpcFilter {
+    public uint NameId { get; set; }
+    public BNpcName Name { get; set; }
+}
+
+public class BNpcLookup {
+    public uint BNpcBaseId { get; set; }
+    public BNpcName Name { get; set; }
+    public BNpcBase Base { get; set; }
 }
 
 public static class EmoteExtensions {
@@ -130,7 +168,7 @@ public static class EmoteExtensions {
     public record EmoteLayoutInteraction(uint OriginalEmoteId, uint LayoutInteractionEmoteId, LayoutTarget LayoutObjectTarget);
 }
 
-public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {
+public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {
 
     private CharacterEditorData _characterEditorData = null!;
     private ExcelSheet<CharaMakeType> _charaMakeSheet = null!;
@@ -163,6 +201,58 @@ public class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager)
             raceData.HasTailEarShapes = hasTailEarShapes != null;
         }
 
+    }
+
+    [GeneratedRegex(@"^[A-Za-z]+(?:['-][A-Za-z]+)*$", RegexOptions.Compiled)]
+    private static partial Regex CharacterNameRegex();
+
+    /// <summary>
+    /// Validates that the string given conforms to the naming rules of SQEX.
+    /// See: https://support.na.square-enix.com/faqarticle.php?kid=67258&id=5382&page=1&sc=0
+    /// Also: 20 Characters Max, One Empty Space to seperate first and last name, 2 to 15 characters each, no special characters except hypen and apostrophe, no numbers. No repeated special characters, no leading or trailing special characters.
+    /// </summary>        
+    public static bool IsValidPlayerName(string name) {
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        // Must not start or end with spaces
+        if (name.StartsWith(' ') || name.EndsWith(' '))
+            return false;
+
+        // Must have exactly 2 parts: first name and last name
+        var parts = name.Trim().Split(' ');
+        if (parts.Length != 2)
+            return false;
+
+        var firstName = parts[0];
+        var lastName = parts[1];
+
+        // Each name must be between 2 and 15 characters
+        if (firstName.Length is < 2 or > 15)
+            return false;
+
+        if (lastName.Length is < 2 or > 15)
+            return false;
+
+        // Combined maximum of 20 characters (including the space separator)
+        if (name.Length > 20)
+            return false;
+
+        return CharacterNameRegex().IsMatch(firstName) && CharacterNameRegex().IsMatch(lastName);
+    }
+
+    public string GetRandomName() {
+        var chars = "abcdefghijklmnopqrstuvwxyz";
+        var stringChars = new char[15];
+        var random = new Random(Guid.NewGuid().GetHashCode());
+
+        for (var i = 0; i < stringChars.Length; i++) {
+            stringChars[i] = chars[random.Next(chars.Length)];
+        }
+
+        stringChars[0] = char.ToUpper(stringChars[0]);
+
+        return new string(stringChars);
     }
 
     public (string FirstName, string LastName) GenerateRandomName(NpcRace race = NpcRace.Unknown, NpcTribe tribe = NpcTribe.Unknown, NpcSex gender = NpcSex.Male) {

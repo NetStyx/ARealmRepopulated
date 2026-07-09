@@ -46,4 +46,12 @@
         <LastGenOutput>arrpcontent.Designer.cs</LastGenOutput>
       </EmbeddedResource>
     </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Data\Supplementals\BNpcLinkNoGubal.csv" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Data\Supplementals\BNpcLink.csv" />
+    </ItemGroup>
 </Project>

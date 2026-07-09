@@ -30,4 +30,14 @@ public static class ArrpGuiHelper {
         ArrpGuiAlignment.Center();
         draw();
     }
+
+    public static IServiceCollection AddGuiPickers(this IServiceCollection services) {
+        services
+            .AddSingleton<ArrpGuiBNpcPicker>()
+            .AddSingleton<ArrpGuiEmotePicker>()
+            .AddSingleton<ArrpGuiNpcPicker>()
+            .AddSingleton<ArrpGuiTimelinePicker>();
+        return services;
+    }
+
 }

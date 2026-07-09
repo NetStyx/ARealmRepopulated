@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -9,13 +10,13 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable {
+public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks, Glamourer glm, Penumbra pnb) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
     private readonly Lock _npcServicesLock = new();
 
-    public unsafe bool TrySpawnNpc([NotNullWhen(true)] out NpcActor? character) {
+    public unsafe bool TrySpawnNpc(NpcSpawnOptions options, [NotNullWhen(true)] out NpcActor? character) {
 
         using var _ = _npcServicesLock.EnterScope();
 
@@ -29,12 +30,21 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
             return false;
         }
 
-        battleCharacter->ObjectKind = ObjectKind.BattleNpc;
-        battleCharacter->BattleNpcSubKind = (BattleNpcSubKind)4;
+        battleCharacter->ObjectKind = options.Kind;
+        battleCharacter->BattleNpcSubKind = BattleNpcSubKind.Player;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
+
+        if (objectTable.LocalPlayer != null) {
+            var player = (Character*)objectTable.LocalPlayer.Address;
+
+            battleCharacter->HomeWorld = player->HomeWorld;
+            battleCharacter->CurrentWorld = player->CurrentWorld;
+        }
 
         var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
+        npcActor.SetName(options.Name);
+
         Actors.Add(npcActor);
 
         character = npcActor;
@@ -110,4 +120,11 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         hooks.OnCharacterDestroyed -= Hooks_CharacterDestroyed;
         ClearNpcs();
     }
+}
+
+public class NpcSpawnOptions {
+    public static NpcSpawnOptions Default => new();
+
+    public ObjectKind Kind { get; set; } = ObjectKind.BattleNpc;
+    public string Name { get; set; } = "";
 }

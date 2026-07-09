@@ -261,9 +261,6 @@
   <data name="ScenarioEditor_ActorData_General_Input_Name" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_General_Input_NameHint" xml:space="preserve">
-    <value>a</value>
-  </data>
   <data name="ScenarioEditor_ActorData_General_Input_Position" xml:space="preserve">
     <value>a</value>
   </data>
@@ -682,6 +679,33 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Behavior_TrackPlayer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickPreset" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source" xml:space="preserve">
     <value>a</value>
   </data>
 </root>

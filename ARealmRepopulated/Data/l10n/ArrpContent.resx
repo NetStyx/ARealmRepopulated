@@ -261,9 +261,6 @@
   <data name="ScenarioEditor_ActorData_General_Input_Name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="ScenarioEditor_ActorData_General_Input_NameHint" xml:space="preserve">
-    <value>The npc does not output a name at any point. Its only use is to make it easier identifyable when editing the scenario.</value>
-  </data>
   <data name="ScenarioEditor_ActorData_General_Input_Position" xml:space="preserve">
     <value>Position</value>
   </data>
@@ -683,5 +680,32 @@
   </data>
   <data name="ScenarioEditor_ActorData_Behavior_TrackPlayer" xml:space="preserve">
     <value>Track player position</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration" xml:space="preserve">
+    <value>Integration</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName" xml:space="preserve">
+    <value>Stable Actor Key</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc" xml:space="preserve">
+    <value>The value of this field is used to override the internal actor name to allow modding tools to take over customization. It needs to follow squares naming rules (15 chars, no special chars except hypens and apostrophes, no mixed lower/upper, starts with upper case, no space)</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint" xml:space="preserve">
+    <value>Generate a random, yet valid, actor name.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint" xml:space="preserve">
+    <value>Copy to clipboard</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Desc" xml:space="preserve">
+    <value>This sections manages settings for integration with other plugins. Usage is optional.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickPreset" xml:space="preserve">
+    <value>Pick from preset</value>
+  </data>
+  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer" xml:space="preserve">
+    <value>This list is sourced by the community and might contain inaccuracies or missing entries.</value>
+  </data>
+  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source" xml:space="preserve">
+    <value>https://github.com/Critical-Impact/LuminaSupplemental</value>
   </data>
 </root>

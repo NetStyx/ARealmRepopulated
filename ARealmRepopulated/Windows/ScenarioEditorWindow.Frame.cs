@@ -1,3 +1,4 @@
+using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.l10n;
@@ -24,6 +25,7 @@ using CsMaths = FFXIVClientStructs.FFXIV.Common.Math;
 namespace ARealmRepopulated.Windows;
 
 public partial class ScenarioEditorWindow(
+    PluginConfig config,
     DebugOverlay debugOverlay,
     ScenarioFileManager scenarioFileManager,
     NpcAppearanceService appearanceService,
@@ -31,6 +33,7 @@ public partial class ScenarioEditorWindow(
     ArrpDataCache dataCache,
     ArrpCharacterCreationData characterCreationData,
     ArrpEventService eventService,
+    ArrpGuiBNpcPicker bnpcPresetPicker,
     ArrpGuiEmotePicker emotePicker,
     ArrpGuiNpcPicker npcPicker,
     ArrpGuiTimelinePicker timelinePicker,
@@ -307,8 +310,9 @@ public partial class ScenarioEditorWindow(
         using (ImRaii.PushId("##scenarioNpcControllAddNpc")) {
             if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, loc["ScenarioEditor_ActorData_Manage_AddActor"])) {
                 var newScenarioNpc = new ScenarioNpcData { Name = "New Actor", Position = objectTable.LocalPlayer?.Position ?? Vector3.Zero, Rotation = objectTable.LocalPlayer?.Rotation ?? 0f };
-
                 var newActorName = characterCreationData.GenerateRandomName(newScenarioNpc.Appearance.Race, newScenarioNpc.Appearance.Tribe, newScenarioNpc.Appearance.Sex);
+
+                newScenarioNpc.Actions.Add(new ScenarioNpcWaitingAction());
                 newScenarioNpc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
 
                 ScenarioObject.Npcs.Add(newScenarioNpc);
@@ -445,8 +449,6 @@ public partial class ScenarioEditorWindow(
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Name"]);
-            ImGui.SameLine();
-            ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_General_Input_NameHint"]);
 
             ImGui.TableNextColumn();
             var name = SelectedScenarioNpc.Name;

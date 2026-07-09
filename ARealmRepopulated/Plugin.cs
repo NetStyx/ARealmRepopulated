@@ -1,5 +1,6 @@
 using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Components;
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services;
 using ARealmRepopulated.Core.Services.Chat;
@@ -50,16 +51,15 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<ScenarioMigrator>()
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
-            .AddSingleton<ArrpGuiEmotePicker>()
-            .AddSingleton<ArrpGuiNpcPicker>()
-            .AddSingleton<ArrpGuiTimelinePicker>()
             .AddSingleton<FileDialogManager>()
             .AddWindow<ConfigWindow>()
             .AddWindow<OnboardingWindow>()
             .AddTransientWindow<ScenarioEditorWindow>()
             .AddTransient<NpcActor>()
             .AddTransient<Scenario>()
-            .AddTransient<ScenarioNpc>();
+            .AddTransient<ScenarioNpc>()
+            .AddGuiPickers()
+            .AddIntegrations();
 
         _services = serviceDescriptors.BuildServiceProvider();
         _services.GetRequiredService<PluginConfigMigration>().Migrate();
@@ -88,6 +88,7 @@ public sealed class Plugin : IDalamudPlugin {
         _services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         _services.GetRequiredService<ChatBubbleService>();
         _services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
+        _services.EnableIntegrations();
 
         // set the event service to do a territory check cycle
         var eventService = _services.GetRequiredService<ArrpEventService>();

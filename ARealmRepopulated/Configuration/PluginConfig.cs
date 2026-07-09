@@ -10,6 +10,9 @@ public class PluginConfig : IPluginConfiguration {
     [JsonIgnore]
     internal IDalamudPluginInterface PluginInterface { get; set; } = null!;
 
+    [JsonIgnore]
+    internal PluginRuntimeConfig RuntimeConfig { get; set; } = new PluginRuntimeConfig();
+
     [JsonExtensionData]
     internal Dictionary<string, object> AdditionalData { get; set; } = [];
 

@@ -38,7 +38,6 @@ public unsafe class NpcActor(
         var localPlayer = (BattleChara*)objectTable.LocalPlayer!.Address;
         this.SetRotationFrom(localPlayer);
         this.SetPositionFrom(localPlayer);
-        appearanceService.SetName((Character*)_actor);
     }
 
     public bool IsReady() {
@@ -57,6 +56,17 @@ public unsafe class NpcActor(
         _actor->DisableDraw();
         _isReady = false;
     }
+
+    public void SetName(string name) {
+        if (!string.IsNullOrWhiteSpace(name) && ArrpCharacterCreationData.IsValidPlayerName(name)) {
+            appearanceService.SetName(_actor, name);
+        } else {
+            appearanceService.SetDefaultName(_actor);
+        }
+    }
+
+    public void SetName()
+        => appearanceService.SetDefaultName(_actor);
 
     public Vector3 GetPosition()
         => _actor->Position;

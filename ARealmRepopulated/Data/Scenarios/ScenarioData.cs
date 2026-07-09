@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Appearance;
 using FFXIVClientStructs.FFXIV.Common.Math;
@@ -42,12 +43,14 @@ public interface IScenarioMetaData {
 }
 
 public class ScenarioNpcData {
+    public string Identifier { get; set; } = Guid.NewGuid().AsHexString();
     public string Name { get; set; } = "";
     public NpcAppearanceData Appearance { get; set; } = NpcAppearanceData.Default;
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
     public List<ScenarioNpcAction> Actions { get; set; } = [];
     public ScenarioNpcBehaviorData Behavior { get; set; } = new();
+    public Dictionary<string, string> AdditionalData { get; set; } = new();
 }
 
 public class ScenarioNpcBehaviorData {
