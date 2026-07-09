@@ -127,8 +127,10 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     public void Read(BNpcBase npcBase, NpcAppearanceData file) {
 
         if (npcBase.ModelChara.IsValid && npcBase.ModelChara.RowId != 0 && npcBase.ModelChara.Value is var modelChara) {
-            file.ModelCharaId = modelChara.Model;
-            file.ModelSkeletonId = modelChara.Model;
+            //if (modelChara.Type != 1) {
+            //file.ModelCharaId = modelChara.Model;
+            //file.ModelSkeletonId = modelChara.Model;
+            //}
         }
 
         if (npcBase.BNpcCustomize.IsValid && npcBase.BNpcCustomize.RowId != 0 && npcBase.BNpcCustomize.Value is var customize) {
@@ -160,8 +162,30 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
             file.FacePaintColor = customize.FacePaintColor;
         }
 
-        if (npcBase.NpcEquip.IsValid && npcBase.NpcEquip.RowId != 0 && npcBase.NpcEquip.Value is var _) {
-            // TODO: Read equipment data from BNpcEquip if needed
+        if (npcBase.NpcEquip.IsValid && npcBase.NpcEquip.RowId != 0 && npcBase.NpcEquip.Value is var equip) {
+            file.MainHand = new WeaponModel(equip.ModelMainHand) { Stain0 = (byte)equip.DyeMainHand.RowId, Stain1 = (byte)equip.Dye2MainHand.RowId };
+            if (equip.ModelOffHand > 0) {
+                file.OffHand = new WeaponModel(equip.ModelOffHand) { Stain0 = (byte)equip.DyeOffHand.RowId, Stain1 = (byte)equip.Dye2OffHand.RowId };
+            }
+
+            file.HeadGear = new EquipmentModel(equip.ModelHead) { Stain0 = (byte)equip.DyeHead.RowId, Stain1 = (byte)equip.Dye2Head.RowId };
+            file.Body = new EquipmentModel(equip.ModelBody) { Stain0 = (byte)equip.DyeBody.RowId, Stain1 = (byte)equip.Dye2Body.RowId };
+            file.Hands = new EquipmentModel(equip.ModelHands) { Stain0 = (byte)equip.DyeHands.RowId, Stain1 = (byte)equip.Dye2Hands.RowId };
+            file.Legs = new EquipmentModel(equip.ModelLegs) { Stain0 = (byte)equip.DyeLegs.RowId, Stain1 = (byte)equip.Dye2Legs.RowId };
+            file.Feet = new EquipmentModel(equip.ModelFeet) { Stain0 = (byte)equip.DyeFeet.RowId, Stain1 = (byte)equip.Dye2Feet.RowId };
+            file.Ears = new EquipmentModel(equip.ModelEars) { Stain0 = (byte)equip.DyeEars.RowId, Stain1 = (byte)equip.Dye2Ears.RowId };
+            file.Neck = new EquipmentModel(equip.ModelNeck) { Stain0 = (byte)equip.DyeNeck.RowId, Stain1 = (byte)equip.Dye2Neck.RowId };
+            file.Wrists = new EquipmentModel(equip.ModelWrists) { Stain0 = (byte)equip.DyeWrists.RowId, Stain1 = (byte)equip.Dye2Wrists.RowId };
+            file.LeftRing = new EquipmentModel(equip.ModelLeftRing) { Stain0 = (byte)equip.DyeLeftRing.RowId, Stain1 = (byte)equip.Dye2LeftRing.RowId };
+            file.RightRing = new EquipmentModel(equip.ModelRightRing) { Stain0 = (byte)equip.DyeRightRing.RowId, Stain1 = (byte)equip.Dye2RightRing.RowId };
+
+            if (equip.ModelHead > 0) {
+                file.HideHeadgear = false;
+            }
+
+            if (equip.ModelMainHand > 0) {
+                file.HideWeapons = false;
+            }
         }
     }
 

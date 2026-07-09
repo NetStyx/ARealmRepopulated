@@ -61,6 +61,24 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This list is sourced by the community and might contain inaccuracies or missing entries..
+        /// </summary>
+        public static string ArrpGuiPicker_BNpcPreset_SourceDisclaimer {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_BNpcPreset_SourceDisclaimer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/Critical-Impact/LuminaSupplemental.
+        /// </summary>
+        public static string ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loaded actors:.
         /// </summary>
         public static string DtrBar_LoadedActors {
@@ -1470,6 +1488,15 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_ActorData_Appearance_Setup_PickNpc {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Setup_PickNpc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick from preset.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Setup_PickPreset {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Setup_PickPreset", resourceCulture);
             }
         }
         

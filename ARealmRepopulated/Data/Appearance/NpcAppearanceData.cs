@@ -183,6 +183,14 @@ public class WeaponModel {
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
 
+    public WeaponModel() { }
+    public WeaponModel(ulong modelKey) {
+        var (modelSet, modelBase, modelVariant) = ItemModelData.DecodeModel(modelKey);
+        ModelSetId = modelSet;
+        Base = modelBase;
+        Variant = (byte)modelVariant;
+    }
+
     public unsafe void Apply(Character* actor, bool isMainHand) {
 
         if (ModelSetId == 0)
@@ -220,6 +228,13 @@ public class EquipmentModel {
     public byte Variant { get; set; }
     public byte Stain0 { get; set; }
     public byte Stain1 { get; set; }
+
+    public EquipmentModel() { }
+    public EquipmentModel(ulong modelKey) {
+        var (_, modelBase, modelVariant) = ItemModelData.DecodeModel(modelKey);
+        ModelId = modelBase;
+        Variant = (byte)modelVariant;
+    }
 
     public unsafe void Apply(Character* actor, EquipmentSlot index) {
         var item = new EquipmentModelId() {

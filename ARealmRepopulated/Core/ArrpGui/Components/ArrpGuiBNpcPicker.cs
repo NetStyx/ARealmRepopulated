@@ -1,5 +1,7 @@
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
@@ -7,7 +9,7 @@ using System.Numerics;
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
 // Preperation for the time i figure out how bnpc names and bnpc bases are linked together, so i can make a proper bnpc picker
-public class ArrpGuiBNpcPicker(ArrpDataCache dataCache) {
+public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
     private string _pickerName = "TimelinePicker";
     private string _pickerSearch = string.Empty;
 
@@ -29,38 +31,46 @@ public class ArrpGuiBNpcPicker(ArrpDataCache dataCache) {
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextWithHint("##ArrpBNpcPickerListSearch", "Search...", ref _pickerSearch, 64);
 
-        using var pickerTable = ImRaii.Table("##ArrpBNpcPickerListTable", 4, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX, size ?? new Vector2(500, 300));
-        if (!pickerTable.Success)
-            return false;
+        {
+            using var pickerTable = ImRaii.Table("##ArrpBNpcPickerListTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX, size ?? new Vector2(500, 300));
+            if (!pickerTable.Success)
+                return false;
 
-        ImGui.TableSetupColumn("##bnpcPickerIdCol", ImGuiTableColumnFlags.WidthFixed, 80);
-        ImGui.TableSetupColumn("##bnpcPickerNameCol", ImGuiTableColumnFlags.WidthStretch, -1);
-        ImGui.TableSetupColumn("##bnpcPickerSlotCol", ImGuiTableColumnFlags.WidthFixed, 40);
-        ImGui.TableSetupColumn("##bnpcPickerFlagsCol", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("##bnpcPickerNameIdCol", ImGuiTableColumnFlags.WidthFixed, 80);
+            ImGui.TableSetupColumn("##bnpcPickerNameCol", ImGuiTableColumnFlags.WidthStretch, -1);
+            ImGui.TableSetupColumn("##bnpcPickerBaseIdCol", ImGuiTableColumnFlags.WidthFixed, 80);
 
-        ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableHeadersRow();
+            ImGui.TableSetupScrollFreeze(0, 1);
+            ImGui.TableHeadersRow();
 
-        ArrpGuiHelper.DrawCenteredHeaderCell(0, () => ImGui.Text("ID"));
-        ArrpGuiHelper.DrawCenteredHeaderCell(1, () => ImGui.Text("Name"));
-        ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text("Slot"));
-        ArrpGuiHelper.DrawCenteredHeaderCell(3, () => ImGui.Text("Flags"));
+            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => ImGui.Text("Name ID"));
+            ArrpGuiHelper.DrawCenteredHeaderCell(1, () => ImGui.Text("Name"));
+            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text("Base ID"));
 
-        foreach (var baseEntry in dataCache.GetBNpcBases((b) => string.IsNullOrEmpty(_pickerSearch) || b.Contains(_pickerSearch))) {
-            ImGui.TableNextRow();
-            ImGui.TableNextColumn();
-            ImGui.Text(baseEntry.BNpcBaseId.ToString());
-            ImGui.TableNextColumn();
-            if (ImGui.Selectable($"{baseEntry.Name.GetValueOrDefault().Singular}###ArrpTimelinePickerSelection{baseEntry.BNpcBaseId}", false, ImGuiSelectableFlags.SpanAllColumns)) {
-                ImGui.CloseCurrentPopup();
-                preset = baseEntry;
-                return true;
+            foreach (var baseEntry in dataCache.GetBNpcBases((b) => !string.IsNullOrWhiteSpace(b) && (string.IsNullOrEmpty(_pickerSearch) || b.Contains(_pickerSearch, StringComparison.OrdinalIgnoreCase)))) {
+
+                var baseId = baseEntry.Base.RowId;
+                var nameId = baseEntry.Name.RowId;
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.Text(baseEntry.Name.RowId.ToString());
+                ImGui.TableNextColumn();
+                if (ImGui.Selectable($"{baseEntry.Name.Singular}###ArrpTimelinePickerSelection{nameId}-{baseId}", false, ImGuiSelectableFlags.SpanAllColumns)) {
+                    ImGui.CloseCurrentPopup();
+                    preset = baseEntry;
+                    return true;
+                }
+                ImGui.TableNextColumn();
+                ImGui.Text(baseEntry.Base.RowId.ToString());
+
+                ImGui.TableNextColumn();
             }
-            ImGui.TableNextColumn();
-            ImGui.Text(baseEntry.Base.HasValue ? baseEntry.Base.Value.NpcEquip.RowId.ToString() : "N/A");
-
-            ImGui.TableNextColumn();
         }
+
+        ImGui.TextDisabled(loc["ArrpGuiPicker_BNpcPreset_SourceDisclaimer"]);
+        ImGui.SameLine();
+        ImGuiComponents.HelpMarker(loc["ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source"]);
 
         return false;
     }

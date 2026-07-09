@@ -699,4 +699,13 @@
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Desc" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickPreset" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

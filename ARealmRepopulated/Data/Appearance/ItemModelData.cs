@@ -45,6 +45,20 @@ public class ItemModelData {
         return result;
     }
 
+    public static (ushort ModelSet, ushort ModelBase, ushort ModelVariant) DecodeModel(ulong value) {
+        ulong modelSet, modelBase, modelVariant;
+        if (((value >> 32) & 0xFFFF) == 0) {
+            modelSet = 0;
+            modelBase = value & 0xFFFF;
+            modelVariant = (value >> 16) & 0xFFFF;
+        } else {
+            modelSet = value & 0xFFFF;
+            modelBase = (value >> 16) & 0xFFFF;
+            modelVariant = (value >> 32) & 0xFFFF;
+        }
+        return ((ushort)modelSet, (ushort)modelBase, (ushort)modelVariant);
+    }
+
     private static bool IsInCategory(Item i, Func<dynamic, int> categorySelector)
         => categorySelector(i.EquipSlotCategory.Value) == 1;
 

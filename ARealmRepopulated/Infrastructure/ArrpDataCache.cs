@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Supplementals;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel;
@@ -78,29 +79,37 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     }
 
     public List<BNpcLookup> GetBNpcBases(Predicate<string> pred) {
-        return [..
-            _bnpcBaseSheet
-            .Where(b => b.ModelChara.IsValid && b.ModelChara.Value.Type == 1)
-            .Select(b => new BNpcLookup {
-                BNpcBaseId = b.RowId,
-                Base = b,
-                // that is just plainly wrong, but i have no idea how to get the name from the base, so for now we just keep it as prep work
-                Name = _bnpcNameSheet.GetRowOrDefault(b.RowId)
-            })
-            .Where(p =>
-               p.Name.HasValue && p.Name.Value.RowId != 0
-               && p.Base.HasValue && p.Base.Value.RowId != 0
-               && pred(p.Name.Value.Singular.ToString())
+
+        return [.. BNpcLinkParser.Instance.NameIdToBaseIds.Keys.ToList()
+            .Select(_bnpcNameSheet.GetRowOrDefault)
+            .Where(n =>
+                n != null
+                && n.HasValue && n.Value.RowId != 0
+                && pred(n.Value.Singular.ToString()))
+            .SelectMany(n =>
+                BNpcLinkParser.Instance.GetBasesFromName(n!.Value.RowId).Select(b => new BNpcLookup {
+                    BNpcBaseId = b,
+                    Name = n.GetValueOrDefault(),
+                    Base = _bnpcBaseSheet.GetRowOrDefault(b).GetValueOrDefault()
+                }))
+            .Where(b =>
+                b.Base.ModelChara.Value.Type == 1 &&
+                (b.Base.BNpcCustomize.RowId > 0 || b.Base.NpcEquip.RowId > 0 || b.Base.ModelChara.RowId > 0)
             )
-        ];
+           ];
     }
 
 }
 
+public class BnpcFilter {
+    public uint NameId { get; set; }
+    public BNpcName Name { get; set; }
+}
+
 public class BNpcLookup {
     public uint BNpcBaseId { get; set; }
-    public BNpcName? Name { get; set; }
-    public BNpcBase? Base { get; set; }
+    public BNpcName Name { get; set; }
+    public BNpcBase Base { get; set; }
 }
 
 public static class EmoteExtensions {
