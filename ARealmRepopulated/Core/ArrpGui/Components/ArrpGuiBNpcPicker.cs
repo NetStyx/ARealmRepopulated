@@ -8,10 +8,10 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
-// Preperation for the time i figure out how bnpc names and bnpc bases are linked together, so i can make a proper bnpc picker
 public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
     private string _pickerName = "TimelinePicker";
     private string _pickerSearch = string.Empty;
+    private int _pickerSelectedType = 0;
 
     public void SetPopupName(string name)
         => _pickerName = name;
@@ -28,6 +28,7 @@ public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
         if (!pickerPopup.Success)
             return false;
 
+        ImGui.Combo("##ArrpBNpcPickerType", ref _pickerSelectedType, ["All", "Human", "Demihuman", "Monster", "Statics", "Parts"], 6);
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextWithHint("##ArrpBNpcPickerListSearch", "Search...", ref _pickerSearch, 64);
 
@@ -47,7 +48,7 @@ public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
             ArrpGuiHelper.DrawCenteredHeaderCell(1, () => ImGui.Text("Name"));
             ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text("Base ID"));
 
-            foreach (var baseEntry in dataCache.GetBNpcBases((b) => !string.IsNullOrWhiteSpace(b) && (string.IsNullOrEmpty(_pickerSearch) || b.Contains(_pickerSearch, StringComparison.OrdinalIgnoreCase)))) {
+            foreach (var baseEntry in dataCache.GetBNpcBases(_pickerSelectedType, (b) => !string.IsNullOrWhiteSpace(b) && (string.IsNullOrEmpty(_pickerSearch) || b.Contains(_pickerSearch, StringComparison.OrdinalIgnoreCase)))) {
 
                 var baseId = baseEntry.Base.RowId;
                 var nameId = baseEntry.Name.RowId;

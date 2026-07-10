@@ -391,7 +391,11 @@ public partial class ScenarioEditorWindow {
         }
         var equipModel = dataCache.GetItemByModel(slot, 0, model.ModelId, model.Variant);
         if (equipModel == ItemModelData.Empty || equipModel.Item == 0) {
-            ImGui.TextDisabled($"-");
+            if (equipModel.ModelBase != 0) {
+                ImGui.TextDisabled($"(?) " + equipModel.ModelBase);
+            } else {
+                ImGui.TextDisabled($"-");
+            }
             return;
         }
 

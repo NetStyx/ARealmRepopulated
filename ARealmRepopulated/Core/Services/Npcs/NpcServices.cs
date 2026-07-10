@@ -1,4 +1,3 @@
-using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -10,7 +9,7 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks, Glamourer glm, Penumbra pnb) : IDisposable {
+public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, ArrpGameHooks hooks) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
