@@ -19,8 +19,7 @@ public unsafe class NpcActor(
     LayoutWorldService envService,
     LookAtService lookAtService,
     NpcAppearanceService appearanceService,
-    ChatBubbleService cbs,
-    IPluginLog log) {
+    ChatBubbleService cbs) {
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;

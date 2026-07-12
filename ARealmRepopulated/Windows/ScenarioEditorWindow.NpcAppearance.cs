@@ -193,6 +193,10 @@ public partial class ScenarioEditorWindow {
         ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CSkeleton"]);
         ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelSkeletonId.ToString());
 
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CScale"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Scale.ToString());
+
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.Dummy(new Vector2(0, 50));

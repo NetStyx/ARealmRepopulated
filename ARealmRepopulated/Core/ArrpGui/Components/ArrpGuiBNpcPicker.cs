@@ -11,7 +11,7 @@ namespace ARealmRepopulated.Core.ArrpGui.Components;
 public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
     private string _pickerName = "TimelinePicker";
     private string _pickerSearch = string.Empty;
-    private int _pickerSelectedType = 0;
+    private int _pickerSelectedType = 1;
 
     public void SetPopupName(string name)
         => _pickerName = name;
@@ -28,42 +28,45 @@ public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
         if (!pickerPopup.Success)
             return false;
 
+        ImGui.SetNextItemWidth(100);
         ImGui.Combo("##ArrpBNpcPickerType", ref _pickerSelectedType, ["All", "Human", "Demihuman", "Monster", "Statics", "Parts"], 6);
+        ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextWithHint("##ArrpBNpcPickerListSearch", "Search...", ref _pickerSearch, 64);
 
         {
-            using var pickerTable = ImRaii.Table("##ArrpBNpcPickerListTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX, size ?? new Vector2(500, 300));
+            using var pickerTable = ImRaii.Table("##ArrpBNpcPickerListTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY | ImGuiTableFlags.PadOuterX, size ?? new Vector2(550, 300));
             if (!pickerTable.Success)
                 return false;
 
-            ImGui.TableSetupColumn("##bnpcPickerNameIdCol", ImGuiTableColumnFlags.WidthFixed, 80);
             ImGui.TableSetupColumn("##bnpcPickerNameCol", ImGuiTableColumnFlags.WidthStretch, -1);
             ImGui.TableSetupColumn("##bnpcPickerBaseIdCol", ImGuiTableColumnFlags.WidthFixed, 80);
+            ImGui.TableSetupColumn("##bnpcPickerModelIdCol", ImGuiTableColumnFlags.WidthFixed, 80);
 
             ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableHeadersRow();
 
-            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => ImGui.Text("Name ID"));
-            ArrpGuiHelper.DrawCenteredHeaderCell(1, () => ImGui.Text("Name"));
-            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text("Base ID"));
+            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => ImGui.Text("Name"));
+            ArrpGuiHelper.DrawCenteredHeaderCell(1, () => ImGui.Text("Base ID"));
+            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text("Model ID"));
 
             foreach (var baseEntry in dataCache.GetBNpcBases(_pickerSelectedType, (b) => !string.IsNullOrWhiteSpace(b) && (string.IsNullOrEmpty(_pickerSearch) || b.Contains(_pickerSearch, StringComparison.OrdinalIgnoreCase)))) {
 
                 var baseId = baseEntry.Base.RowId;
                 var nameId = baseEntry.Name.RowId;
+                var modelId = baseEntry.Base.ModelChara.IsValid ? baseEntry.Base.ModelChara.RowId : 0;
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text(baseEntry.Name.RowId.ToString());
-                ImGui.TableNextColumn();
-                if (ImGui.Selectable($"{baseEntry.Name.Singular}###ArrpTimelinePickerSelection{nameId}-{baseId}", false, ImGuiSelectableFlags.SpanAllColumns)) {
+                if (ImGui.Selectable($"[{nameId}] {baseEntry.Name.Singular}###ArrpTimelinePickerSelection{nameId}-{baseId}", false, ImGuiSelectableFlags.SpanAllColumns)) {
                     ImGui.CloseCurrentPopup();
                     preset = baseEntry;
                     return true;
                 }
                 ImGui.TableNextColumn();
-                ImGui.Text(baseEntry.Base.RowId.ToString());
+                ImGui.Text(baseId.ToString());
+                ImGui.TableNextColumn();
+                ImGui.Text(modelId.ToString());
 
                 ImGui.TableNextColumn();
             }

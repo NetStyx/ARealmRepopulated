@@ -67,6 +67,13 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         }
     }
 
+    /// <summary>
+    /// Tries to create a new object on the client object table.
+    /// </summary>
+    /// <remarks>
+    /// Initially, this method has called `CharacterSetup.SetupBNpc(0)` for all created characters. 
+    /// This however caused the game client to crash whenever the character was spawned on a watery surface (like the beach in kugana residental area).
+    /// </remarks>        
     private bool TryCreateNewCharacter(out BattleChara* resultCharacter) {
         resultCharacter = null;
 
@@ -79,10 +86,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         if (gameObject == null)
             return false;
 
-        var battleCharacter = (BattleChara*)gameObject;
-        battleCharacter->CharacterSetup.SetupBNpc(0);
-
-        resultCharacter = battleCharacter;
+        resultCharacter = (BattleChara*)gameObject;
         return true;
     }
 

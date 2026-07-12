@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.IPC.Integrations;
 using Dalamud.Plugin.Services;
 
 namespace ARealmRepopulated.Core.IPC;
@@ -5,7 +6,7 @@ namespace ARealmRepopulated.Core.IPC;
 public static class IntegrationExtensions {
 
     public static IServiceCollection AddIntegrations(this IServiceCollection services) {
-        services.AddIntegration<Glamourer>();
+        services.AddIntegration<CPlus>();
         services.AddIntegration<Penumbra>();
         return services;
     }

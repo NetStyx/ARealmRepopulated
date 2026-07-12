@@ -131,6 +131,7 @@ public class NpcAppearanceData {
     public EquipmentModel? RightRing { get; set; }
 
     public float? Transparency { get; set; }
+    public float? Scale { get; set; } = 1.0f;
 
     public bool HideWeapons { get; set; } = true;
     public bool HideHeadgear { get; set; } = true;

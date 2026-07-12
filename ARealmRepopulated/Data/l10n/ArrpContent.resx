@@ -708,4 +708,7 @@
   <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source" xml:space="preserve">
     <value>https://github.com/Critical-Impact/LuminaSupplemental</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
+    <value>Scale</value>
+  </data>
 </root>
