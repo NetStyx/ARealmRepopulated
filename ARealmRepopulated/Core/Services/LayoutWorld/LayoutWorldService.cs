@@ -57,13 +57,13 @@ public unsafe class LayoutWorldService : IDisposable {
         if (!layoutManager->InstancesByType.TryGetValue(InstanceType.ChairMarker, out var chairMarkerInstances, true))
             return [];
 
-        if (chairMarkerInstances == null || chairMarkerInstances.Value == null)
+        if (chairMarkerInstances == null || chairMarkerInstances.IsNull)
             return [];
 
         var result = new List<SnapPosition>();
         foreach (var (id, instance) in *chairMarkerInstances.Value) {
 
-            if (instance == null || instance.Value == null)
+            if (instance == null || instance.IsNull)
                 continue;
 
             if (!TryReadSnapPosition(instance.Value, searchQuery, out var candidate))

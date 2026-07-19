@@ -329,6 +329,9 @@ public partial class ScenarioEditorWindow {
 
         ImGui.TableNextColumn();
         var currentIdenitfer = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
+        ImGui.Text("Arrp");
+        ImGui.SameLine();
+
         if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: 15, flags: ImGuiInputTextFlags.CharsNoBlank)) {
             currentIdenitfer = currentIdenitfer.Trim();
             if (currentIdenitfer.Length > 0)

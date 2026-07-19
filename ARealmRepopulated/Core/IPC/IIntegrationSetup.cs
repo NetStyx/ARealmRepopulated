@@ -11,8 +11,8 @@ public abstract class IntegrationPluginBase(IDalamudPluginInterface pluginInterf
 
     public void Setup() {
         pluginInterface.ActivePluginsChanged += _activePluginsChanged;
-        var penumbra = pluginInterface.InstalledPlugins.FirstOrDefault(p => p.InternalName.Equals(internalName));
-        if (penumbra?.IsLoaded == true) {
+        var ipl = pluginInterface.InstalledPlugins.FirstOrDefault(p => p.InternalName.Equals(internalName));
+        if (ipl?.IsLoaded == true) {
             this.PluginActivated();
         }
     }
