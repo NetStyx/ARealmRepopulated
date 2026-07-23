@@ -21,9 +21,10 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     }
 
     public void Apply(Character* chara, NpcAppearanceData file) {
-        chara->Scale = 1;
+
         chara->ModelContainer.ModelCharaId = file.ModelCharaId;
         chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
+
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = (byte)file.Race;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = (byte)file.Sex;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = (byte)file.BodyType;
@@ -65,6 +66,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.LeftRing?.Apply(chara, EquipmentSlot.LFinger);
         file.RightRing?.Apply(chara, EquipmentSlot.RFinger);
 
+        chara->Scale = file.Scale ?? 1f;
+
         chara->DrawData.HideWeapons(file.HideWeapons);
         chara->DrawData.HideHeadgear(0, file.HideHeadgear);
         /*
@@ -77,8 +80,10 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     public void Read(Character* chara, NpcAppearanceData file) {
 
         file.AppearanceId = Guid.NewGuid();
+
         file.ModelCharaId = chara->ModelContainer.ModelCharaId;
         file.ModelSkeletonId = chara->ModelContainer.ModelSkeletonId;
+
         file.Race = (NpcRace)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race];
         file.Sex = (NpcSex)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex];
         file.BodyType = (NpcBodyType)chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType];
@@ -122,15 +127,18 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.Wrists = EquipmentModel.Read(chara, EquipmentSlot.Wrists);
         file.LeftRing = EquipmentModel.Read(chara, EquipmentSlot.LFinger);
         file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
+
+        file.Scale = chara->Scale;
     }
 
     public void Read(BNpcBase npcBase, NpcAppearanceData file) {
 
+        file.Scale = npcBase.Scale;
+
+        // need to figure out how the modelchara type relates to .. everything ... and where i get the skeleton from
         if (npcBase.ModelChara.IsValid && npcBase.ModelChara.RowId != 0 && npcBase.ModelChara.Value is var modelChara) {
-            //if (modelChara.Type != 1) {
-            //file.ModelCharaId = modelChara.Model;
-            //file.ModelSkeletonId = modelChara.Model;
-            //}
+            file.ModelCharaId = (int)modelChara.RowId;
+            file.ModelSkeletonId = modelChara.Model;
         }
 
         if (npcBase.BNpcCustomize.IsValid && npcBase.BNpcCustomize.RowId != 0 && npcBase.BNpcCustomize.Value is var customize) {
@@ -273,17 +281,5 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         }
 
         chara->CharacterSetup.CopyFromCharacter((Character*)objectTable.LocalPlayer.Address, CharacterSetupContainer.CopyFlags.ClassJob);
-    }
-
-    public void SetDefaultName(BattleChara* chara)
-        => SetName(chara, $"ARRP {chara->ObjectIndex}");
-
-    public void SetName(BattleChara* chara, string name) {
-        ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
-
-        for (var x = 0; x < name.Length; x++) {
-            chara->Name[x] = (byte)name[x];
-        }
-        chara->Name[name.Length] = 0;
     }
 }

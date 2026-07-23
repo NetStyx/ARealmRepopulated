@@ -1159,6 +1159,15 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scale.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_CScale {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CScale", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Base Skeleton ID.
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_CSkeleton {

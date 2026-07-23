@@ -12,7 +12,7 @@ public class BNpcLinkParser {
     private BNpcLinkParser() {
 
         var assembly = typeof(BNpcLinkParser).Assembly;
-        var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(f => f.EndsWith("BNpcLink.csv"));
+        var resourceName = assembly.GetManifestResourceNames().FirstOrDefault(f => f.EndsWith("BNpcLinkNoGubal.csv"));
         using var stream = assembly.GetManifestResourceStream(resourceName!);
         using var reader = new StreamReader(stream!);
         var data = reader.ReadToEnd();
@@ -24,14 +24,14 @@ public class BNpcLinkParser {
                 continue;
             }
 
-            // BaseId → NameIds
+            // BaseId -> NameIds
             if (!BaseIdToNameIds.TryGetValue(baseId, out var nameIdList)) {
                 nameIdList = [];
                 BaseIdToNameIds[baseId] = nameIdList;
             }
             nameIdList.Add(nameId);
 
-            // NameId → BaseIds
+            // NameId -> BaseIds
             if (!NameIdToBaseIds.TryGetValue(nameId, out var baseIdList)) {
                 baseIdList = [];
                 NameIdToBaseIds[nameId] = baseIdList;

@@ -67,6 +67,10 @@ public unsafe class LookAtService : IDisposable {
         _currentlyLookingAt.Remove(chara->GetGameObjectId());
     }
 
+    public bool CanLookAtSomething(BattleChara* source) {
+        return source->LookAt.Controller.ParamCount > 0;
+    }
+
     public bool IsLookingAt(BattleChara* source, BattleChara* target) {
         return source->LookAt.Controller.Params[0].TargetParam.TargetId.Id == target->GetGameObjectId().Id;
     }
@@ -76,6 +80,9 @@ public unsafe class LookAtService : IDisposable {
     }
 
     public void LookAt(BattleChara* source, BattleChara* target) {
+        if (!CanLookAtSomething(source))
+            return;
+
         _log.Debug($"{source->GetName()} set to look at {target->GetName()}");
 
         using var _ = _actorAccessLock.EnterScope();

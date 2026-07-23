@@ -193,6 +193,10 @@ public partial class ScenarioEditorWindow {
         ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CSkeleton"]);
         ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelSkeletonId.ToString());
 
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CScale"]);
+        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Scale.ToString());
+
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         ImGui.Dummy(new Vector2(0, 50));
@@ -325,6 +329,9 @@ public partial class ScenarioEditorWindow {
 
         ImGui.TableNextColumn();
         var currentIdenitfer = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
+        ImGui.Text("Arrp");
+        ImGui.SameLine();
+
         if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: 15, flags: ImGuiInputTextFlags.CharsNoBlank)) {
             currentIdenitfer = currentIdenitfer.Trim();
             if (currentIdenitfer.Length > 0)
@@ -391,7 +398,11 @@ public partial class ScenarioEditorWindow {
         }
         var equipModel = dataCache.GetItemByModel(slot, 0, model.ModelId, model.Variant);
         if (equipModel == ItemModelData.Empty || equipModel.Item == 0) {
-            ImGui.TextDisabled($"-");
+            if (equipModel.ModelBase != 0) {
+                ImGui.TextDisabled($"(?) " + equipModel.ModelBase);
+            } else {
+                ImGui.TextDisabled($"-");
+            }
             return;
         }
 

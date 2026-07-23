@@ -78,7 +78,7 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
 
-    public List<BNpcLookup> GetBNpcBases(Predicate<string> pred) {
+    public List<BNpcLookup> GetBNpcBases(int type, Predicate<string> pred) {
 
         return [.. BNpcLinkParser.Instance.NameIdToBaseIds.Keys.ToList()
             .Select(_bnpcNameSheet.GetRowOrDefault)
@@ -88,26 +88,20 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
                 && pred(n.Value.Singular.ToString()))
             .SelectMany(n =>
                 BNpcLinkParser.Instance.GetBasesFromName(n!.Value.RowId).Select(b => new BNpcLookup {
-                    BNpcBaseId = b,
                     Name = n.GetValueOrDefault(),
                     Base = _bnpcBaseSheet.GetRowOrDefault(b).GetValueOrDefault()
                 }))
             .Where(b =>
-                b.Base.ModelChara.Value.Type == 1 &&
-                (b.Base.BNpcCustomize.RowId > 0 || b.Base.NpcEquip.RowId > 0 || b.Base.ModelChara.RowId > 0)
+                (type == 0 || type == b.Base.ModelChara.Value.Type)
+                && (b.Base.ModelChara.Value.Type == 1 || b.Base.ModelChara.Value.Model > 0)
+                && (b.Base.BNpcCustomize.RowId > 0 || b.Base.NpcEquip.RowId > 0 || b.Base.ModelChara.RowId > 0)
             )
            ];
     }
 
 }
 
-public class BnpcFilter {
-    public uint NameId { get; set; }
-    public BNpcName Name { get; set; }
-}
-
 public class BNpcLookup {
-    public uint BNpcBaseId { get; set; }
     public BNpcName Name { get; set; }
     public BNpcBase Base { get; set; }
 }

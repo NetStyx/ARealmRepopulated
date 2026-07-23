@@ -30,6 +30,8 @@ public unsafe class NpcActor(
 
     private Vector3 _emoteOffset = Vector3.Zero;
 
+    private bool? _canTrack = null;
+
     public IntPtr Address { get => new(_actor); }
 
     public void Initialize(BattleChara* actorPointer) {
@@ -58,15 +60,15 @@ public unsafe class NpcActor(
     }
 
     public void SetName(string name) {
-        if (!string.IsNullOrWhiteSpace(name) && ArrpCharacterCreationData.IsValidPlayerName(name)) {
-            appearanceService.SetName(_actor, name);
-        } else {
-            appearanceService.SetDefaultName(_actor);
+        if (string.IsNullOrWhiteSpace(name)) {
+            name = $"ARRP {_actor->ObjectIndex}";
         }
-    }
 
-    public void SetName()
-        => appearanceService.SetDefaultName(_actor);
+        for (var x = 0; x < name.Length; x++) {
+            _actor->Name[x] = (byte)name[x];
+        }
+        _actor->Name[name.Length] = 0;
+    }
 
     public Vector3 GetPosition()
         => _actor->Position;
@@ -126,6 +128,11 @@ public unsafe class NpcActor(
 
     public float GetDistanceTo(Vector3 target)
         => Vector3.Distance(_actor->Position, target);
+
+    public bool CanTrack() {
+        _canTrack ??= lookAtService.CanLookAtSomething(_actor);
+        return _canTrack.GetValueOrDefault(false);
+    }
 
     public void LookAt(BattleChara* target) {
         if (!lookAtService.IsLookingAt(_actor, target)) {

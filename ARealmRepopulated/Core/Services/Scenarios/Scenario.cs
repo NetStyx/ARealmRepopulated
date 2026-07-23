@@ -162,7 +162,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             return;
         }
 
-        if (Behavior.TrackPlayer) {
+        if (Behavior.TrackPlayer && Actor.CanTrack()) {
             if (distance > _proximityLookDistance) {
                 Actor.LookAtNothing();
             } else {
