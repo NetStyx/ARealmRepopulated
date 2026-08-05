@@ -2,6 +2,7 @@ using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.l10n;
+using ARealmRepopulated.Core.Services.Changelog;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Location;
@@ -23,6 +24,7 @@ public class ConfigWindow(
     IPluginLog log,
     IClientState state,
     IObjectTable objectTable,
+    ChangelogService changelogService,
     ArrpTranslation loc,
     PluginConfig _config,
     ScenarioFileManager _fileManager,
@@ -137,10 +139,58 @@ public class ConfigWindow(
             }
         }
 
-        using var optionsTab = ImRaii.TabItem(loc["ListWnd_Options_Title"], ImGuiTabItemFlags.NoTooltip);
-        if (optionsTab.Success) {
-            OptionsTab();
+        using (var optionsTab = ImRaii.TabItem(loc["ListWnd_Options_Title"], ImGuiTabItemFlags.NoTooltip)) {
+            if (optionsTab.Success) {
+                OptionsTab();
+            }
         }
+
+        using var changelogTab = ImRaii.TabItem(loc["ListWnd_Changelog_Title"], ImGuiTabItemFlags.NoTooltip);
+        if (changelogTab.Success) {
+            ChangelogTab();
+        }
+    }
+
+    private void ChangelogTab() {
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+        var currentVersion = typeof(Plugin).Assembly.GetName().Version ?? new Version();
+        var currentChangelog = changelogService.Changelog.FirstOrDefault(c => c.Version == currentVersion);
+        if (currentChangelog != null) {
+            ImGui.Text($"{loc["ListWnd_Changelog_CurrentRelease"]}: {currentChangelog.Title}");
+            ImGui.Separator();
+            RenderChangelogContent(currentChangelog);
+        }
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        ImGui.Text(loc["ListWnd_Changelog_OlderReleases"]);
+        ImGui.Separator();
+
+        foreach (var entry in changelogService.Changelog.Where(c => c.Version != currentVersion).OrderByDescending(c => c.Version)) {
+            if (!ImGui.CollapsingHeader($"{entry.Title}##changelogEntry{entry.Version}")) {
+                RenderChangelogContent(entry);
+            }
+        }
+
+    }
+
+    private void RenderChangelogContent(ChangelogEntry entry) {
+        ImGui.SetCursorPosX(20);
+        ImGui.BeginGroup();
+        ImGui.TextWrapped(entry.Description);
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+        foreach (var sections in entry.Sections) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+            ImGui.Text(sections.Title);
+            foreach (var change in sections.Changes) {
+                ImGui.Bullet();
+                ImGui.TextWrapped(change);
+            }
+        }
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        ImGui.EndGroup();
     }
 
     private void OptionsTab() {
