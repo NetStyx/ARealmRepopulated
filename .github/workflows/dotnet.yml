@@ -30,6 +30,27 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build -c Release --no-restore
+    - name: Check supplemental markdown version
+      shell: pwsh
+      run: |
+        $projectDir = Join-Path (Get-Location).Path 'ARealmRepopulated'
+        $changelogDir = Join-Path $projectDir 'Data' 'Changelogs'                
+
+        $assemblyPath = Get-ChildItem -Path $projectDir -Recurse -Filter 'ARealmRepopulated.dll' | Where-Object { $_.FullName -notmatch '\\obj\\' } | Select-Object -First 1
+
+        if (-not $assemblyPath) {
+          throw 'Could not find ARealmRepopulated.dll in the build output.'
+        }
+
+        $assemblyVersion = [System.Reflection.AssemblyName]::GetAssemblyName($assemblyPath.FullName).Version.ToString()
+        $expectedFile = Join-Path $changelogDir "$assemblyVersion.md"
+        $expectedFileName = $expectedFile | Split-Path -Leaf
+
+        if (-not (Test-Path $expectedFile)) {
+          throw "Changelog file for version '$assemblyVersion' was not found."
+        }
+
+        Write-Host "Changelog found for version $expectedFileName"
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
     - name: Push Release
