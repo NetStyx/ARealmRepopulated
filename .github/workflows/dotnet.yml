@@ -28,9 +28,11 @@ jobs:
         Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev\"
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
+    - name: Build Solution
       run: dotnet build -c Release --no-restore
-    - name: Check supplemental markdown version
+    - name: Test
+      run: dotnet test -c Release --no-build --verbosity normal
+    - name: Check Changelog
       shell: pwsh
       run: |
         $projectDir = Join-Path (Get-Location).Path 'ARealmRepopulated'
@@ -51,8 +53,6 @@ jobs:
         }
 
         Write-Host "Changelog found for version $expectedFileName"
-    - name: Test
-      run: dotnet test -c Release --no-build --verbosity normal
     - name: Push Release
       uses: actions/upload-artifact@v6
       with:
