@@ -28,10 +28,31 @@ jobs:
         Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev\"
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
+    - name: Build Solution
       run: dotnet build -c Release --no-restore
     - name: Test
       run: dotnet test -c Release --no-build --verbosity normal
+    - name: Check Changelog
+      shell: pwsh
+      run: |
+        $projectDir = Join-Path (Get-Location).Path 'ARealmRepopulated'
+        $changelogDir = Join-Path $projectDir 'Data' 'Changelogs'                
+
+        $assemblyPath = Get-ChildItem -Path $projectDir -Recurse -Filter 'ARealmRepopulated.dll' | Where-Object { $_.FullName -notmatch '\\obj\\' } | Select-Object -First 1
+
+        if (-not $assemblyPath) {
+          throw 'Could not find ARealmRepopulated.dll in the build output.'
+        }
+
+        $assemblyVersion = [System.Reflection.AssemblyName]::GetAssemblyName($assemblyPath.FullName).Version.ToString()
+        $expectedFile = Join-Path $changelogDir "$assemblyVersion.md"
+        $expectedFileName = $expectedFile | Split-Path -Leaf
+
+        if (-not (Test-Path $expectedFile)) {
+          throw "Changelog file for version '$assemblyVersion' was not found."
+        }
+
+        Write-Host "Changelog found for version $expectedFileName"
     - name: Push Release
       uses: actions/upload-artifact@v6
       with:

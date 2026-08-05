@@ -97,6 +97,33 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current Release.
+        /// </summary>
+        public static string ListWnd_Changelog_CurrentRelease {
+            get {
+                return ResourceManager.GetString("ListWnd_Changelog_CurrentRelease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Older Releases.
+        /// </summary>
+        public static string ListWnd_Changelog_OlderReleases {
+            get {
+                return ResourceManager.GetString("ListWnd_Changelog_OlderReleases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changelog.
+        /// </summary>
+        public static string ListWnd_Changelog_Title {
+            get {
+                return ResourceManager.GetString("ListWnd_Changelog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close Configuration.
         /// </summary>
         public static string ListWnd_Close {

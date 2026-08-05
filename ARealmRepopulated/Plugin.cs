@@ -3,6 +3,7 @@ using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services;
+using ARealmRepopulated.Core.Services.Changelog;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.Services.LookAt;
@@ -52,6 +53,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
             .AddSingleton<FileDialogManager>()
+            .AddSingleton<ChangelogService>()
             .AddWindow<ConfigWindow>()
             .AddWindow<OnboardingWindow>()
             .AddTransientWindow<ScenarioEditorWindow>()
@@ -85,6 +87,7 @@ public sealed class Plugin : IDalamudPlugin {
         _services.GetRequiredService<ScenarioOrchestrator>().Initialize();
         _services.GetRequiredService<NpcServices>().Initialize();
         _services.GetRequiredService<NpcAppearanceDataParser>().Initialize();
+        _services.GetRequiredService<ChangelogService>().Initialize();
         _services.GetRequiredService<ScenarioFileManager>().StartMonitoring();
         _services.GetRequiredService<ChatBubbleService>();
         _services.GetRequiredService<ArrpTranslation>().SetLocale(CultureInfo.GetCultureInfo("en-us"));
