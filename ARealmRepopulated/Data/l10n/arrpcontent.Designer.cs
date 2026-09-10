@@ -1193,7 +1193,16 @@ namespace ARealmRepopulated.Data.l10n {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CScale", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Size multiplier of the actor. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_CScale_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CScale_Desc", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Base Skeleton ID.
         /// </summary>

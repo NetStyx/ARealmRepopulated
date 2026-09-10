@@ -711,6 +711,9 @@
   <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
     <value>Scale</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
+    <value>Size multiplier of the actor. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
+  </data>
   <data name="ListWnd_Changelog_Title" xml:space="preserve">
     <value>Changelog</value>
   </data>
