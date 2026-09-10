@@ -195,7 +195,13 @@ public partial class ScenarioEditorWindow {
 
         ImGui.TableNextColumn();
         ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CScale"]);
-        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.Scale.ToString());
+        ImGui.SameLine();
+        ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_CScale_Desc"]);
+        var scale = SelectedScenarioNpc.Appearance.Scale ?? NpcAppearanceData.ScaleDefault;
+        ImGui.SetNextItemWidth(-1);
+        if (ImGui.SliderFloat("##npcAppearanceEditorSetupScale", ref scale, NpcAppearanceData.ScaleSoftMin, NpcAppearanceData.ScaleSoftMax, "%.2f")) {
+            SelectedScenarioNpc.Appearance.Scale = Math.Clamp(scale, NpcAppearanceData.ScaleMin, NpcAppearanceData.ScaleMax);
+        }
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();

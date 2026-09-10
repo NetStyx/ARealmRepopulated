@@ -82,6 +82,12 @@ public class NpcAppearanceData {
 
     public static readonly NpcAppearanceData Default = FromResource("DefaultHumanFemale.json")!;
 
+    public const float ScaleMin = 0.01f;
+    public const float ScaleMax = 50.0f; // Max scaling seen in BNpc sheets says 42
+    public const float ScaleDefault = 1.0f;
+    public const float ScaleSoftMin = 0.10f;
+    public const float ScaleSoftMax = 5.00f;
+
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
     public int ModelCharaId { get; set; } = 0;
@@ -131,7 +137,7 @@ public class NpcAppearanceData {
     public EquipmentModel? RightRing { get; set; }
 
     public float? Transparency { get; set; }
-    public float? Scale { get; set; } = 1.0f;
+    public float? Scale { get; set; } = ScaleDefault;
 
     public bool HideWeapons { get; set; } = true;
     public bool HideHeadgear { get; set; } = true;
