@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.IPC;
+using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Data.Appearance;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -334,35 +335,51 @@ public partial class ScenarioEditorWindow {
         ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc"]);
 
         ImGui.TableNextColumn();
-        var currentIdenitfer = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
-        ImGui.Text("Arrp");
-        ImGui.SameLine();
+        var currentName = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
+        var usePrefix = ActorName.HasPrefix(currentName);
 
-        if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: 15, flags: ImGuiInputTextFlags.CharsNoBlank)) {
-            currentIdenitfer = currentIdenitfer.Trim();
-            if (currentIdenitfer.Length > 0)
-                currentIdenitfer = string.Concat(char.ToUpper(currentIdenitfer[0]), currentIdenitfer[1..currentIdenitfer.Length]);
-            if (currentIdenitfer.Length > 15)
-                currentIdenitfer = currentIdenitfer[..15];
-            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentIdenitfer);
+        if (ImGui.Checkbox("##npcIntegrationEditorGeneralLinkPrefix", ref usePrefix)) {            
+            currentName = usePrefix
+                ? ActorName.IntegrationPrefix + ActorName.Filter(currentName)
+                : ActorName.WithoutPrefix(currentName);
+            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentName);
+        }
+        ImGui.SameLine();
+        
+        var currentIdenitfer = usePrefix ? ActorName.WithoutPrefix(currentName) : currentName;        
+        var nameFlags = usePrefix ? ImGuiInputTextFlags.CharsNoBlank : ImGuiInputTextFlags.None;
+        var nameLimit = usePrefix ? ActorName.MaxPrefixedNameBytes : ActorName.MaxNameBytes;
+        if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: nameLimit, flags: nameFlags)) {
+            currentIdenitfer = ActorName.TruncateToBytes(usePrefix ? ActorName.Clean(currentIdenitfer) : currentIdenitfer.Trim(), nameLimit);
+            currentName = usePrefix ? ActorName.IntegrationPrefix + currentIdenitfer : currentIdenitfer;
+            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentName);
         }
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {
-            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, characterCreationData.GetRandomName());
+            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, ActorName.IntegrationPrefix + characterCreationData.GetRandomName());
         }
         if (ImGui.IsItemHovered()) {
             ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
         }
 
-        if (!string.IsNullOrWhiteSpace(currentIdenitfer)) {
+        if (!string.IsNullOrWhiteSpace(currentName)) {
             ImGui.SameLine();
             if (ImGuiComponents.IconButton("##scenarioNpcAppearanceEditorIntegrationCopyInternalName", FontAwesomeIcon.Copy)) {
-                ImGui.SetClipboardText("Arrp " + currentIdenitfer);
+                ImGui.SetClipboardText(currentName);
             }
             if (ImGui.IsItemHovered()) {
                 ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint"]);
             }
         }
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result"]);
+
+        ImGui.TableNextColumn();
+        ImGui.TextDisabled(string.IsNullOrWhiteSpace(currentName)
+            ? loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Unset"]
+            : string.Format(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Value"], currentName, ActorName.ByteLength(currentName), ActorName.MaxNameBytes));
     }
 
     private static void DrawNpcModelRow(string description, byte? val) {

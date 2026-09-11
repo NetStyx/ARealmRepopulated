@@ -703,13 +703,22 @@
     <value>Integration</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName" xml:space="preserve">
-    <value>Stable Actor Key</value>
+    <value>Stable Actor Prefix / Name</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc" xml:space="preserve">
-    <value>The value of this field is used to override the internal actor name to allow modding tools to take over customization. It needs to follow squares naming rules (15 chars, no special chars except hypens and apostrophes, no mixed lower/upper, starts with upper case, no space)</value>
+    <value>Gives the actor a fixed name other plugins can work with. With the checkbox on, the name you enter will be prefixed with &quot;Arrp &quot;. The following rules apply: 2 to 15 latin letters, hyphens and apostrophes allowed between them, anything else is corrected away. With the checkbox off, the name is yours to write without restrictions, but other plugins might not recognize it anymore.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint" xml:space="preserve">
     <value>Generate a random, yet valid, actor name.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result" xml:space="preserve">
+    <value>Resulting actor name</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Value" xml:space="preserve">
+    <value>{0} ({1}/{2} bytes)</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Unset" xml:space="preserve">
+    <value>Not set, the actor keeps its generated name.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint" xml:space="preserve">
     <value>Copy to clipboard</value>
