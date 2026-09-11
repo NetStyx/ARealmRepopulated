@@ -64,10 +64,11 @@ public unsafe class NpcActor(
             name = $"ARRP {_actor->ObjectIndex}";
         }
 
-        for (var x = 0; x < name.Length; x++) {
-            _actor->Name[x] = (byte)name[x];
+        var nameBytes = ActorName.Encode(name);
+        for (var x = 0; x < nameBytes.Length; x++) {
+            _actor->Name[x] = nameBytes[x];
         }
-        _actor->Name[name.Length] = 0;
+        _actor->Name[nameBytes.Length] = 0;
     }
 
     public Vector3 GetPosition()

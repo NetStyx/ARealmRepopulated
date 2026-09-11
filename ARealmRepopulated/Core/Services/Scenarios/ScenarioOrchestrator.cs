@@ -154,7 +154,7 @@ public unsafe class ScenarioOrchestrator(
             var spawnOptions = new NpcSpawnOptions();
             if (scenarioNpc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
                 spawnOptions.Kind = ObjectKind.Pc;
-                spawnOptions.Name = $"Arrp {actorName}";
+                spawnOptions.Name = actorName;
             }
 
             if (!npcServices.TrySpawnNpc(spawnOptions, out var npc))
