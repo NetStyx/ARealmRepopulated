@@ -82,12 +82,9 @@ public abstract class ScenarioNpcAction {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public float Duration { get; set; } = 0f;
 
-    [DefaultValue(true)]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public bool CanHaveTalk { get; set; } = true;
-
-    [DefaultValue(true)]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonIgnore]
     public bool CanHaveDuration { get; set; } = true;
 
     public ScenarioNpcAction() { }
@@ -156,12 +153,18 @@ public class ScenarioNpcEmoteAction : ScenarioNpcAction {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool InteractWithLayout { get; set; } = false;
 
-    public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; StayInEmotePose: {StayInEmotePose}]";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public byte PoseState { get; set; } = 0;
+
+    public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; StayInEmotePose: {StayInEmotePose}; PoseState: {PoseState}]";
 }
 
-public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, false) {
-    // do nothing
-    public override string ToString() => $"Idle";
+public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, true) {
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public byte PoseState { get; set; } = 0;
+
+    public override string ToString() => $"Idle [Duration: {Duration}; PoseState: {PoseState}]";
 }
 
 public class ScenarioNpcTimelineAction : ScenarioNpcAction {

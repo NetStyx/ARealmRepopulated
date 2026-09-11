@@ -2,9 +2,9 @@ using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using Lumina.Excel.Sheets;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
-using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
@@ -197,21 +197,75 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         }
     }
 
+    private static void PlayEmoteInternal(BattleChara* character, uint emoteId) {
+
+        if (character->EmoteController.IsEmoting() && character->EmoteController.EmoteId == emoteId)
+            return;
+
+        var emoteOption = new EmoteController.PlayEmoteOption { TargetId = 0, Flags = 1 };
+        character->EmoteController.PlayEmote(emoteId, &emoteOption);
+    }
+
     public void PlayEmote(BattleChara* character, Emote emoteEntry) {
 
-        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
-
-        if (character->EmoteController.IsEmoting()) {
-            var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
-            if (emoteEntry.RowId != currentEmote.RowId) {
-                character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
-            }
-        } else {
-            character->EmoteController.PlayEmote(emoteEntry.RowId, &emoteOption);
-        }
+        PlayEmoteInternal(character, emoteEntry.RowId);
 
         character->EmoteController.CurrentPoseType = emoteEntry.GetPoseType();
         character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
+    }
+
+    /// <summary>
+    /// Applies one of the game's pose variants (/cpose).
+    /// </summary>
+    public void SetPose(BattleChara* character, PoseType poseType, byte poseState) {
+
+        poseState = dataCache.ClampPoseState(poseType, poseState);
+
+        character->EmoteController.CurrentPoseType = poseType;
+        character->EmoteController.CPoseState = poseState;
+
+        var poseEmote = dataCache.GetPoseStateEmote(poseType, poseState);
+        if (poseEmote == 0)
+            return;
+
+        log.Verbose($"Playing pose {poseType}/{poseState} via emote {poseEmote} on character {character->GetName()}");
+
+        PlayEmoteInternal(character, poseEmote);
+    }
+
+    /// <summary>
+    /// Keeps an actor that an emote poses on the wanted pose variant, and does nothing for emotes that hold no pose or when the actor already holds the variant.     
+    /// </summary>
+    public void HoldEmotePose(BattleChara* character, Emote emoteEntry, byte poseState) {
+
+        if (!emoteEntry.TryGetPoseType(out var poseType))
+            return;
+
+        var poseEmote = dataCache.GetPoseStateEmote(poseType, poseState);
+        if (poseEmote == 0 || IsPlayingEmote(character, poseEmote) || !HasEnteredEmotePose(character, emoteEntry))
+            return;
+
+        SetPose(character, poseType, poseState);
+
+        if (TryGetPostureMode(emoteEntry, out var postureMode)) {
+            character->SetMode(postureMode, (byte)emoteEntry.EmoteMode.RowId);
+        }
+    }
+
+    private static bool HasEnteredEmotePose(BattleChara* character, Emote emoteEntry)
+        => TryGetPostureMode(emoteEntry, out var postureMode) && character->Mode == postureMode;
+
+    /// <summary>
+    /// The character mode an emote locks the actor into while it holds a pose. Emotes that just play and end have no such mode.
+    /// </summary>
+    private static bool TryGetPostureMode(Emote emoteEntry, out CharacterModes postureMode) {
+
+        postureMode = CharacterModes.None;
+        if (!emoteEntry.EmoteMode.IsValid)
+            return false;
+
+        postureMode = (CharacterModes)emoteEntry.EmoteMode.Value.ConditionMode;
+        return postureMode != CharacterModes.None && postureMode != CharacterModes.Normal;
     }
 
     public bool IsCancelEmote(BattleChara* character, Emote targetEmote) {
@@ -219,21 +273,11 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         return currentEmote.HasCancelEmote && currentEmote.EmoteMode.Value.EndEmote.RowId == targetEmote.RowId;
     }
 
-    public void CancelEmote(BattleChara* character) {
-        var emoteOption = new PlayEmoteOption { TargetId = 0, Flags = 1 };
-        character->EmoteController.PlayEmote(0, &emoteOption);
-    }
+    public void CancelEmote(BattleChara* character)
+        => PlayEmoteInternal(character, 0);
 
     public bool IsPlayingEmote(BattleChara* character, ushort emoteId)
         => character->EmoteController.EmoteId == emoteId;
-
-    public bool IsPlayingEmote(BattleChara* character)
-        => character->EmoteController.EmoteId != 0;
-
-    public bool IsRepeatingEmote(ushort emote) {
-        var conditionMode = (CharacterModes)dataCache.GetEmote(emote).EmoteMode.Value.ConditionMode;
-        return conditionMode == CharacterModes.AnimLock || conditionMode == CharacterModes.InPositionLoop || conditionMode == CharacterModes.EmoteLoop;
-    }
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
         log.Verbose($"Playing timeline {timelineId} on character {character->GetName()}");

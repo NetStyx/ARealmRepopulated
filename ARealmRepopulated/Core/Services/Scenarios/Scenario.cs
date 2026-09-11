@@ -219,16 +219,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         if (!Actor.IsReady())
             return;
 
-        if ((action.Loop && !Actor.IsPlayingEmote(action.Emote)) || CurrentAction.CurrentDuration == 0f) {
+        if ((action.Loop && !Actor.IsPlayingEmote(action.Emote, action.PoseState)) || CurrentAction.CurrentDuration == 0f) {
             Actor.PlayEmote(action.Emote, action.InteractWithLayout);
         }
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
 
+        Actor.HoldEmotePose(action.Emote, action.PoseState);
+
         var isLoopingEmote = Actor.IsLoopingEmote(action.Emote);
 
         if (!action.Loop) {
-            if (!Actor.IsPlayingEmote(action.Emote) || (isLoopingEmote && CurrentAction.IsDurationExeeded)) {
+            if (!Actor.IsPlayingEmote(action.Emote, action.PoseState) || (isLoopingEmote && CurrentAction.IsDurationExeeded)) {
                 CurrentAction.IsFinished = true;
                 if (isLoopingEmote && !action.StayInEmotePose) {
                     Actor.ResetMode();
@@ -244,11 +246,20 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
     }
 
-    private void AdvanceIdle(ScenarioNpcIdleAction _, TimeSpan delta) {
+    private void AdvanceIdle(ScenarioNpcIdleAction action, TimeSpan delta) {
+        // a pose only sticks once the actor settled into its idle animation after spawning
+        if (action.PoseState > 0 && !Actor.IsReady())
+            return;
+
         if (CurrentAction.CurrentDuration == 0f) {
-            CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
             Actor.ResetMode();
-            CurrentAction.IsFinished = true;
+            Actor.SetPose(PoseType.Idle, action.PoseState);
+        }
+
+        CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
+        
+        if ((action.PoseState == 0 && CurrentAction.IsEndless) || CurrentAction.IsDurationExeeded) {
+            CurrentAction.IsFinished = true;            
         }
     }
 
@@ -410,7 +421,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
                 break;
 
-            case var t when t is ScenarioNpcTimelineAction || t is ScenarioNpcEmoteAction:
+            case var t when t is ScenarioNpcTimelineAction || t is ScenarioNpcEmoteAction || t is ScenarioNpcIdleAction:
                 execution.IsInfinite = false;
                 execution.TargetDuration = t.Duration;
                 break;
@@ -419,7 +430,6 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             case ScenarioNpcRotationAction:
             case ScenarioNpcSpawnAction:
             case ScenarioNpcDespawnAction:
-            case ScenarioNpcIdleAction:
                 execution.IsInfinite = false;
                 break;
 
