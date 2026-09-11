@@ -373,12 +373,34 @@ public partial class ScenarioEditorWindow {
 
     }
 
-    private void DrawWaitingAction(ScenarioNpcWaitingAction waitingAction) {
+    private void DrawWaitingAction(ScenarioNpcWaitingAction waitingAction) {    
+        if (waitingAction.Duration > 0f)
+            return;
+            
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
 
+        ImGui.TableNextColumn();
+        using (ImRaii.Disabled()) {
+            ImGui.TextWrapped(loc["ScenarioEditor_ActorData_Actions_AWaiting_EndlessHint"]);
+        }                    
     }
 
     private void DrawIdleAction(ScenarioNpcIdleAction idleAction) {
+        DrawPoseStateSlider(PoseType.Idle, "##scenarioNpcIdleActionPoseState",
+            loc["ScenarioEditor_ActorData_Actions_AIdle_PoseState"],
+            loc["ScenarioEditor_ActorData_Actions_AIdle_PoseStateHint"],
+            idleAction.PoseState, poseState => idleAction.PoseState = poseState);
+        
+        if (idleAction.PoseState == 0 && idleAction.Duration == 0f) {            
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
 
+            ImGui.TableNextColumn();
+            using (ImRaii.Disabled()) {
+                ImGui.TextWrapped(loc["ScenarioEditor_ActorData_Actions_AIdle_ResetHint"]);
+            }
+        }
     }
 
     private void DrawEmoteAction(ScenarioNpcEmoteAction emoteAction) {
@@ -404,6 +426,13 @@ public partial class ScenarioEditorWindow {
 
         if (emotePicker.Popup(out var emoteId)) {
             emoteAction.Emote = emoteId;
+        }
+        
+        if (emoteRow.TryGetPoseType(out var emotePoseType)) {
+            DrawPoseStateSlider(emotePoseType, "##scenarioNpcEmoteActionPoseState",
+                loc["ScenarioEditor_ActorData_Actions_AEmote_PoseState"],
+                loc["ScenarioEditor_ActorData_Actions_AEmote_PoseStateHint"],
+                emoteAction.PoseState, poseState => emoteAction.PoseState = poseState);
         }
 
         if (emoteid == 0 || !emoteRow.EmoteMode.IsValid)
@@ -440,6 +469,25 @@ public partial class ScenarioEditorWindow {
         }
 
     }
+
+    private void DrawPoseStateSlider(PoseType poseType, string id, string label, string hint, byte value, Action<byte> onchange) {
+        var poseStateCount = dataCache.GetPoseStateCount(poseType);
+        if (poseStateCount <= 1)
+            return;
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(label);
+
+        ImGui.TableNextColumn();
+        var poseState = (int)value;
+        if (ImGui.SliderInt(id, ref poseState, 0, poseStateCount - 1)) {
+            onchange((byte)poseState);
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(hint);
+    }
+
 }
 
 public sealed class NpcActionUiRegistry {

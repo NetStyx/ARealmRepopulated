@@ -136,8 +136,6 @@ public class NpcAppearanceData {
     public EquipmentModel? LeftRing { get; set; }
     public EquipmentModel? RightRing { get; set; }
 
-
-
     public float? Transparency { get; set; }
     public float? Scale { get; set; } = ScaleDefault;
 

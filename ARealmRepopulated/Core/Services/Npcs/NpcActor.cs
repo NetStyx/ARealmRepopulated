@@ -191,11 +191,22 @@ public unsafe class NpcActor(
         }
     }
 
+    public void SetPose(PoseType poseType, byte poseState)
+        => appearanceService.SetPose(_actor, poseType, poseState);
+
+    public void HoldEmotePose(ushort emoteid, byte poseState)
+        => appearanceService.HoldEmotePose(_actor, dataCache.GetEmote(emoteid), poseState);
+
     public bool IsPlayingEmote(ushort emoteid)
         => appearanceService.IsPlayingEmote(_actor, emoteid);
 
+    public bool IsPlayingEmote(ushort emoteid, byte poseState) {
+        var poseEmote = dataCache.GetPoseStateEmote(emoteid, poseState);
+        return IsPlayingEmote(emoteid) || (poseEmote != 0 && IsPlayingEmote(poseEmote));
+    }
+
     public bool IsLoopingEmote(ushort emoteid)
-        => appearanceService.IsRepeatingEmote(emoteid);
+        => dataCache.GetEmote(emoteid).IsLooping();
 
     public void SetMovementAnimation(Animations animation)
         => appearanceService.SetMovementAnimation(_actor, animation);

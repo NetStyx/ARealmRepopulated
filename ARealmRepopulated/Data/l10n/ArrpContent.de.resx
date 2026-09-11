@@ -300,10 +300,22 @@
   <data name="ScenarioEditor_ActorData_Actions_AWaiting_Desc" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Actions_AWaiting_EndlessHint" xml:space="preserve">
+    <value>a</value>
+  </data>
   <data name="ScenarioEditor_ActorData_Actions_AIdle_Short" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AIdle_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_PoseState" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_PoseStateHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_ResetHint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AEmote_Short" xml:space="preserve">
@@ -322,6 +334,12 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AEmote_StayInPos" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_PoseState" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_PoseStateHint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ASpawn_Short" xml:space="preserve">

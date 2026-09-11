@@ -9,11 +9,10 @@ using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using static FFXIVClientStructs.FFXIV.Client.Game.Control.EmoteController;
 
 namespace ARealmRepopulated.Infrastructure;
 
-public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
+public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<TerritoryType> _territoryTypeSheet = null!;
     private ExcelSheet<Emote> _emoteTypeSheet = null!;
     private ExcelSheet<ActionTimeline> _actionTimelineSheet = null!;
@@ -21,6 +20,7 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<BNpcBase> _bnpcBaseSheet = null!;
     private ExcelSheet<BNpcName> _bnpcNameSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
+    private Dictionary<PoseType, ushort[]> _poseStateEmotes = [];
 
     public void Populate() {
         _territoryTypeSheet = dataManager.GetExcelSheet<TerritoryType>();
@@ -29,7 +29,95 @@ public class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         _itemSheet = dataManager.GetExcelSheet<Item>();
         _bnpcBaseSheet = dataManager.GetExcelSheet<BNpcBase>();
         _bnpcNameSheet = dataManager.GetExcelSheet<BNpcName>();
+
+        _poseStateEmotes = BuildPoseStateEmotes();
     }
+
+    private const uint PoseEmoteCategory = 4;
+
+    /// if its stupid but it works, its not stupid. Maybe someone has found a better way to correlate this but for now, this stays.    
+    /// a pose variant animation is named after the pose it belongs to: emote/pose03_loop is the third standing pose, 
+    /// emote/j_pose02_loop the second one while sitting on the ground. That holds true unless square decides to change the naming convention.
+    [GeneratedRegex(@"^emote/(?:([bsjl])_)?pose(\d+)_loop$", RegexOptions.Compiled)]
+    private static partial Regex PoseTimelineRegex();
+    [GeneratedRegex(@"^ornament_sp/m(\d+)/onm_pose(\d+)_loop$", RegexOptions.Compiled)]
+    private static partial Regex OrnamentPoseTimelineRegex();
+
+    private static readonly Regex PoseTimelineExpression = PoseTimelineRegex();
+    private static readonly Regex OrnamentPoseTimelineExpression = OrnamentPoseTimelineRegex();
+
+    private static readonly Dictionary<string, PoseType> PoseTimelinePrefixes = new() {
+        { "", PoseType.Idle },
+        { "b", PoseType.WeaponDrawn },
+        { "s", PoseType.Sit },
+        { "j", PoseType.GroundSit },
+        { "l", PoseType.Doze }
+    };
+
+    private static readonly Dictionary<string, PoseType> OrnamentPoseModels = new() {
+        { "6001", PoseType.Umbrella },
+        { "6016", PoseType.Accessory }
+    };
+
+    public static bool TryParsePoseTimeline(string timelineKey, out PoseType poseType, out int poseIndex) {
+
+        poseType = PoseType.Idle;
+        poseIndex = 0;
+
+        if (PoseTimelineExpression.Match(timelineKey) is { Success: true } pose)
+            return PoseTimelinePrefixes.TryGetValue(pose.Groups[1].Value, out poseType)
+                && int.TryParse(pose.Groups[2].Value, out poseIndex)
+                && poseIndex > 0;
+
+        if (OrnamentPoseTimelineExpression.Match(timelineKey) is { Success: true } ornamentPose)
+            return OrnamentPoseModels.TryGetValue(ornamentPose.Groups[1].Value, out poseType)
+                && int.TryParse(ornamentPose.Groups[2].Value, out poseIndex)
+                && poseIndex > 0;
+
+        return false;
+    }
+
+    private Dictionary<PoseType, ushort[]> BuildPoseStateEmotes() {
+
+        var poses = new Dictionary<PoseType, SortedDictionary<int, ushort>>();
+
+        foreach (var emote in _emoteTypeSheet) {
+            if (emote.EmoteCategory.RowId != PoseEmoteCategory || emote.ActionTimeline.Count == 0)
+                continue;
+
+            var loopTimeline = emote.ActionTimeline[0];
+            if (!loopTimeline.IsValid || !TryParsePoseTimeline(loopTimeline.Value.Key.ToString(), out var poseType, out var poseIndex))
+                continue;
+
+            if (!poses.TryGetValue(poseType, out var variants))
+                poses[poseType] = variants = [];
+
+            variants[poseIndex] = (ushort)emote.RowId;
+        }
+
+        var poseStateEmotes = new Dictionary<PoseType, ushort[]>();
+        foreach (var (poseType, variants) in poses) {
+            poseStateEmotes[poseType] = [0, .. variants.Values];
+        }
+
+        log.Verbose($"Discovered pose variants: {string.Join(", ", poseStateEmotes.Select(p => $"{p.Key}={p.Value.Length}"))}");
+
+        return poseStateEmotes;
+    }
+
+    public int GetPoseStateCount(PoseType poseType)
+        => _poseStateEmotes.TryGetValue(poseType, out var emotes) ? emotes.Length : 1;
+
+    public byte ClampPoseState(PoseType poseType, byte poseState)
+        => (byte)Math.Clamp(poseState, 0, GetPoseStateCount(poseType) - 1);
+
+    public ushort GetPoseStateEmote(PoseType poseType, byte poseState)
+        => _poseStateEmotes.TryGetValue(poseType, out var emotes) && poseState > 0 && poseState < emotes.Length
+            ? emotes[poseState]
+            : (ushort)0;
+
+    public ushort GetPoseStateEmote(ushort emoteId, byte poseState)
+        => GetEmote(emoteId).TryGetPoseType(out var poseType) ? GetPoseStateEmote(poseType, poseState) : (ushort)0;
 
     public List<Item> GetItems(Predicate<Item> a)
         => [.. _itemSheet.Where(i => a(i))];
@@ -121,18 +209,22 @@ public static class EmoteExtensions {
         { 0x32, new EmoteLayoutInteraction(0x32, 0x32, LayoutTarget.Chair) }
     };
 
+    /// <summary>
+    /// Emotes that park the actor in one of the game's pose types. Everything not listed here leaves
+    /// the actor standing, which is <see cref="PoseType.Idle"/>    
+    /// </summary>
     private static readonly Dictionary<uint, PoseType> EmotePoseType = new(){
         { 0xD, PoseType.Doze },
         { 0x58, PoseType.Doze },
-        { 0x32, PoseType.Sit }
+        { 0x32, PoseType.Sit },
+        { 0x34, PoseType.GroundSit }
     };
 
-    public static PoseType GetPoseType(this Emote emote) {
-        if (EmotePoseType.TryGetValue(emote.RowId, out var poseType))
-            return poseType;
-
-        return PoseType.Idle;
-    }
+    public static PoseType GetPoseType(this Emote emote)
+        => EmotePoseType.TryGetValue(emote.RowId, out var poseType) ? poseType : PoseType.Idle;
+    
+    public static bool TryGetPoseType(this Emote emote, out PoseType poseType)
+        => EmotePoseType.TryGetValue(emote.RowId, out poseType);
 
     public static bool IsLooping(this Emote emote) {
         if (!emote.EmoteMode.IsValid)

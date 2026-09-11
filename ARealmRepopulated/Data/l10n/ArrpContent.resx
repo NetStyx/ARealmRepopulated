@@ -300,11 +300,23 @@
   <data name="ScenarioEditor_ActorData_Actions_AWaiting_Desc" xml:space="preserve">
     <value>Simply waits at the current location for a specific time.</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Actions_AWaiting_EndlessHint" xml:space="preserve">
+    <value>Without a duration the actor waits here indefinitely.</value>
+  </data>
   <data name="ScenarioEditor_ActorData_Actions_AIdle_Short" xml:space="preserve">
     <value>Idle</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AIdle_Desc" xml:space="preserve">
     <value>Returns the actor to the idle state.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_PoseState" xml:space="preserve">
+    <value>Idle pose</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_PoseStateHint" xml:space="preserve">
+    <value>Which standing idle pose the actor holds. 0 is the default idle.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AIdle_ResetHint" xml:space="preserve">
+    <value>With the default pose and no duration the actor is only reset to its idle state and the action ends immediately. Use the wait action to have it stand around indefinitely.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AEmote_Short" xml:space="preserve">
     <value>Emote</value>
@@ -323,6 +335,12 @@
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AEmote_StayInPos" xml:space="preserve">
     <value>Stay in emote pose after end</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_PoseState" xml:space="preserve">
+    <value>Pose variant</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_AEmote_PoseStateHint" xml:space="preserve">
+    <value>Which variant of the pose this emote puts the actor into. 0 is the default pose.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ASpawn_Short" xml:space="preserve">
     <value>Spawn</value>
