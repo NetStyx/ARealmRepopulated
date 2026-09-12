@@ -162,6 +162,7 @@ public unsafe class ScenarioOrchestrator(
 
             npc.SetPosition(scenarioNpc.Position, isDefault: true);
             npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
+            npc.SetDrawOffset(scenarioNpc.DrawOffset);
 
             if (scenarioNpc.Appearance != null) {
                 npc.SetAppearance(scenarioNpc.Appearance);

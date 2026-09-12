@@ -1,4 +1,4 @@
-using ARealmRepopulated.Core.Json;
+﻿using ARealmRepopulated.Core.Json;
 using ARealmRepopulated.Data.Scenarios;
 using Shouldly;
 using System;
@@ -9,6 +9,8 @@ using System.Text.Json.Serialization.Metadata;
 namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioFileTests {
+
+    private static readonly float TestDrawOffset = 10f;
 
     [Fact]
     public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization() {
@@ -65,6 +67,30 @@ public class ScenarioFileTests {
             }
         }
 
+    }
+
+    [Fact]
+    public void ScenarioFile_IsKeepingTheDrawOffsetBetweenSerialization() {
+
+        var scenario = new ScenarioData();
+        var npc = new ScenarioNpcData { Name = GetRandomString(), DrawOffset = new Vector3(0.15f, 0.85f, -0.25f) };
+        scenario.Npcs.Add(npc);
+
+        var restoredScenario = Recode(scenario);
+
+        restoredScenario.Npcs[0].DrawOffset.ShouldBe(npc.DrawOffset);
+    }
+
+    [Fact]
+    public void ScenarioNpcData_DrawOffsetOutOfRange_IsClampedToTheLimit() {
+
+        var npc = new ScenarioNpcData {
+            DrawOffset = new Vector3(TestDrawOffset + 5f, -(TestDrawOffset + 5f), 1f)
+        };
+
+        npc.DrawOffset.X.ShouldBe(TestDrawOffset);
+        npc.DrawOffset.Y.ShouldBe(-TestDrawOffset);
+        npc.DrawOffset.Z.ShouldBe(1f);
     }
 
     private static ScenarioData Recode(ScenarioData data) {

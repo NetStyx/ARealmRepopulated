@@ -494,6 +494,24 @@ public partial class ScenarioEditorWindow(
             }
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_RotationCurrent"]);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_DrawOffset"]);
+            ImGui.SameLine();
+            ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_General_Input_DrawOffset_Desc"]);
+
+            ImGui.TableNextColumn();
+            var drawOffset = new Vector3(SelectedScenarioNpc.DrawOffset.X, SelectedScenarioNpc.DrawOffset.Y, SelectedScenarioNpc.DrawOffset.Z);
+            if (ImGui.InputFloat3("##scenarioNpcGeneralEditDrawOffset", ref drawOffset)) {
+                SelectedScenarioNpc.DrawOffset = new CsMaths.Vector3(drawOffset.X, drawOffset.Y, drawOffset.Z);
+            }
+            ImGui.SameLine();
+            if (ImGuiComponents.IconButton(FontAwesomeIcon.Undo)) {
+                SelectedScenarioNpc.DrawOffset = CsMaths.Vector3.Zero;
+            }
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_DrawOffsetReset"]);
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);

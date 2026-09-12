@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -272,6 +272,17 @@
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_RotationCurrent" xml:space="preserve">
     <value>Set to current rotation</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_DrawOffset" xml:space="preserve">
+    <value>Draw Offset</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_DrawOffset_Desc" xml:space="preserve">
+    <value>Shifts the model of the actor against the spot it stands on, without moving the actor itself.
+
+Use it for models the game draws above or below the ground, like the ones that float. Paths, distances and the furniture an actor can sit on are still measured from the position above.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_DrawOffsetReset" xml:space="preserve">
+    <value>Put the model back onto the ground</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_Title" xml:space="preserve">
     <value>Actions</value>
