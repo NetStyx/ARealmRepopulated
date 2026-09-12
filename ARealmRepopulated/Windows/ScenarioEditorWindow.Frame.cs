@@ -48,6 +48,7 @@ public partial class ScenarioEditorWindow(
     public ScenarioNpcData? SelectedScenarioNpc { get; private set; } = null;
     public ScenarioNpcAction? SelectedScenarioNpcAction { get; private set; } = null!;
     public PathMovementPoint? SelectedPathMovementPoint { get; private set; } = null;
+    public ScenarioEditorGizmoTarget SelectedGizmoTarget { get; private set; } = ScenarioEditorGizmoTarget.Position;
 
     public Guid UniqueScenarioId { get; set; } = Guid.NewGuid();
 
@@ -479,6 +480,8 @@ public partial class ScenarioEditorWindow(
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_PositionCurrent"]);
 
+            DrawGizmoTargetToggle("##scenarioNpcGeneralEditPositionGizmo", ScenarioEditorGizmoTarget.Position);
+
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.Text(loc["ScenarioEditor_ActorData_General_Input_Rotation"]);
@@ -512,6 +515,8 @@ public partial class ScenarioEditorWindow(
             }
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(loc["ScenarioEditor_ActorData_General_Input_DrawOffsetReset"]);
+
+            DrawGizmoTargetToggle("##scenarioNpcGeneralEditDrawOffsetGizmo", ScenarioEditorGizmoTarget.DrawOffset);
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -521,6 +526,25 @@ public partial class ScenarioEditorWindow(
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         DrawNpcAppearanceInfo();
+    }
+    
+    private void DrawGizmoTargetToggle(string id, ScenarioEditorGizmoTarget target) {
+
+        var isOverlayEnabled = config.EnableScenarioDebugOverlay;
+        var isSelected = SelectedGizmoTarget == target;
+
+        ImGui.SameLine();
+        using (ImRaii.Disabled(!isOverlayEnabled)) {
+            if (ImGuiComponents.IconButton(id, FontAwesomeIcon.ArrowsUpDownLeftRight, isSelected ? ArrpGuiColors.ArrpGreen : null)) {
+                SelectedGizmoTarget = target;
+            }
+        }
+
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
+            ImGui.SetTooltip(loc[isOverlayEnabled
+                ? "ScenarioEditor_ActorData_General_Input_GizmoTarget"
+                : "ScenarioEditor_ActorData_General_Input_GizmoTargetNoOverlay"]);
+        }
     }
 
     private void DrawNpcActionTab() {
@@ -713,6 +737,11 @@ public partial class ScenarioEditorWindow(
 
         return null;
     }
+}
+
+public enum ScenarioEditorGizmoTarget {
+    Position,
+    DrawOffset
 }
 
 public class TransferState {

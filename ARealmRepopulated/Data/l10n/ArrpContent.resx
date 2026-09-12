@@ -284,6 +284,14 @@ Use it for models the game draws above or below the ground, like the ones that f
   <data name="ScenarioEditor_ActorData_General_Input_DrawOffsetReset" xml:space="preserve">
     <value>Put the model back onto the ground</value>
   </data>
+  <data name="ScenarioEditor_ActorData_General_Input_GizmoTarget" xml:space="preserve">
+    <value>Move this with the marker in the world
+
+Only one of the two can be moved at a time, since both markers would otherwise sit in the same spot.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_GizmoTargetNoOverlay" xml:space="preserve">
+    <value>Turn the scenario overlay on in the settings to move this in the world</value>
+  </data>
   <data name="ScenarioEditor_ActorData_Actions_Title" xml:space="preserve">
     <value>Actions</value>
   </data>

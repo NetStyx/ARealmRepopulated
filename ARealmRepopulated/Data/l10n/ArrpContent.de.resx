@@ -282,6 +282,12 @@
   <data name="ScenarioEditor_ActorData_General_Input_DrawOffsetReset" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_General_Input_GizmoTarget" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_GizmoTargetNoOverlay" xml:space="preserve">
+    <value>a</value>
+  </data>
   <data name="ScenarioEditor_ActorData_Actions_Title" xml:space="preserve">
     <value>a</value>
   </data>

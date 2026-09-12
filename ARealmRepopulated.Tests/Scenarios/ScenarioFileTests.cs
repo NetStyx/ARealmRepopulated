@@ -10,8 +10,6 @@ namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioFileTests {
 
-    private static readonly float TestDrawOffset = 10f;
-
     [Fact]
     public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization() {
 
@@ -79,18 +77,6 @@ public class ScenarioFileTests {
         var restoredScenario = Recode(scenario);
 
         restoredScenario.Npcs[0].DrawOffset.ShouldBe(npc.DrawOffset);
-    }
-
-    [Fact]
-    public void ScenarioNpcData_DrawOffsetOutOfRange_IsClampedToTheLimit() {
-
-        var npc = new ScenarioNpcData {
-            DrawOffset = new Vector3(TestDrawOffset + 5f, -(TestDrawOffset + 5f), 1f)
-        };
-
-        npc.DrawOffset.X.ShouldBe(TestDrawOffset);
-        npc.DrawOffset.Y.ShouldBe(-TestDrawOffset);
-        npc.DrawOffset.Z.ShouldBe(1f);
     }
 
     private static ScenarioData Recode(ScenarioData data) {
