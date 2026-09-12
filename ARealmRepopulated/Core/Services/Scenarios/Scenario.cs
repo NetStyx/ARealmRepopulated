@@ -49,6 +49,7 @@ public unsafe class Scenario(IPluginLog log) {
         Npcs.ForEach(n => {
             n.Actor.ResetPosition();
             n.Actor.ResetRotation();
+            n.Actor.ResetDrawOffset();
         });
     }
 

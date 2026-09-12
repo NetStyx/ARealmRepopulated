@@ -29,6 +29,7 @@ public unsafe class NpcActor(
     private BattleChara* _actor = null;
 
     private Vector3 _emoteOffset = Vector3.Zero;
+    private Vector3 _drawOffset = Vector3.Zero;
 
     private bool? _canTrack = null;
 
@@ -107,6 +108,14 @@ public unsafe class NpcActor(
             _actor->DefaultPosition = position;
         }
     }
+    
+    public void SetDrawOffset(Vector3 drawOffset) {
+        _drawOffset = drawOffset;
+        ResetDrawOffset();
+    }
+
+    public void ResetDrawOffset()
+        => _actor->SetDrawOffset(_drawOffset.X, _drawOffset.Y, _drawOffset.Z);
 
     public void SetRotationFrom(BattleChara* target)
         => SetRotation(target->Rotation);
@@ -155,7 +164,7 @@ public unsafe class NpcActor(
 
     public void PlayEmote(ushort emoteid, bool interactWithLayout = false) {
         var emoteEntry = dataCache.GetEmote(emoteid);
-        var keepDrawOffset = interactWithLayout || _actor->DrawOffset != Vector3.Zero;
+        var keepDrawOffset = interactWithLayout || _actor->DrawOffset != _drawOffset;
 
         if (interactWithLayout && emoteEntry.InteractsWithLayout(out var layoutInteraction)) {
             if (layoutInteraction.LayoutInteractionEmoteId != emoteEntry.RowId)
@@ -177,7 +186,7 @@ public unsafe class NpcActor(
         if (appearanceService.IsCancelEmote(_actor, emoteEntry)) {
             if (_emoteOffset != Vector3.Zero) {
                 _actor->Position = _emoteOffset.Forward(_actor->Rotation, 0.42f);
-                _actor->SetDrawOffset(0, 0, 0);
+                ResetDrawOffset();
                 _emoteOffset = Vector3.Zero;
             }
             SetMode(CharacterModes.Normal);
@@ -185,10 +194,10 @@ public unsafe class NpcActor(
 
         appearanceService.PlayEmote(_actor, emoteEntry);
 
-        // we control the position of the emote execution by hand so we need to reset the draw offset for emotes that change it,
+        // we control the position of the emote execution by hand so we need to put the draw offset back onto the offset of the actor for emotes that change it,
         // but only if we're not trying to interact with a layout or if a previous action hasn't already changed the draw offset        
         if (!keepDrawOffset) {
-            _actor->SetDrawOffset(0, 0, 0);
+            ResetDrawOffset();
         }
     }
 

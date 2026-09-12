@@ -130,12 +130,16 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
             drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
 
             if (data.SelectedScenarioNpcAction == null) {
-                var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
-                var npcRotation = npcs.Rotation;
+                if (data.SelectedGizmoTarget == ScenarioEditorGizmoTarget.DrawOffset) {
+                    DrawNpcDrawOffsetGizmo(npcs, startingPosition);
+                } else {
+                    var npcPosition = new Vector3(npcs.Position.X, npcs.Position.Y, npcs.Position.Z);
+                    var npcRotation = npcs.Rotation;
 
-                if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
-                    npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
-                    npcs.Rotation = npcRotation;
+                    if (DrawGizmo($"##DebugMoveGizmo{npcs.GetHashCode()}", ref npcPosition, ref npcRotation)) {
+                        npcs.Position = new(npcPosition.X, npcPosition.Y, npcPosition.Z);
+                        npcs.Rotation = npcRotation;
+                    }
                 }
 
             }
@@ -197,6 +201,26 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
             }
         }
 
+    }
+
+    /// <summary>
+    /// Moves the model of an actor against the spot it stands on. The gizmo sits where the model ends up, with a line back to
+    /// the position of the actor, so it stays readable how far the model was pushed away from the ground it belongs to.
+    /// </summary>
+    private void DrawNpcDrawOffsetGizmo(ScenarioNpcData npc, Vector2 actorScreenPosition) {
+
+        var offsetPosition = (npc.Position + npc.DrawOffset).AsVector();
+
+        if (gui.WorldToScreen(offsetPosition, out var offsetScreenPosition)) {
+            var drawing = ImGui.GetWindowDrawList();
+            drawing.AddLine(actorScreenPosition, offsetScreenPosition, GetFinishColor(), 2f);
+            drawing.AddCircleFilled(offsetScreenPosition, 5f, GetFinishColor());
+        }
+
+        var offsetRotation = 0f;
+        if (DrawGizmo($"##DebugDrawOffsetGizmo{npc.GetHashCode()}", ref offsetPosition, ref offsetRotation, ImGuizmoOperation.Translate)) {
+            npc.DrawOffset = offsetPosition.AsCsVector() - npc.Position;
+        }
     }
 
     private unsafe bool DrawGizmo(string id, ref Vector3 position, ref float roation, ImGuizmoOperation mode = ImGuizmoOperation.RotateY | ImGuizmoOperation.Translate, float controlScale = 1.5f) {

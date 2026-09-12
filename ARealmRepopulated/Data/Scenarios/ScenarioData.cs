@@ -42,12 +42,16 @@ public interface IScenarioMetaData {
     bool Enabled { get; }
 }
 
-public class ScenarioNpcData {
+public class ScenarioNpcData {    
     public string Identifier { get; set; } = Guid.NewGuid().AsHexString();
     public string Name { get; set; } = "";
     public NpcAppearanceData Appearance { get; set; } = NpcAppearanceData.Default;
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Vector3 DrawOffset { get; set; }
+
     public List<ScenarioNpcAction> Actions { get; set; } = [];
     public ScenarioNpcBehaviorData Behavior { get; set; } = new();
     public Dictionary<string, string> AdditionalData { get; set; } = new();
