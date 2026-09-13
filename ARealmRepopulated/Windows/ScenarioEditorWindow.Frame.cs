@@ -64,7 +64,7 @@ public partial class ScenarioEditorWindow(
             MinimumSize = new Vector2(400, 400),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
-        this.Size = new Vector2(800, 900);
+        this.Size = new Vector2(820, 920);
         this.SizeCondition = ImGuiCond.Appearing;
 
         this.TitleBarButtons.Add(new TitleBarButton { Icon = FontAwesomeIcon.InfoCircle, ShowTooltip = DrawFrameTooltip });

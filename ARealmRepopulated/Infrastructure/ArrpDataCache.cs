@@ -17,6 +17,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<Emote> _emoteTypeSheet = null!;
     private ExcelSheet<ActionTimeline> _actionTimelineSheet = null!;
     private ExcelSheet<Item> _itemSheet = null!;
+    private ExcelSheet<Glasses> _glassesSheet = null!;
     private ExcelSheet<BNpcBase> _bnpcBaseSheet = null!;
     private ExcelSheet<BNpcName> _bnpcNameSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
@@ -27,6 +28,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         _actionTimelineSheet = dataManager.GetExcelSheet<ActionTimeline>();
         _emoteTypeSheet = dataManager.GetExcelSheet<Emote>();
         _itemSheet = dataManager.GetExcelSheet<Item>();
+        _glassesSheet = dataManager.GetExcelSheet<Glasses>();
         _bnpcBaseSheet = dataManager.GetExcelSheet<BNpcBase>();
         _bnpcNameSheet = dataManager.GetExcelSheet<BNpcName>();
 
@@ -124,6 +126,9 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
 
     public Item? GetItem(uint itemID)
         => _itemSheet.GetRowOrDefault(itemID);
+    
+    public Glasses? GetGlasses(uint glassesId)
+        => _glassesSheet.GetRowOrDefault(glassesId);
 
     public ItemModelData GetItemByModel(ItemSlots slot, ushort set, ushort baseValue, ushort variant) {
 

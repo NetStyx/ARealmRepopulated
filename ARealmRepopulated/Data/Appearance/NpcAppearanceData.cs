@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.Json;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.IO;
 using System.Text;
@@ -87,6 +88,14 @@ public class NpcAppearanceData {
     public const float ScaleDefault = 1.0f;
     public const float ScaleSoftMin = 0.10f;
     public const float ScaleSoftMax = 5.00f;
+    
+    public const float HeightMultiplierMin = 0.10f;
+    public const float HeightMultiplierMax = 2.00f;
+    public const float HeightMultiplierDefault = 1.00f;
+    
+    public static readonly JsonSerializerOptions SerializerOptions = new() {
+        Converters = { new Vector3Converter(), new Vector4Converter() }
+    };
 
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
@@ -122,6 +131,8 @@ public class NpcAppearanceData {
 
     public ushort? Glasses { get; set; }
 
+    public NpcExtendedAppearance? ExtendedAppearance { get; set; }
+
     public WeaponModel? MainHand { get; set; }
     public WeaponModel? OffHand { get; set; }
 
@@ -137,7 +148,9 @@ public class NpcAppearanceData {
     public EquipmentModel? RightRing { get; set; }
 
     public float? Transparency { get; set; }
+    
     public float? Scale { get; set; } = ScaleDefault;
+    public float? HeightMultiplier { get; set; } = HeightMultiplierDefault;
 
     public bool HideWeapons { get; set; } = true;
     public bool HideHeadgear { get; set; } = true;
@@ -148,19 +161,19 @@ public class NpcAppearanceData {
             ?? throw new InvalidOperationException($"Resource {fileName} not found");
         using var resourceStream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException($"Could not create resourcestream for file {fileName}");
-        return JsonSerializer.Deserialize<NpcAppearanceData>(resourceStream)
+        return JsonSerializer.Deserialize<NpcAppearanceData>(resourceStream, SerializerOptions)
             ?? throw new InvalidOperationException($"Could not deserialize file {fileName}");
     }
 
     public static NpcAppearanceData FromBase64(string data) {
         var jsonData = Convert.FromBase64String(data);
 
-        return JsonSerializer.Deserialize<NpcAppearanceData>(jsonData)
+        return JsonSerializer.Deserialize<NpcAppearanceData>(jsonData, SerializerOptions)
             ?? throw new InvalidOperationException($"Could not deserialize file ");
     }
 
     public string ToBase64() {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this)));
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this, SerializerOptions)));
     }
 
     public void Save(string configDirectory, SaveFormat format = SaveFormat.Json) {
@@ -170,7 +183,7 @@ public class NpcAppearanceData {
         if (format == SaveFormat.Base64) {
             exportData = ToBase64();
         } else {
-            exportData = JsonSerializer.Serialize(this);
+            exportData = JsonSerializer.Serialize(this, SerializerOptions);
 
         }
         File.WriteAllText(filePath, exportData);

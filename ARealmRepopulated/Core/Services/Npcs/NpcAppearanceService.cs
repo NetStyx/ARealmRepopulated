@@ -1,8 +1,12 @@
+using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Common.Math;
+using FFXIVClientStructs.FFXIV.Shader;
 using Lumina.Excel.Sheets;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
@@ -66,6 +70,9 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.LeftRing?.Apply(chara, EquipmentSlot.LFinger);
         file.RightRing?.Apply(chara, EquipmentSlot.RFinger);
 
+        if (file.Glasses.HasValue)
+            chara->DrawData.SetGlasses(0, file.Glasses.Value);
+
         chara->Scale = file.Scale ?? 1f;
 
         chara->DrawData.HideWeapons(file.HideWeapons);
@@ -75,6 +82,92 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         {
             chara->DrawData.CustomizeData = new CustomizeData();
         }*/
+    }
+
+    public void ApplyExtendedAppearance(Character* chara, NpcAppearanceData file) {
+
+        var human = GetHumanDrawObject(chara);
+        if (human == null)
+            return;
+
+        if (file.HeightMultiplier is { } height && float.IsFinite(height) && height > 0)
+            ((CharacterBaseScale*)human)->ModelScale = height;
+
+        var extended = file.ExtendedAppearance;
+        if (extended == null || !extended.HasAnyValue)
+            return;
+
+        var parameters = GetCustomizeParameters(human);
+        if (parameters == null)
+            return;
+
+        if (extended.SkinColor.HasValue) {
+            parameters->SkinColor.X = extended.SkinColor.Value.X;
+            parameters->SkinColor.Y = extended.SkinColor.Value.Y;
+            parameters->SkinColor.Z = extended.SkinColor.Value.Z;
+        }
+
+        if (extended.MuscleTone.HasValue)
+            parameters->SkinColor.W = extended.MuscleTone.Value;
+
+        if (extended.MouthColor.HasValue) {
+            parameters->LipColor.X = extended.MouthColor.Value.X;
+            parameters->LipColor.Y = extended.MouthColor.Value.Y;
+            parameters->LipColor.Z = extended.MouthColor.Value.Z;
+            parameters->LipColor.W = extended.MouthColor.Value.W;
+        }
+
+        if (extended.HairColor.HasValue) {
+            parameters->MainColor.X = extended.HairColor.Value.X;
+            parameters->MainColor.Y = extended.HairColor.Value.Y;
+            parameters->MainColor.Z = extended.HairColor.Value.Z;
+        }
+
+        if (extended.HairHighlight.HasValue) {
+            parameters->MeshColor.X = extended.HairHighlight.Value.X;
+            parameters->MeshColor.Y = extended.HairHighlight.Value.Y;
+            parameters->MeshColor.Z = extended.HairHighlight.Value.Z;
+        }
+
+        if (extended.LeftEyeColor.HasValue) {
+            parameters->LeftColor.X = extended.LeftEyeColor.Value.X;
+            parameters->LeftColor.Y = extended.LeftEyeColor.Value.Y;
+            parameters->LeftColor.Z = extended.LeftEyeColor.Value.Z;
+        }
+
+        if (extended.RightEyeColor.HasValue) {
+            parameters->RightColor.X = extended.RightEyeColor.Value.X;
+            parameters->RightColor.Y = extended.RightEyeColor.Value.Y;
+            parameters->RightColor.Z = extended.RightEyeColor.Value.Z;
+        }
+
+        if (extended.FeatureColor.HasValue) {
+            parameters->OptionColor.X = extended.FeatureColor.Value.X;
+            parameters->OptionColor.Y = extended.FeatureColor.Value.Y;
+            parameters->OptionColor.Z = extended.FeatureColor.Value.Z;
+        }
+    }    
+
+    private static Human* GetHumanDrawObject(Character* chara) {
+
+        if (chara == null || chara->DrawObject == null)
+            return null;
+
+        var characterBase = (CharacterBase*)chara->DrawObject;
+        return characterBase->GetModelType() == CharacterBase.ModelType.Human ? (Human*)characterBase : null;
+    }
+
+    private static CustomizeParameter* GetCustomizeParameters(Human* human) {
+
+        var constantBuffer = human->CustomizeParameterCBuffer;
+        if (constantBuffer == null)
+            return null;
+        
+        var source = constantBuffer->TryGetSourcePointer();
+        if (source == null || constantBuffer->ByteSize < sizeof(CustomizeParameter))
+            return null;
+
+        return (CustomizeParameter*)source;
     }
 
     public void Read(Character* chara, NpcAppearanceData file) {
@@ -114,6 +207,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.HideWeapons = chara->DrawData.IsWeaponHidden;
         file.HideHeadgear = chara->DrawData.IsHatHidden;
 
+        file.Glasses = chara->DrawData.GlassesIds[0];
+
         file.MainHand = WeaponModel.Read(chara, WeaponSlot.MainHand);
         file.OffHand = WeaponModel.Read(chara, WeaponSlot.OffHand);
 
@@ -129,6 +224,27 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.RightRing = EquipmentModel.Read(chara, EquipmentSlot.RFinger);
 
         file.Scale = chara->Scale;
+
+        var human = GetHumanDrawObject(chara);
+        if (human == null)
+            return;
+
+        file.HeightMultiplier = ((CharacterBaseScale*)human)->ModelScale;
+
+        var parameters = GetCustomizeParameters(human);
+        if (parameters == null)
+            return;
+
+        file.ExtendedAppearance = new NpcExtendedAppearance {
+            SkinColor = new Vector3(parameters->SkinColor.X, parameters->SkinColor.Y, parameters->SkinColor.Z),
+            MuscleTone = parameters->SkinColor.W,
+            MouthColor = parameters->LipColor,
+            HairColor = parameters->MainColor,
+            HairHighlight = parameters->MeshColor,
+            LeftEyeColor = new Vector3(parameters->LeftColor.X, parameters->LeftColor.Y, parameters->LeftColor.Z),
+            RightEyeColor = new Vector3(parameters->RightColor.X, parameters->RightColor.Y, parameters->RightColor.Z),
+            FeatureColor = parameters->OptionColor,
+        };
     }
 
     public void Read(BNpcBase npcBase, NpcAppearanceData file) {
@@ -214,9 +330,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         character->Timeline.IsWeaponDrawn = emoteEntry.DrawsWeapon;
     }
 
-    /// <summary>
-    /// Applies one of the game's pose variants (/cpose).
-    /// </summary>
+    // copies the behavior of /cpose ... but with a specific pose index to pick, rather then the next on in the cycle.
     public void SetPose(BattleChara* character, PoseType poseType, byte poseState) {
 
         poseState = dataCache.ClampPoseState(poseType, poseState);
@@ -232,10 +346,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
         PlayEmoteInternal(character, poseEmote);
     }
-
-    /// <summary>
-    /// Keeps an actor that an emote poses on the wanted pose variant, and does nothing for emotes that hold no pose or when the actor already holds the variant.     
-    /// </summary>
+    
     public void HoldEmotePose(BattleChara* character, Emote emoteEntry, byte poseState) {
 
         if (!emoteEntry.TryGetPoseType(out var poseType))
@@ -252,12 +363,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         }
     }
 
-    private static bool HasEnteredEmotePose(BattleChara* character, Emote emoteEntry)
-        => TryGetPostureMode(emoteEntry, out var postureMode) && character->Mode == postureMode;
-
-    /// <summary>
-    /// The character mode an emote locks the actor into while it holds a pose. Emotes that just play and end have no such mode.
-    /// </summary>
+    // The character mode an emote locks the actor into while it holds a pose. Emotes that just play and end have no such mode.    
     private static bool TryGetPostureMode(Emote emoteEntry, out CharacterModes postureMode) {
 
         postureMode = CharacterModes.None;
@@ -267,6 +373,9 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         postureMode = (CharacterModes)emoteEntry.EmoteMode.Value.ConditionMode;
         return postureMode != CharacterModes.None && postureMode != CharacterModes.Normal;
     }
+
+    private static bool HasEnteredEmotePose(BattleChara* character, Emote emoteEntry)
+        => TryGetPostureMode(emoteEntry, out var postureMode) && character->Mode == postureMode;
 
     public bool IsCancelEmote(BattleChara* character, Emote targetEmote) {
         var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);

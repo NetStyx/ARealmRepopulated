@@ -472,14 +472,8 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   <data name="ScenarioEditor_ActorData_Appearance_Equip" xml:space="preserve">
     <value>NPC Equipment</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CRace" xml:space="preserve">
-    <value>Race</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CTribe" xml:space="preserve">
-    <value>Tribe</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CGender" xml:space="preserve">
-    <value>Gender</value>
+  <data name="ScenarioEditor_ActorData_Appearance_CRaceTribeGender" xml:space="preserve">
+    <value>Race / Tribe / Gender</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CBase" xml:space="preserve">
     <value>Base ID</value>
@@ -592,6 +586,18 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   <data name="ScenarioEditor_ActorData_Appearance_EGlasses" xml:space="preserve">
     <value>Glasses</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended" xml:space="preserve">
+    <value>Advanced Colors</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Present" xml:space="preserve">
+    <value>Included</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Absent" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Hint" xml:space="preserve">
+    <value>Skin, hair, eye and lip colors a character file can carry outside the standard palette.</value>
+  </data>
   <data name="ScenarioEditor_ActorData_General_Input_NameRandom" xml:space="preserve">
     <value>Create random name</value>
   </data>
@@ -602,7 +608,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>A Realm Repopulated - Welcome !</value>
   </data>
   <data name="OnboardingWnd_Intro" xml:space="preserve">
-    <value>This is the onboarding wizzard for the plugin 'A Realm Repopulated'. The purpose of it is to give you the ability to enhance your surroundings by adding additional background NPCs. Each NPC can be given a set of instructions that guides its behaviour to create the feeling of the world being a bit more alive then usual.</value>
+    <value>This is the onboarding wizard for the plugin 'A Realm Repopulated'. The purpose of it is to give you the ability to enhance your surroundings by adding additional background NPCs. Each NPC can be given a set of instructions that guides its behaviour to create the feeling of the world being a bit more alive then usual.</value>
   </data>
   <data name="OnboardingWnd_SpawnDesc" xml:space="preserve">
     <value>To see how it works, you can use the button below to spawn a dummy NPC to see the plugin working.</value>
@@ -755,10 +761,16 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>https://github.com/Critical-Impact/LuminaSupplemental</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
-    <value>Scale</value>
+    <value>Base Scale</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier" xml:space="preserve">
+    <value>Actor scale</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc" xml:space="preserve">
+    <value>The second size multiplier. Mostly used when importing characters via the file import option. For all intents and purposes, you can choose either one for making the actor larger or smaller.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
-    <value>Size multiplier of the actor. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
+    <value>Size multiplier of the actor. Used by the game itself and is responsible for the larger and smaller versions of an NPC. The two scales are multiplied with each other. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
   </data>
   <data name="ListWnd_Changelog_Title" xml:space="preserve">
     <value>Changelog</value>
