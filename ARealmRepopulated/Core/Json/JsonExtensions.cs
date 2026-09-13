@@ -53,10 +53,7 @@ public static class JsonExtensions {
         }
 
         throw new ArgumentException($"Unable to parse JSON node as enum {typeof(T).Name}");
-    }
-
-    /// The tolerant counterparts below return null for a missing or unreadable entry instead of
-    /// throwing, so one absent key in an imported file no longer costs the whole file.
+    }    
 
     public static byte? GetByteOrNull(this JsonNode? node) {
         var value = node.GetDoubleOrNull();
