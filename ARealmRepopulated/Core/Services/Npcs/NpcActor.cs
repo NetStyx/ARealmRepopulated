@@ -27,6 +27,7 @@ public unsafe class NpcActor(
 
     private bool _isReady = false;
     private BattleChara* _actor = null;
+    private NpcAppearanceData? _appearance = null;
 
     private Vector3 _emoteOffset = Vector3.Zero;
     private Vector3 _drawOffset = Vector3.Zero;
@@ -53,6 +54,9 @@ public unsafe class NpcActor(
     public void Spawn() {
         _actor->Alpha = 1.0f;
         _actor->EnableDraw();
+
+        if (_appearance != null)
+            appearanceService.ApplyExtendedAppearance((Character*)_actor, _appearance);
     }
 
     public void Despawn() {
@@ -223,14 +227,14 @@ public unsafe class NpcActor(
 
     public Animations GetAnimation()
         => appearanceService.GetAnimation(_actor);
-
+    
     public void SetAppearance(NpcAppearanceData appearanceFile) {
+        _appearance = appearanceFile;
         appearanceService.Apply((Character*)_actor, appearanceFile);
     }
 
-    public void SetDefaultAppearance() {
-        appearanceService.Apply((Character*)_actor, NpcAppearanceData.FromResource("DefaultHumanFemale.json")!);
-    }
+    public void SetDefaultAppearance()
+        => SetAppearance(NpcAppearanceData.FromResource("DefaultHumanFemale.json")!);
 
     public void Talk(string text, float playTime = 3f)
         => cbs.Talk((Character*)_actor, text, playTime);
@@ -238,7 +242,7 @@ public unsafe class NpcActor(
     public unsafe void Draw() {
         framework.RunOnTick(() => {
             if (_actor->IsReadyToDraw()) {
-                _actor->EnableDraw();
+                Spawn();
             } else {
                 Draw();
             }

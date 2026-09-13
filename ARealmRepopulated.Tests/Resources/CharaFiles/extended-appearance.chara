@@ -1,0 +1,129 @@
+{
+  "ModelType": 0,
+  "Race": "Miqote",
+  "Gender": "Feminine",
+  "Age": "Normal",
+  "Tribe": "KeeperOfTheMoon",
+  "Height": 42,
+  "Head": 3,
+  "Hair": 61,
+  "EnableHighlights": true,
+  "Skintone": 12,
+  "REyeColor": 33,
+  "HairTone": 9,
+  "Highlights": 104,
+  "FacialFeatures": "First, Third, LegacyTattoo",
+  "LimbalEyes": 7,
+  "Eyebrows": 1,
+  "LEyeColor": 34,
+  "Eyes": 4,
+  "Nose": 2,
+  "Jaw": 5,
+  "Mouth": 6,
+  "LipsToneFurPattern": 40,
+  "EarMuscleTailSize": 55,
+  "TailEarsType": 2,
+  "Bust": 60,
+  "FacePaint": 8,
+  "FacePaintColor": 11,
+  "MainHand": {
+    "Color": "0, 0, 0",
+    "Scale": "0, 0, 0",
+    "ModelSet": 301,
+    "ModelBase": 31,
+    "ModelVariant": 1,
+    "DyeId": 12,
+    "DyeId2": 0
+  },
+  "OffHand": {
+    "Color": "0, 0, 0",
+    "Scale": "0, 0, 0",
+    "ModelSet": 351,
+    "ModelBase": 31,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "HeadGear": {
+    "ModelBase": 100,
+    "ModelVariant": 2,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Body": {
+    "ModelBase": 200,
+    "ModelVariant": 3,
+    "DyeId": 44,
+    "DyeId2": 0
+  },
+  "Hands": {
+    "ModelBase": 201,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Legs": {
+    "ModelBase": 202,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Feet": {
+    "ModelBase": 203,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Ears": {
+    "ModelBase": 50,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Neck": {
+    "ModelBase": 51,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Wrists": {
+    "ModelBase": 52,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "LeftRing": {
+    "ModelBase": 53,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "RightRing": {
+    "ModelBase": 54,
+    "ModelVariant": 1,
+    "DyeId": 0,
+    "DyeId2": 0
+  },
+  "Glasses": {
+    "GlassesId": 3
+  },
+  "Transparency": 0.5,
+  "HeightMultiplier": 1.02,
+  "MuscleTone": 1.25,
+  "SkinColor": "0.25, 0.5, 0.75",
+  "SkinGloss": null,
+  "LeftEyeColor": "2.5, 3.5, 4.5",
+  "RightEyeColor": "0.05, 0.06, 0.07",
+  "LimbalRingColor": "0.01, 0.02, 0.03",
+  "HairColor": "0.6, 0.7, 0.8",
+  "HairGloss": null,
+  "HairHighlight": "0.9, 0.95, 1.0",
+  "MouthColor": "0.1, 0.2, 0.3, 0.4",
+  "BustScale": null,
+  "IsExtendedAppearanceValid": true,
+  "Author": null,
+  "Description": null,
+  "Version": null,
+  "Base64Image": null,
+  "Tags": null
+}

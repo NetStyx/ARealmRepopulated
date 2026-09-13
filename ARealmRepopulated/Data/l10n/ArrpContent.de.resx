@@ -468,13 +468,7 @@
   <data name="ScenarioEditor_ActorData_Appearance_Equip" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CRace" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CTribe" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CGender" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Appearance_CRaceTribeGender" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CBase" xml:space="preserve">
@@ -586,6 +580,18 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_EGlasses" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Present" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Absent" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Hint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_NameRandom" xml:space="preserve">
@@ -751,6 +757,12 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
