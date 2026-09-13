@@ -27,6 +27,12 @@ public static class LocationDataExtension {
         return isInSameLocation;
     }
 
+    // we cannot simply take the inverse of insamelocation, as this would result in false positives when we are in the loading screen for example.
+    public static bool IsForeignLocation(this LocationData currentLocation, ScenarioLocation scenario)
+        => scenario.Territory != 0
+        && currentLocation.TerritoryType != 0
+        && !currentLocation.IsInSameLocation(scenario);
+
     public static void UpdateScenarioLocation(this LocationData location, ScenarioLocation target) {
         target.Server = location.Server;
         target.Territory = location.TerritoryType;

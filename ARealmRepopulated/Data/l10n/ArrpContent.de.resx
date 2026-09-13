@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -237,22 +237,7 @@
   <data name="ScenarioEditor_BaseData_Action_DiscardClose" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Title" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Desc" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Manage_Select" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Manage_SelectHint" xml:space="preserve">
-    <value>a</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Manage_AddActor" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Manage_RemoveActor" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Title" xml:space="preserve">
@@ -286,15 +271,6 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_GizmoTargetNoOverlay" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Actions_Title" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Title" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Desc" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Walking" xml:space="preserve">
@@ -775,6 +751,102 @@
     <value>a</value>
   </data>
   <data name="ListWnd_Changelog_OlderReleases" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_UntitledScenario" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_UnnamedActor" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_ActorCount" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_Empty" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_ScenarioNodeHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_AddAction" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_MoveUp" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_MoveDown" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_Duplicate" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_Delete" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Header_Loop" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Header_NoLoop" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Header_NoTerritory" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Header_ForeignTerritory" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Actor_Subtitle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Action_Enabled" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Action_EnabledHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Summary_Endless" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Summary_Points" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Summary_Slots" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Timing" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Pose" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Movement" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Lifecycle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_PointsTitle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_SlotsTitle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Outline_ActorCountOne" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Actor_SubtitleOne" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Actor_Delete" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Action_Delete" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_DeleteShiftHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Header_CurrentTerritory" xml:space="preserve">
     <value>a</value>
   </data>
 </root>
