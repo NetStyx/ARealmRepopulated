@@ -806,7 +806,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Enabled</value>
   </data>
   <data name="ScenarioEditor_Inspector_Action_EnabledHint" xml:space="preserve">
-    <value>Disabled actions are skipped while the scenario runs. You can also toggle an action by double clicking it in the outline.</value>
+    <value>Enables or disables this action. Only enabled actions are played when the scenario runs; disabled ones are skipped. You can also toggle an action by double clicking it in the outline.</value>
   </data>
   <data name="ScenarioEditor_Summary_Endless" xml:space="preserve">
     <value>endless</value>

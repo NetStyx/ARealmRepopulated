@@ -206,12 +206,9 @@ public partial class ScenarioEditorWindow {
     }
 
     private void DrawActionInspector(ScenarioNpcAction action) {
-        ArrpGuiLayout.PanelHeader("##arrpActionPanelHeader", FontAwesomeIcon.PlayCircle, _actionUiRegistry.GetShortName(action), ActorLabel(SelectedScenarioNpc!),
-            trailing: () => {
-                DrawActionEnabledToggle(action);
-                ImGui.SameLine(0, ArrpGuiSpacing.ButtonGroupSpacing);
-                DrawDeleteAction("##arrpActionDelete", "ScenarioEditor_Inspector_Action_Delete");
-            });
+        ArrpGuiLayout.PanelHeader("##arrpActionPanelHeader", () => DrawActionEnabledToggle(action),
+            _actionUiRegistry.GetShortName(action), ActorLabel(SelectedScenarioNpc!),
+            trailing: () => DrawDeleteAction("##arrpActionDelete", "ScenarioEditor_Inspector_Action_Delete"));
 
         using (ImRaii.Disabled())
             ImGui.TextWrapped(_actionUiRegistry.GetHelp(action));
@@ -231,7 +228,7 @@ public partial class ScenarioEditorWindow {
     
     private void DrawActionEnabledToggle(ScenarioNpcAction action) {
         var enabled = action.Enabled;
-        if (ArrpGuiCheckbox.LabelLeft("##arrpActionEnabledToggle", loc["ScenarioEditor_Inspector_Action_Enabled"], ref enabled)) {
+        if (ImGui.Checkbox("##arrpActionEnabledToggle", ref enabled)) {
             action.Enabled = enabled;
         }
 

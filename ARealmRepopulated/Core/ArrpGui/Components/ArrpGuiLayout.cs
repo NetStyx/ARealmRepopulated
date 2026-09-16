@@ -34,11 +34,19 @@ public static class ArrpGuiLayout {
     public static void PanelHeader(string id, FontAwesomeIcon icon, string title, string? subtitle = null, Action? trailing = null)
         => HeaderRow(id, () => DrawPanelHeaderLine(icon, title, subtitle), trailing);
 
-    private static void DrawPanelHeaderLine(FontAwesomeIcon icon, string title, string? subtitle) {        
-        ImGui.AlignTextToFramePadding();
+    /// <summary>Header row for a panel led by an arbitrary control instead of an icon.</summary>
+    public static void PanelHeader(string id, Action leading, string title, string? subtitle = null, Action? trailing = null)
+        => HeaderRow(id, () => DrawPanelHeaderLine(leading, title, subtitle), trailing);
 
-        using (ImRaii.PushFont(UiBuilder.IconFont))
-            ImGui.Text(icon.ToIconString());
+    private static void DrawPanelHeaderLine(FontAwesomeIcon icon, string title, string? subtitle)
+        => DrawPanelHeaderLine(() => {
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+                ImGui.Text(icon.ToIconString());
+        }, title, subtitle);
+
+    private static void DrawPanelHeaderLine(Action leading, string title, string? subtitle) {
+        ImGui.AlignTextToFramePadding();
+        leading();
 
         ImGui.SameLine(0, ArrpGuiSpacing.HeadingPartSpacing);
         ImGui.Text(title);
