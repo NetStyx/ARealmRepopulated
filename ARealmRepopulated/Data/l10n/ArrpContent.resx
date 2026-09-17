@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -211,7 +211,7 @@
     <value>Description:</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_Looping" xml:space="preserve">
-    <value>Looping:</value>
+    <value>Loop scenario</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_LoopingDelay" xml:space="preserve">
     <value>Delay between loops:</value>
@@ -237,23 +237,8 @@
   <data name="ScenarioEditor_BaseData_Action_DiscardClose" xml:space="preserve">
     <value>Discard &amp; Close</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Title" xml:space="preserve">
-    <value>Scenario Actor Data</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Desc" xml:space="preserve">
-    <value>Select the actor to edit here. You can define the actions for each actor individually.</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Manage_Select" xml:space="preserve">
-    <value>Select Actor:</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Manage_SelectHint" xml:space="preserve">
-    <value>Select Actor ...</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Manage_AddActor" xml:space="preserve">
     <value>Add Actor</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Manage_RemoveActor" xml:space="preserve">
-    <value>Remove Actor</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Title" xml:space="preserve">
     <value>General</value>
@@ -291,15 +276,6 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_GizmoTargetNoOverlay" xml:space="preserve">
     <value>Turn the scenario overlay on in the settings to move this in the world</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Actions_Title" xml:space="preserve">
-    <value>Actions</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Title" xml:space="preserve">
-    <value>Appearance</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Desc" xml:space="preserve">
-    <value>NPC Appearance can be changed by choosing a template from your environment. It is currently not planned to include a character editor.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Walking" xml:space="preserve">
     <value>Walking</value>
@@ -780,5 +756,101 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   </data>
   <data name="ListWnd_Changelog_OlderReleases" xml:space="preserve">
     <value>Older Releases</value>
+  </data>
+  <data name="ScenarioEditor_Outline_UntitledScenario" xml:space="preserve">
+    <value>Untitled Scenario</value>
+  </data>
+  <data name="ScenarioEditor_Outline_UnnamedActor" xml:space="preserve">
+    <value>Unnamed Actor</value>
+  </data>
+  <data name="ScenarioEditor_Outline_ActorCount" xml:space="preserve">
+    <value>{0} actors</value>
+  </data>
+  <data name="ScenarioEditor_Outline_Empty" xml:space="preserve">
+    <value>No actors yet. Use the add actor button above to create one.</value>
+  </data>
+  <data name="ScenarioEditor_Outline_ScenarioNodeHint" xml:space="preserve">
+    <value>Edit the scenario title, description, location and looping.</value>
+  </data>
+  <data name="ScenarioEditor_Outline_AddAction" xml:space="preserve">
+    <value>Add an action to the selected actor</value>
+  </data>
+  <data name="ScenarioEditor_Outline_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="ScenarioEditor_Outline_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="ScenarioEditor_Outline_Duplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="ScenarioEditor_Outline_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ScenarioEditor_Header_Loop" xml:space="preserve">
+    <value>loops after {0}</value>
+  </data>
+  <data name="ScenarioEditor_Header_NoLoop" xml:space="preserve">
+    <value>plays once</value>
+  </data>
+  <data name="ScenarioEditor_Header_NoTerritory" xml:space="preserve">
+    <value>no location</value>
+  </data>
+  <data name="ScenarioEditor_Header_ForeignTerritory" xml:space="preserve">
+    <value>This scenario belongs to a different area than the one you are in. Its actors will not spawn here.</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Actor_Subtitle" xml:space="preserve">
+    <value>{0} actions</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Action_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Action_EnabledHint" xml:space="preserve">
+    <value>Enables or disables this action. Only enabled actions are played when the scenario runs; disabled ones are skipped. You can also toggle an action by double clicking it in the outline.</value>
+  </data>
+  <data name="ScenarioEditor_Summary_Endless" xml:space="preserve">
+    <value>endless</value>
+  </data>
+  <data name="ScenarioEditor_Summary_Points" xml:space="preserve">
+    <value>{0} pts</value>
+  </data>
+  <data name="ScenarioEditor_Summary_Slots" xml:space="preserve">
+    <value>{0} slots</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Timing" xml:space="preserve">
+    <value>Timing</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Pose" xml:space="preserve">
+    <value>Pose &amp; Animation</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Movement" xml:space="preserve">
+    <value>Movement</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_Group_Lifecycle" xml:space="preserve">
+    <value>Lifecycle</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_PointsTitle" xml:space="preserve">
+    <value>Path Points</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_SlotsTitle" xml:space="preserve">
+    <value>Timeline Slots</value>
+  </data>
+  <data name="ScenarioEditor_Outline_ActorCountOne" xml:space="preserve">
+    <value>1 actor</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Actor_SubtitleOne" xml:space="preserve">
+    <value>1 action</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Actor_Delete" xml:space="preserve">
+    <value>Delete this actor and all of its actions</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_Action_Delete" xml:space="preserve">
+    <value>Delete this action</value>
+  </data>
+  <data name="ScenarioEditor_Inspector_DeleteShiftHint" xml:space="preserve">
+    <value>Hold Shift to enable this button. Deleting cannot be undone.</value>
+  </data>
+  <data name="ScenarioEditor_Header_CurrentTerritory" xml:space="preserve">
+    <value>You are in this scenario's area, so its actors spawn around you.</value>
   </data>
 </root>
