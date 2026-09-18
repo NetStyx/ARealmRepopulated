@@ -101,7 +101,13 @@ public abstract class ScenarioNpcAction {
 public enum NpcSpeed {
     Walking, // = 2.5f
     Running, // = 6.3f
+    Sprinting, // = 9.45f
     Custom // use CustomSpeed
+}
+
+public interface INpcSpeedSelection {
+    NpcSpeed Speed { get; set; }
+    float CustomSpeed { get; set; }
 }
 
 public class ScenarioNpcWaitingAction : ScenarioNpcAction {
@@ -119,11 +125,14 @@ public class ScenarioNpcDespawnAction() : ScenarioNpcAction(false, false) {
     public override string ToString() => "Despawn";
 }
 
-public class ScenarioNpcMovementAction : ScenarioNpcAction {
+public class ScenarioNpcMovementAction : ScenarioNpcAction, INpcSpeedSelection {
     public Vector3 TargetPosition { get; set; }
     public NpcSpeed Speed { get; set; }
 
-    public override string ToString() => $"Move [Duration: {Duration}; Speed: {Speed}; Target: {TargetPosition}]";
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public float CustomSpeed { get; set; } = 0f;
+
+    public override string ToString() => $"Move [Duration: {Duration}; Speed: {Speed}; CustomSpeed: {CustomSpeed}; Target: {TargetPosition}]";
 }
 
 public class ScenarioNpcPathAction() : ScenarioNpcAction {
@@ -134,7 +143,7 @@ public class ScenarioNpcPathAction() : ScenarioNpcAction {
         => $"Path [Duration: {Duration}; Tension: {Tension}, Points: {Points.Count}]";
 }
 
-public class PathMovementPoint {
+public class PathMovementPoint : INpcSpeedSelection {
     public Vector3 Point { get; set; }
     public NpcSpeed Speed { get; set; }
 

@@ -117,7 +117,7 @@ public partial class ScenarioEditorWindow(
         _actionUiRegistry.Register<ScenarioNpcMovementAction>(
             shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AMove_Short"],
             help: (a) => loc["ScenarioEditor_ActorData_Actions_AMove_Desc"],
-            summary: (a) => DescribeSpeed(a.Speed),
+            summary: (a) => DescribeSpeed(a),
             draw: DrawMovementAction
         );
         _actionUiRegistry.Register<ScenarioNpcPathAction>(
@@ -548,8 +548,8 @@ public partial class ScenarioEditorWindow(
 
     private void ResetSelectedAction(ScenarioNpcData npc, ScenarioNpcAction? newAction = null) {
         SelectedScenarioNpc = npc;
-        SelectedScenarioNpcAction = newAction;
-        SelectedPathMovementPoint = null;
+        SelectedScenarioNpcAction = newAction;        
+        SelectedPathMovementPoint = (newAction as ScenarioNpcPathAction)?.Points.LastOrDefault();        
     }
 
     private void AddActor() {
@@ -682,8 +682,14 @@ public partial class ScenarioEditorWindow(
     private string DescribeSpeed(NpcSpeed speed) => speed switch {
         NpcSpeed.Walking => loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Walking"],
         NpcSpeed.Running => loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Running"],
+        NpcSpeed.Sprinting => loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Sprinting"],
+        NpcSpeed.Custom => loc["ScenarioEditor_ActorData_Actions_WalkSpeed_Custom"],
         _ => speed.ToString()
     };
+
+    private string DescribeSpeed(INpcSpeedSelection selection) => selection.Speed == NpcSpeed.Custom
+        ? loc["ScenarioEditor_ActorData_Actions_WalkSpeed_CustomValue", MovementMotion.ClampSpeed(selection.CustomSpeed)]
+        : DescribeSpeed(selection.Speed);
 
     private static string FormatSeconds(float seconds)
         => $"{seconds:0.0}s";

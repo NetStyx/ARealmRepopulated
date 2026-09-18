@@ -295,7 +295,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         if (!CurrentAction.Pathfinder.IsPathReady)
             return;
 
-        Actor.SetMovementAnimation(CurrentAction.Pathfinder.CurrentSpeed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
+        Actor.SetMovementMotion(CurrentAction.Pathfinder.CurrentSpeedValue);
 
         if (!CurrentAction.Pathfinder.IsUserReady) {
             var currentRotation = Actor.GetRotation();
@@ -325,10 +325,12 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     }
 
     private void AdvanceSimpleMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
-        if (CurrentAction.CurrentDuration == 0f) {
+        var travelSpeed = PathMovementRuntime.ResolveSpeed(action);
+
+        if (CurrentAction.CurrentDuration == 0f)
             CurrentAction.CurrentDuration = 0.1f;
-            Actor.SetMovementAnimation(action.Speed == NpcSpeed.Running ? NpcAppearanceService.Animations.Running : NpcAppearanceService.Animations.Walking);
-        }
+
+        Actor.SetMovementMotion(travelSpeed);
 
         var currentRotation = Actor.GetRotation();
         var targetRotation = Actor.GetPosition().DirectionTo(action.TargetPosition);
@@ -342,8 +344,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         var currentPosition = Actor.GetPosition();
         var targetPosition = action.TargetPosition;
-        var speeds = action.Speed == NpcSpeed.Running ? NpcActor.RunningSpeed : NpcActor.WalkingSpeed;
-        var distanceStep = speeds * (float)delta.TotalSeconds / Vector3.Distance(currentPosition, targetPosition);
+        var distanceStep = travelSpeed * (float)delta.TotalSeconds / Vector3.Distance(currentPosition, targetPosition);
         var newPosition = Vector3.Lerp(currentPosition, targetPosition, distanceStep);
 
         if (targetPosition.X == newPosition.X && targetPosition.Z == newPosition.Z) {
@@ -412,8 +413,8 @@ public unsafe class ScenarioNpc(IPluginLog log) {
                 var firstPoint = pathAction.Points.FirstOrDefault();
                 if (firstPoint != null) {
                     // add the current actor position to the point iteration to not "warp" around                    
-                    var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s.Speed) }).ToList();
-                    pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint.Speed) });
+                    var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s) }).ToList();
+                    pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint) });
 
                     execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
                 } else {
