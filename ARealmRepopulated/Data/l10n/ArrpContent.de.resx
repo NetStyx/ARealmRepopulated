@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -277,6 +277,21 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Running" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Sprinting" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Custom" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_CustomValue" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_Unit" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_CustomHint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATalk_Short" xml:space="preserve">
@@ -826,6 +841,18 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_APath_PointsTitle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_PointTitle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_NoPointSelected" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_MoveUpHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_APath_MoveDownHint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_SlotsTitle" xml:space="preserve">

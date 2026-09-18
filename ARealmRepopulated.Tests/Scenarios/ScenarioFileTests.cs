@@ -1,4 +1,5 @@
 ﻿using ARealmRepopulated.Core.Json;
+using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Scenarios;
 using Shouldly;
 using System;
@@ -77,6 +78,58 @@ public class ScenarioFileTests {
         var restoredScenario = Recode(scenario);
 
         restoredScenario.Npcs[0].DrawOffset.ShouldBe(npc.DrawOffset);
+    }
+
+    [Fact]
+    public void ScenarioFile_IsKeepingCustomSpeedsBetweenSerialization() {
+
+        var scenario = new ScenarioData();
+        var npc = new ScenarioNpcData { Name = GetRandomString() };
+        npc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Custom, CustomSpeed = 4.25f });
+        npc.Actions.Add(new ScenarioNpcPathAction {
+            Points = [
+                new PathMovementPoint { Point = GetRandomVector3(), Speed = NpcSpeed.Custom, CustomSpeed = 0.75f },
+                new PathMovementPoint { Point = GetRandomVector3(), Speed = NpcSpeed.Running, CustomSpeed = 0f }
+            ]
+        });
+        scenario.Npcs.Add(npc);
+
+        var restoredScenario = RecodeWithPluginOptions(scenario);
+
+        var restoredMovement = (ScenarioNpcMovementAction)restoredScenario.Npcs[0].Actions[0];
+        restoredMovement.Speed.ShouldBe(NpcSpeed.Custom);
+        restoredMovement.CustomSpeed.ShouldBe(4.25f);
+
+        var restoredPath = (ScenarioNpcPathAction)restoredScenario.Npcs[0].Actions[1];
+        restoredPath.Points[0].Speed.ShouldBe(NpcSpeed.Custom);
+        restoredPath.Points[0].CustomSpeed.ShouldBe(0.75f);
+        restoredPath.Points[1].Speed.ShouldBe(NpcSpeed.Running);
+    }
+
+    [Fact]
+    public void ScenarioFile_PresetSpeeds_DoNotWriteACustomSpeedKey() {
+
+        var scenario = new ScenarioData();
+        var npc = new ScenarioNpcData { Name = GetRandomString() };
+        npc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Walking });
+        scenario.Npcs.Add(npc);
+
+        var json = JsonSerializer.Serialize(scenario, ScenarioFileManager.ScenarioLoadSerializerOptions);
+
+        // walking and running stay byte-identical to what older versions of the plugin wrote,
+        // which is why adding a custom speed needs no scenario migration
+        json.ShouldNotContain("CustomSpeed");
+        json.ShouldContain("\"Walking\"");
+    }
+
+    private static ScenarioData RecodeWithPluginOptions(ScenarioData data) {
+        var json = JsonSerializer.Serialize(data, ScenarioFileManager.ScenarioLoadSerializerOptions);
+        json.ShouldNotBeNullOrEmpty();
+
+        var deserialized = JsonSerializer.Deserialize<ScenarioData>(json, ScenarioFileManager.ScenarioLoadSerializerOptions);
+        deserialized.ShouldNotBeNull();
+
+        return deserialized;
     }
 
     private static ScenarioData Recode(ScenarioData data) {

@@ -24,9 +24,9 @@ public class PathMovementRuntime {
         _currentDistanceAlongPath >= _path.TotalLength - 1e-4f;
 
     public bool IsUserReady { get; set; } = false;
-
-    public NpcSpeed CurrentSpeed
-        => !IsFinished ? ResolveSpeed(_path.GetSegmentSpeed(_currentSegmentIndex)) : NpcSpeed.Walking;
+    
+    public float CurrentSpeedValue
+        => !IsFinished ? _path.GetSegmentSpeed(_currentSegmentIndex) : NpcActor.WalkingSpeed;
 
     public void Compile(List<PathSegmentPoint> points, float tension = 0f, PathMovementIntegrationMode integrationMode = PathMovementIntegrationMode.CrossSingleBoundary) {
         if (points is null || points.Count < 2)
@@ -151,17 +151,13 @@ public class PathMovementRuntime {
         if (_currentDistanceAlongPath > _path.TotalLength)
             _currentDistanceAlongPath = _path.TotalLength;
     }
-
-    public static float ResolveSpeed(NpcSpeed opt) => opt switch {
+    
+    public static float ResolveSpeed(INpcSpeedSelection selection) => selection.Speed switch {
         NpcSpeed.Walking => NpcActor.WalkingSpeed,
         NpcSpeed.Running => NpcActor.RunningSpeed,
+        NpcSpeed.Sprinting => NpcActor.SprintingSpeed,
+        NpcSpeed.Custom => MovementMotion.ClampSpeed(selection.CustomSpeed),
         _ => NpcActor.WalkingSpeed,
-    };
-
-    public static NpcSpeed ResolveSpeed(float speed) => speed switch {
-        NpcActor.WalkingSpeed => NpcSpeed.Walking,
-        NpcActor.RunningSpeed => NpcSpeed.Running,
-        _ => NpcSpeed.Custom
     };
 
     private float ProjectPositionToPath(Vector3 position) {

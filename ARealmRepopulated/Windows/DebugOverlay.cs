@@ -152,10 +152,13 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                 var targetColor = isSelectedAction ? GetFinishColor() : GetDefaultColor();
 
                 if (action is ScenarioNpcPathAction pathAction) {
-                    foreach (var target in pathAction.Points) {
+                    for (var i = 0; i < pathAction.Points.Count; i++) {
+                        var target = pathAction.Points[i];
                         var renderMoveTarget = gui.WorldToScreen(target.Point, out var moveTarget);
                         if (renderMoveTarget) {
-                            drawing.AddCircleFilled(moveTarget, 5f, targetColor);
+                            const float pointRadius = 5f;
+                            drawing.AddCircleFilled(moveTarget, pointRadius, targetColor);
+                            DrawPointLabel(drawing, moveTarget, pointRadius, $"{i + 1}", targetColor);
 
                             if (data.SelectedPathMovementPoint == target) {
                                 var movePosition = target.Point.AsVector();
@@ -305,6 +308,17 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
         => _npcTrace = position;
     internal void ClearNpcTrace()
         => _npcTrace = Vector3.Zero;
+    
+    private static void DrawPointLabel(ImDrawListPtr drawing, Vector2 point, float pointRadius, string label, uint color) {
+        var labelSize = ImGui.CalcTextSize(label);
+        var labelPosition = new Vector2(
+            point.X - (labelSize.X / 2f),
+            point.Y - pointRadius - ImGui.GetStyle().ItemInnerSpacing.Y - labelSize.Y);
+
+        // a sad excuse for a shadow, but it keeps the label readable
+        drawing.AddText(labelPosition + Vector2.One, ImGui.GetColorU32(ImGuiCol.WindowBg), label);
+        drawing.AddText(labelPosition, color, label);
+    }
 
     internal uint GetFinishColor()
         => _imguiColorGreen.GetValueOrDefault(0);

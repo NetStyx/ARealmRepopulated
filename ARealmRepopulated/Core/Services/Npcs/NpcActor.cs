@@ -23,7 +23,8 @@ public unsafe class NpcActor(
 
     public const float RunningSpeed = 6.3f;
     public const float WalkingSpeed = 2.5f;
-    public const float TurningSpeed = 6.3f;
+    public const float TurningSpeed = 6.3f;    
+    public const float SprintingSpeed = RunningSpeed * 1.5f;
 
     private bool _isReady = false;
     private BattleChara* _actor = null;
@@ -222,8 +223,13 @@ public unsafe class NpcActor(
     public bool IsLoopingEmote(ushort emoteid)
         => dataCache.GetEmote(emoteid).IsLooping();
 
-    public void SetMovementAnimation(Animations animation)
-        => appearanceService.SetMovementAnimation(_actor, animation);
+    public void SetMovementAnimation(Animations animation, float animationSpeed = 1f)
+        => appearanceService.SetMovementAnimation(_actor, animation, animationSpeed);
+    
+    public void SetMovementMotion(float travelSpeed) {
+        var motion = MovementMotion.Select(travelSpeed);
+        SetMovementAnimation(motion.Animation, motion.AnimationSpeed);
+    }
 
     public Animations GetAnimation()
         => appearanceService.GetAnimation(_actor);

@@ -21,8 +21,10 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         Walking = 13,
         WalkingArmed = 41,
         Running = 22,
-        RunningArmed = 50
-    }
+        RunningArmed = 50,
+        Sprinting = 30,
+        SprintingArmed = 58
+    }        
 
     public void Apply(Character* chara, NpcAppearanceData file) {
 
@@ -324,6 +326,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
     public void PlayEmote(BattleChara* character, Emote emoteEntry) {
 
+        SetBaseAnimationSpeed(character, 1f);
         PlayEmoteInternal(character, emoteEntry.RowId);
 
         character->EmoteController.CurrentPoseType = emoteEntry.GetPoseType();
@@ -390,13 +393,14 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
     public void PlayTimeline(BattleChara* character, ushort timelineId) {
         log.Verbose($"Playing timeline {timelineId} on character {character->GetName()}");
+        SetBaseAnimationSpeed(character, 1f);
         character->Timeline.PlayActionTimeline(timelineId);
     }
 
     public bool IsPlayingTimeline(BattleChara* character, ushort timelineId)
         => character->Timeline.TimelineSequencer.TimelineIds.Contains(timelineId);
 
-    public void SetMovementAnimation(BattleChara* character, Animations animation) {
+    public void SetMovementAnimation(BattleChara* character, Animations animation, float animationSpeed = 1f) {
 
         if (character->Timeline.IsWeaponDrawn) {
             if (animation == Animations.Idle)
@@ -405,7 +409,11 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
                 animation = Animations.WalkingArmed;
             if (animation == Animations.Running)
                 animation = Animations.RunningArmed;
+            if (animation == Animations.Sprinting)
+                animation = Animations.SprintingArmed;
         }
+
+        SetBaseAnimationSpeed(character, animationSpeed);
 
         var animationCode = (ushort)animation;
         if (animation == Animations.Idle || animation == Animations.IdleArmed) {
@@ -421,6 +429,17 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
                 character->Timeline.BaseOverride = animationCode;
             }
         }
+    }
+
+    private const int BaseTimelineSlot = 0;
+    
+    public void SetBaseAnimationSpeed(BattleChara* character, float animationSpeed) {
+        var timelineSpeeds = character->Timeline.TimelineSequencer.TimelineSpeeds;
+        if (timelineSpeeds.Length <= BaseTimelineSlot)
+            return;
+
+        if (timelineSpeeds[BaseTimelineSlot] != animationSpeed)
+            timelineSpeeds[BaseTimelineSlot] = animationSpeed;
     }
 
     public Animations GetAnimation(BattleChara* character) {
