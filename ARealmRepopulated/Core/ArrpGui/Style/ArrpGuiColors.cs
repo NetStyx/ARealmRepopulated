@@ -12,8 +12,7 @@ public static class ArrpGuiColors {
     
     public static Vector4 TextColor => ImGui.GetStyle().Colors[(int)ImGuiCol.Text];    
     public static Vector4 NoteColor => ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
-
-    /// <summary>Scrollbar grab dimmed the way ImGui dims disabled controls, for a scrollbar with nothing to scroll.</summary>
+    
     public static Vector4 ScrollbarGrabDisabledColor {
         get {
             var style = ImGui.GetStyle();

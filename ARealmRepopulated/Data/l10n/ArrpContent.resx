@@ -296,7 +296,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>yalms/s</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_WalkSpeed_CustomHint" xml:space="preserve">
-    <value>Travel speed in yalms per second, the game's own distance unit (walking is 2.50, running 6.30, sprinting 9.45). The walking, running or sprinting animation closest to this speed is played and its playback rate scaled to match, so the footsteps stay in step with the actual movement.</value>
+    <value>Travel speed in yalms per second (walking is 2.50, running 6.30, sprinting 9.45). The walking, running or sprinting animation closest to this speed is played and its playback rate scaled to match, so the footsteps stay in step with the actual movement.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATalk_Short" xml:space="preserve">
     <value>Npc Talk</value>
