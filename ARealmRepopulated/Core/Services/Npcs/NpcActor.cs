@@ -1,6 +1,5 @@
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
-using ARealmRepopulated.Core.Services.LookAt;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
@@ -17,7 +16,6 @@ public unsafe class NpcActor(
     IObjectTable objectTable,
     ArrpDataCache dataCache,
     LayoutWorldService envService,
-    LookAtService lookAtService,
     NpcAppearanceService appearanceService,
     ChatBubbleService cbs) {
 
@@ -26,14 +24,14 @@ public unsafe class NpcActor(
     public const float TurningSpeed = 6.3f;    
     public const float SprintingSpeed = RunningSpeed * 1.5f;
 
+    private const ulong NoTargetId = 0xE0000000;
+
     private bool _isReady = false;
     private BattleChara* _actor = null;
     private NpcAppearanceData? _appearance = null;
 
     private Vector3 _emoteOffset = Vector3.Zero;
     private Vector3 _drawOffset = Vector3.Zero;
-
-    private bool? _canTrack = null;
 
     public IntPtr Address { get => new(_actor); }
 
@@ -144,20 +142,19 @@ public unsafe class NpcActor(
     public float GetDistanceTo(Vector3 target)
         => Vector3.Distance(_actor->Position, target);
 
-    public bool CanTrack() {
-        _canTrack ??= lookAtService.CanLookAtSomething(_actor);
-        return _canTrack.GetValueOrDefault(false);
-    }
+    public bool CanTrack()
+        => _actor->LookAt.Controller.ParamCount > 0;
 
     public void LookAt(BattleChara* target) {
-        if (!lookAtService.IsLookingAt(_actor, target)) {
-            lookAtService.LookAt(_actor, target);
+        var targetId = target->GetGameObjectId();
+        if (_actor->SoftTargetId != targetId) {
+            _actor->SoftTargetId = targetId;
         }
     }
 
     public void LookAtNothing() {
-        if (lookAtService.IsLookingAtSomething(_actor)) {
-            lookAtService.LookAtNothing(_actor);
+        if (_actor->SoftTargetId != NoTargetId) {
+            _actor->SoftTargetId = NoTargetId;
         }
     }
 

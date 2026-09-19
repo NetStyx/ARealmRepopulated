@@ -158,17 +158,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         var distance = Actor.GetDistanceTo(player->Position);
 
+        // Checked before the chat distance, otherwise a player who leaves quickly is never released.
+        if (Actor.CanTrack()) {
+            if (Behavior.TrackPlayer && distance <= _proximityLookDistance) {
+                Actor.LookAt(player);
+            } else {
+                Actor.LookAtNothing();
+            }
+        }
+
         if (distance > _proximityChatDistance) {
             CurrentAction.IsInProximity = false;
             return;
-        }
-
-        if (Behavior.TrackPlayer && Actor.CanTrack()) {
-            if (distance > _proximityLookDistance) {
-                Actor.LookAtNothing();
-            } else {
-                Actor.LookAt(player);
-            }
         }
 
         CurrentAction.IsInProximity = true;
