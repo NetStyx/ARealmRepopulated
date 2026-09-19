@@ -32,6 +32,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         battleCharacter->ObjectKind = options.Kind;
         battleCharacter->BattleNpcSubKind = BattleNpcSubKind.Player;
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
+        ((GameObjectWorldFlags*)battleCharacter)->Flags |= GameObjectWorldFlags.InteractsWithWorld;
 
         if (objectTable.LocalPlayer != null) {
             var player = (Character*)objectTable.LocalPlayer.Address;
