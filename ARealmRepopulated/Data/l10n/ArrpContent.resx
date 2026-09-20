@@ -766,12 +766,6 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   <data name="ListWnd_Changelog_Title" xml:space="preserve">
     <value>Changelog</value>
   </data>
-  <data name="ListWnd_Changelog_CurrentRelease" xml:space="preserve">
-    <value>Current Release</value>
-  </data>
-  <data name="ListWnd_Changelog_OlderReleases" xml:space="preserve">
-    <value>Older Releases</value>
-  </data>
   <data name="ScenarioEditor_Outline_UntitledScenario" xml:space="preserve">
     <value>Untitled Scenario</value>
   </data>

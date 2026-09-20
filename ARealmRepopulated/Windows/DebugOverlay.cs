@@ -117,19 +117,20 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
             return;
 
         var drawing = ImGui.GetWindowDrawList();
+        var cameraPlane = GetCameraClipPlane();
         foreach (var npcs in data.ScenarioObject.Npcs) {
-
-            var renderStartPosition = gui.WorldToScreen(npcs.Position, out var startingPosition);
-            if (!renderStartPosition)
-                continue;
 
             if (data.SelectedScenarioNpc != npcs)
                 continue;
 
-            drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
-            drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
+            var startWorld = npcs.Position.AsVector();
+            var isStartInFront = gui.WorldToScreen(startWorld, out var startingPosition);
+            if (isStartInFront) {
+                drawing.AddCircle(startingPosition, 8f, GetStartColor(), (float)3f);
+                drawing.AddCircleFilled(startingPosition, 5f, GetDefaultColor());
+            }
 
-            if (data.SelectedScenarioNpcAction == null) {
+            if (isStartInFront && data.SelectedScenarioNpcAction == null) {
                 if (data.SelectedGizmoTarget == ScenarioEditorGizmoTarget.DrawOffset) {
                     DrawNpcDrawOffsetGizmo(npcs, startingPosition);
                 } else {
@@ -144,7 +145,7 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
 
             }
 
-            var fromPoint = startingPosition;
+            var fromWorld = startWorld;
 
             foreach (var action in npcs.Actions) {
 
@@ -154,8 +155,11 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                 if (action is ScenarioNpcPathAction pathAction) {
                     for (var i = 0; i < pathAction.Points.Count; i++) {
                         var target = pathAction.Points[i];
-                        var renderMoveTarget = gui.WorldToScreen(target.Point, out var moveTarget);
-                        if (renderMoveTarget) {
+                        var targetWorld = target.Point.AsVector();
+                        DrawWorldLine(drawing, cameraPlane, fromWorld, targetWorld, targetColor);
+                        fromWorld = targetWorld;
+
+                        if (gui.WorldToScreen(targetWorld, out var moveTarget)) {
                             const float pointRadius = 5f;
                             drawing.AddCircleFilled(moveTarget, pointRadius, targetColor);
                             DrawPointLabel(drawing, moveTarget, pointRadius, $"{i + 1}", targetColor);
@@ -168,18 +172,16 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                                 }
                             }
                         }
-
-                        if (fromPoint != Vector2.Zero) {
-                            drawing.AddLine(fromPoint, moveTarget, targetColor);
-                        }
-                        fromPoint = moveTarget;
                     }
 
                 }
 
                 if (action is ScenarioNpcMovementAction moveAction) {
-                    var renderMoveTarget = gui.WorldToScreen(moveAction.TargetPosition, out var moveTarget);
-                    if (renderMoveTarget) {
+                    var targetWorld = moveAction.TargetPosition.AsVector();
+                    DrawWorldLine(drawing, cameraPlane, fromWorld, targetWorld, targetColor);
+                    fromWorld = targetWorld;
+
+                    if (gui.WorldToScreen(targetWorld, out var moveTarget)) {
                         drawing.AddCircleFilled(moveTarget, 5f, targetColor);
 
                         if (isSelectedAction) {
@@ -191,19 +193,45 @@ public class DebugOverlay(IDalamudPluginInterface pluginInterface, IObjectTable 
                         }
 
                     }
-
-                    if (fromPoint != Vector2.Zero) {
-                        drawing.AddLine(fromPoint, moveTarget, targetColor);
-                    }
-                    fromPoint = moveTarget;
                 }
             }
 
-            if (startingPosition != fromPoint) {
-                drawing.AddCircle(fromPoint, 8f, GetFinishColor(), (float)3f);
+            if (fromWorld != startWorld && gui.WorldToScreen(fromWorld, out var finishPosition)) {
+                drawing.AddCircle(finishPosition, 8f, GetFinishColor(), (float)3f);
             }
         }
 
+    }
+
+    private void DrawWorldLine(ImDrawListPtr drawing, CameraClipPlane plane, Vector3 from, Vector3 to, uint color) {
+        var fromDepth = plane.DepthOf(from);
+        var toDepth = plane.DepthOf(to);
+        if (fromDepth < 0f && toDepth < 0f)
+            return;
+
+        if (fromDepth < 0f) {
+            from = Vector3.Lerp(from, to, fromDepth / (fromDepth - toDepth));
+        } else if (toDepth < 0f) {
+            to = Vector3.Lerp(from, to, fromDepth / (fromDepth - toDepth));
+        }
+
+        gui.WorldToScreen(from, out var fromScreen);
+        gui.WorldToScreen(to, out var toScreen);
+        drawing.AddLine(fromScreen, toScreen, color);
+    }
+
+    private readonly record struct CameraClipPlane(Vector3 Origin, Vector3 Forward) {
+        private const float Margin = 0.5f;
+
+        public float DepthOf(Vector3 point)
+            => Vector3.Dot(point - Origin, Forward) - Margin;
+    }
+
+    private static unsafe CameraClipPlane GetCameraClipPlane() {
+        var sceneCamera = &CameraManager.Instance()->GetActiveCamera()->CameraBase.SceneCamera;
+        var position = sceneCamera->Position.AsVector();
+        var forward = sceneCamera->LookAtVector.AsVector() - position;
+        return new CameraClipPlane(position, forward.LengthSquared() > 0f ? Vector3.Normalize(forward) : Vector3.UnitZ);
     }
 
     /// <summary>

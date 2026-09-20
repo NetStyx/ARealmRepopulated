@@ -18,6 +18,11 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
     public unsafe bool TrySpawnNpc(NpcSpawnOptions options, [NotNullWhen(true)] out NpcActor? character) {
 
         using var _ = _npcServicesLock.EnterScope();
+        
+        if (objectTable.LocalPlayer == null) {
+            character = null;
+            return false;
+        }
 
         if (!TryCreateNewCharacter(out var battleCharacter)) {
             character = null;
@@ -25,6 +30,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         }
 
         if (!TryCreateObjectReference(battleCharacter, out var gameObjectInterface)) {
+            DeleteGameObject((GameObject*)battleCharacter);
             character = null;
             return false;
         }
@@ -34,12 +40,9 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
         ((GameObjectWorldFlags*)battleCharacter)->Flags |= GameObjectWorldFlags.InteractsWithWorld;
 
-        if (objectTable.LocalPlayer != null) {
-            var player = (Character*)objectTable.LocalPlayer.Address;
-
-            battleCharacter->HomeWorld = player->HomeWorld;
-            battleCharacter->CurrentWorld = player->CurrentWorld;
-        }
+        var player = (Character*)objectTable.LocalPlayer.Address;
+        battleCharacter->HomeWorld = player->HomeWorld;
+        battleCharacter->CurrentWorld = player->CurrentWorld;
 
         var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter);
@@ -55,16 +58,24 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
 
         using var _ = _npcServicesLock.EnterScope();
 
-        var go = npcObject.Address.AsGameObject();
+        if (npcObject.Address == IntPtr.Zero)
+            return;
 
-        log.Debug($"Despawning NPC '{go->GetName()}' at {npcObject.Address:X}");
+        log.Debug($"Despawning NPC at {npcObject.Address:X}");
+        DeleteGameObject(npcObject.Address.AsGameObject());
+
+        Actors.Remove(npcObject);
+        npcObject.Release();
+    }
+
+    private void DeleteGameObject(GameObject* go) {
         var objectManager = ClientObjectManager.Instance();
         var index = objectManager->GetIndexByObject(go);
         if (index >= 0) {
             log.Debug($"Deleting gameobject at index {index}");
             objectManager->DeleteObjectByIndex((ushort)index, 0);
         } else {
-            log.Warning($"Failed to find index for {go->GetName()}");
+            log.Warning($"Failed to find index for gameobject at {(nint)go:X}");
         }
     }
 
@@ -84,8 +95,10 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
             return false;
 
         var gameObject = objectManager->GetObjectByIndex((ushort)objectIndex);
-        if (gameObject == null)
+        if (gameObject == null) {
+            objectManager->DeleteObjectByIndex((ushort)objectIndex, 0);
             return false;
+        }
 
         resultCharacter = (BattleChara*)gameObject;
         return true;
@@ -115,6 +128,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         var actor = Actors.Where(x => (Character*)x.Address == chara).FirstOrDefault();
         if (actor != null) {
             Actors.Remove(actor);
+            actor.Release();
         }
     }
 

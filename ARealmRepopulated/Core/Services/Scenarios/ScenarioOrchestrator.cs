@@ -32,11 +32,10 @@ public unsafe class ScenarioOrchestrator(
 
     private void Game_CharacterDestroyed(Character* chara) {
         using var lockScope = _scenarioActionLock.EnterScope();
-        foreach (var orchestration in Orchestrations) {
-            var scenarioNpc = orchestration.Scenario.Npcs.FirstOrDefault(n => (Character*)n.Actor.Address == chara);
-            if (scenarioNpc != null) {
-                pluginLog.Verbose($"Character finalization in progress. Removing character {scenarioNpc.Actor.Address:X} from scenario");
-                orchestration.Scenario.Npcs.Remove(scenarioNpc);
+        foreach (var orchestration in Orchestrations) {            
+            var removed = orchestration.Scenario.Npcs.RemoveAll(n => n.Actor.IsReleased || (Character*)n.Actor.Address == chara);
+            if (removed > 0) {
+                pluginLog.Verbose($"Character finalization in progress. Removing character {(nint)chara:X} from scenario");
             }
         }
     }
@@ -113,6 +112,11 @@ public unsafe class ScenarioOrchestrator(
             pluginLog.Debug("Skipping load of scenario {FileName}: Cutscene is running", [data.FileName]);
             return;
         }
+        
+        if (!eventService.IsTerritoryReady || eventService.IsBetweenZones || objectTable.LocalPlayer == null) {
+            pluginLog.Debug("Skipping load of scenario {FileName}: Territory is not ready", [data.FileName]);
+            return;
+        }
 
         if (fileManager.LoadScenarioFile(data) is ScenarioData scenarioData) {
 
@@ -136,13 +140,18 @@ public unsafe class ScenarioOrchestrator(
             }
 
             var scenarioInstance = ParseScenarioData(scenarioData);
+            if (scenarioInstance == null) {
+                pluginLog.Warning("Cannot load scenario {FileName}: Could not spawn all actors", [data.FileName]);
+                return;
+            }
+
             pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), data.FileName]);
             Orchestrations.Add(new Orchestration { Scenario = scenarioInstance, Hash = data.FileHash });
             OnOrchestrationsChanged?.Invoke();
         }
     }
 
-    private Scenario ParseScenarioData(ScenarioData data) {
+    private Scenario? ParseScenarioData(ScenarioData data) {
 
         var scenario = serviceProvider.GetRequiredService<Scenario>();
         scenario.IsLooping = data.Looping;
@@ -157,8 +166,11 @@ public unsafe class ScenarioOrchestrator(
                 spawnOptions.Name = actorName;
             }
 
-            if (!npcServices.TrySpawnNpc(spawnOptions, out var npc))
-                throw new InvalidOperationException($"Could not spawn all npcs.");
+            if (!npcServices.TrySpawnNpc(spawnOptions, out var npc)) {
+                // the actors spawned up until now are orphaned
+                scenario.Npcs.ForEach(n => npcServices.DespawnNpc(n.Actor));
+                return null;
+            }
 
             npc.SetPosition(scenarioNpc.Position, isDefault: true);
             npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
@@ -176,23 +188,7 @@ public unsafe class ScenarioOrchestrator(
             scenarioNpcObject.Name = scenarioNpc.Name;
             scenarioNpcObject.Behavior = scenarioNpc.Behavior;
             scenarioNpcObject.ScenarioInstance = scenario.ScenarioInstance;
-
-            if (scenarioNpc.Actions.Count > 0) {
-                foreach (var npcAction in scenarioNpc.Actions) {
-                    if (!npcAction.Enabled)
-                        continue;
-
-                    scenarioNpcObject.AddAction(npcAction);
-                }
-            } else {
-                // if no actions are defined, add a default wait action to prevent the scenario from immediately looping.
-                scenarioNpcObject.AddAction(new ScenarioNpcWaitingAction());
-            }
-
-            // attach a sync node at the end to make sure the scenario actually finishes.
-            if (scenarioNpc.Actions.LastOrDefault() is not ScenarioNpcSyncAction) {
-                scenarioNpcObject.AddAction(new ScenarioNpcSyncAction());
-            }
+            scenarioNpcObject.SetActions(scenarioNpc.Actions);
 
             npc.Draw();
             scenario.Npcs.Add(scenarioNpcObject);

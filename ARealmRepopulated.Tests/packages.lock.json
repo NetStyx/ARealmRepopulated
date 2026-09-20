@@ -24,6 +24,12 @@
           "Microsoft.TestPlatform.TestHost": "18.3.0"
         }
       },
+      "Serilog": {
+        "type": "Direct",
+        "requested": "[4.3.0, )",
+        "resolved": "4.3.0",
+        "contentHash": "+cDryFR0GRhsGOnZSKwaDzRRl4MupvJ42FhCE4zhQRVanX0Jpg6WuCBk59OVhVDPmab1bB+nRykAnykYELA9qQ=="
+      },
       "Shouldly": {
         "type": "Direct",
         "requested": "[4.3.0, )",

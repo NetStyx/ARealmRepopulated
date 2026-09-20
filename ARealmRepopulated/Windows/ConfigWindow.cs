@@ -154,43 +154,62 @@ public class ConfigWindow(
     private void ChangelogTab() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
+        var entries = changelogService.Changelog.OrderByDescending(c => c.Version).ToList();
+        if (entries.Count == 0)
+            return;
+
         var currentVersion = typeof(Plugin).Assembly.GetName().Version ?? new Version();
-        var currentChangelog = changelogService.Changelog.FirstOrDefault(c => c.Version == currentVersion);
-        if (currentChangelog != null) {
-            ImGui.Text($"{loc["ListWnd_Changelog_CurrentRelease"]}: {currentChangelog.Title}");
-            ImGui.Separator();
-            RenderChangelogContent(currentChangelog);
+        _selectedChangelogVersion ??= entries.Any(c => c.Version == currentVersion) ? currentVersion : entries[0].Version;
+        var selected = entries.FirstOrDefault(c => c.Version == _selectedChangelogVersion) ?? entries[0];
+
+        DrawChangelogVersionList(entries, selected, currentVersion);
+
+        ImGui.SameLine();
+        using var detail = ImRaii.Child("##changelogDetail", Vector2.Zero);
+        if (detail.Success) {
+            DrawChangelogEntry(selected);
         }
-
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        ImGui.Text(loc["ListWnd_Changelog_OlderReleases"]);
-        ImGui.Separator();
-
-        foreach (var entry in changelogService.Changelog.Where(c => c.Version != currentVersion).OrderByDescending(c => c.Version)) {
-            if (!ImGui.CollapsingHeader($"{entry.Title}##changelogEntry{entry.Version}")) {
-                RenderChangelogContent(entry);
-            }
-        }
-
     }
 
-    private void RenderChangelogContent(ChangelogEntry entry) {
-        ImGui.SetCursorPosX(20);
-        ImGui.BeginGroup();
-        ImGui.TextWrapped(entry.Description);
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+    private void DrawChangelogVersionList(List<ChangelogEntry> entries, ChangelogEntry selected, Version currentVersion) {
+        var style = ImGui.GetStyle();
+        var labelWidth = entries.Max(e => ImGui.CalcTextSize(e.Version.ToString()).X);
+        var listWidth = labelWidth + (style.FramePadding.X * 2) + style.ScrollbarSize;
 
-        foreach (var sections in entry.Sections) {
-            ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-            ImGui.Text(sections.Title);
-            foreach (var change in sections.Changes) {
+        using var list = ImRaii.ListBox("##changelogVersions", new Vector2(listWidth, -1));
+        if (!list.Success)
+            return;
+
+        foreach (var entry in entries) {
+            var isCurrent = entry.Version == currentVersion;
+            using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, isCurrent)) {
+                if (ImGui.Selectable($"{entry.Version}##changelogVersion", entry == selected)) {
+                    _selectedChangelogVersion = entry.Version;
+                }
+            }
+
+            if (isCurrent && entry != entries[^1]) {
+                ImGui.Separator();
+            }
+        }
+    }
+
+    private static void DrawChangelogEntry(ChangelogEntry entry) {
+        ArrpGuiLayout.HeaderRow("##changelogDetailHeader", () => ImGui.TextColored(ArrpGuiColors.ArrpYellow, entry.Title));
+
+        if (!string.IsNullOrWhiteSpace(entry.Description)) {
+            ImGui.TextWrapped(entry.Description);
+        }
+
+        foreach (var section in entry.Sections) {
+            ArrpGuiLayout.SectionHeader(section.Title);
+            foreach (var change in section.Changes) {
                 ImGui.Bullet();
                 ImGui.TextWrapped(change);
             }
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        ImGui.EndGroup();
     }
 
     private void OptionsTab() {
@@ -250,6 +269,7 @@ public class ConfigWindow(
 
     private string _searchScenarioText = string.Empty;
     private bool _displayCurrentLocationOnly = true;
+    private Version? _selectedChangelogVersion;
     private void ScenarioTab() {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);

@@ -24,7 +24,7 @@ public unsafe class Scenario(IPluginLog log) {
         => _state.CurrentScenarioSegment != 0 && Npcs.All(n => n.CurrentAction.IsEmpty);
 
     public bool IsSyncing
-        => Npcs.All(n => n.CurrentAction.IsSync);
+        => Npcs.All(n => n.CurrentAction.IsSync || n.CurrentAction.IsEmpty);
 
     public bool IsFirstRun
         => _state.CurrentScenarioSegment == 0;
@@ -90,8 +90,24 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     private readonly float _proximityChatDistance = 10f;
     private readonly float _proximityLookDistance = 4f;
 
-    public void AddAction(params ScenarioNpcAction[] actions) {
-        var scenarioKey = 1;
+    public void SetActions(List<ScenarioNpcAction> actions) {
+        var npcActions = actions.Where(a => a.Enabled).ToList();
+        if (actions.Count == 0) {
+            // if no actions are defined, add a default wait action to prevent the scenario from immediately looping.
+            npcActions.Add(new ScenarioNpcWaitingAction());
+        }
+
+        // attach a sync node at the end to make sure the scenario actually finishes.        
+        if (npcActions.LastOrDefault() is not ScenarioNpcSyncAction) {
+            npcActions.Add(new ScenarioNpcSyncAction());
+        }
+
+        _actions.Clear();
+        AddAction([.. npcActions]);
+    }
+
+    public void AddAction(params ScenarioNpcAction[] actions) {        
+        var scenarioKey = _actions.Count(a => a is ScenarioNpcSyncAction) + 1;
         foreach (var action in actions) {
             action.ScenarioKey = scenarioKey;
             if (action is ScenarioNpcSyncAction)
@@ -158,17 +174,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         var distance = Actor.GetDistanceTo(player->Position);
 
+        // Checked before the chat distance, otherwise a player who leaves quickly is never released.
+        if (Actor.CanTrack()) {
+            if (Behavior.TrackPlayer && distance <= _proximityLookDistance) {
+                Actor.LookAt(player);
+            } else {
+                Actor.LookAtNothing();
+            }
+        }
+
         if (distance > _proximityChatDistance) {
             CurrentAction.IsInProximity = false;
             return;
-        }
-
-        if (Behavior.TrackPlayer && Actor.CanTrack()) {
-            if (distance > _proximityLookDistance) {
-                Actor.LookAtNothing();
-            } else {
-                Actor.LookAt(player);
-            }
         }
 
         CurrentAction.IsInProximity = true;
@@ -274,16 +291,8 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
 
-        if (CurrentAction.IsEndless) {
-            var isFinished = action.ActionSlots.Count > 0;
-            foreach (var timeline in action.ActionSlots) {
-                if (Actor.IsPlayingTimeline(timeline.TimelineId)) {
-                    isFinished = false;
-                    break;
-                }
-            }
-
-            CurrentAction.IsFinished = isFinished;
+        if (CurrentAction.IsEndless) {            
+            CurrentAction.IsFinished = !action.ActionSlots.Any(t => Actor.IsPlayingTimeline(t.TimelineId));
         } else if (CurrentAction.IsDurationExeeded) {
             CurrentAction.IsFinished = true;
         }
@@ -292,14 +301,17 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
     private void AdvancePathMovement(ScenarioNpcPathAction action, TimeSpan delta) {
 
-        if (!CurrentAction.Pathfinder.IsPathReady)
+        if (!CurrentAction.Pathfinder.IsPathReady) {            
+            if (CurrentAction.IsFinished)
+                FinishMovement();
             return;
+        }
 
         Actor.SetMovementMotion(CurrentAction.Pathfinder.CurrentSpeedValue);
 
         if (!CurrentAction.Pathfinder.IsUserReady) {
             var currentRotation = Actor.GetRotation();
-            var targetRotation = Actor.GetPosition().DirectionTo(action.Points.First().Point);
+            var targetRotation = Actor.GetPosition().DirectionTo((Vector3)CurrentAction.Pathfinder.FirstTargetPoint);
             if (!RotationExtension.AlmostEqual(currentRotation, targetRotation)) {
                 var rotationStep = NpcActor.TurningSpeed * (float)delta.TotalSeconds;
                 var newRotation = RotationExtension.RotateToward(currentRotation, targetRotation, rotationStep);
@@ -312,16 +324,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
 
         CurrentAction.Pathfinder.Update((float)delta.TotalSeconds, out var nextPos, out var yaw);
-        if (CurrentAction.Pathfinder.IsFinished) {
-            if (!IsNextActionMovementRelated()) {
-                Actor.SetMovementAnimation(NpcAppearanceService.Animations.Idle);
-            }
-            CurrentAction.IsFinished = true;
-        } else {
-            Actor.SetPosition(nextPos);
-            Actor.SetRotation(yaw);
-        }
+        Actor.SetPosition(nextPos);
+        Actor.SetRotation(yaw);
 
+        if (CurrentAction.Pathfinder.IsFinished)
+            FinishMovement();
+    }
+
+    private void FinishMovement() {
+        if (!IsNextActionMovementRelated()) {
+            Actor.SetMovementAnimation(NpcAppearanceService.Animations.Idle);
+        }
+        CurrentAction.IsFinished = true;
     }
 
     private void AdvanceSimpleMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
@@ -416,7 +430,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
                     var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s) }).ToList();
                     pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint) });
 
-                    execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
+                    execution.IsFinished = !execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
                 } else {
                     execution.Action.NpcTalk = "\uE040 Tell the scenario writer that there is a problem with my path \uE041";
                 }

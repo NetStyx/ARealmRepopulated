@@ -6,7 +6,6 @@ using ARealmRepopulated.Core.Services;
 using ARealmRepopulated.Core.Services.Changelog;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
-using ARealmRepopulated.Core.Services.LookAt;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
@@ -42,7 +41,6 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton(new WindowSystem("ARealmRepopulated"))
             .AddSingleton<ChatCommands>()
             .AddSingleton<ChatBubbleService>()
-            .AddSingleton<LookAtService>()
             .AddSingleton<LayoutWorldService>()
             .AddSingleton<NpcServices>()
             .AddSingleton<NpcAppearanceService>()
