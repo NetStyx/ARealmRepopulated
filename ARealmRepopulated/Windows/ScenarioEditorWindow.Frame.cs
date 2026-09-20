@@ -5,6 +5,7 @@ using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
+using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Location;
@@ -38,6 +39,7 @@ public partial class ScenarioEditorWindow(
     ArrpGuiEmotePicker emotePicker,
     ArrpGuiNpcPicker npcPicker,
     ArrpGuiTimelinePicker timelinePicker,
+    ScenarioConditionService conditionService,
     ArrpTranslation loc,
     FileDialogManager fileDialogManager,
     IObjectTable objectTable,
@@ -52,7 +54,8 @@ public partial class ScenarioEditorWindow(
         | ImGuiTreeNodeFlags.SpanAvailWidth;
 
     private string _scenarioFilePath = string.Empty;
-    private readonly NpcActionUiRegistry _actionUiRegistry = new();    
+    private readonly NpcActionUiRegistry _actionUiRegistry = new();
+    private readonly ConditionUiRegistry _conditionUiRegistry = new();    
     private readonly HashSet<string> _collapsedActors = [];
             
     private static float FooterHeight
@@ -143,6 +146,7 @@ public partial class ScenarioEditorWindow(
             draw: DrawTimelineAction
         );
 
+        RegisterConditionUi();
     }
 
     public void CreateScenario() {
@@ -231,6 +235,15 @@ public partial class ScenarioEditorWindow(
             icon: isForeign ? FontAwesomeIcon.EyeSlash : FontAwesomeIcon.Eye,
             muted: isForeign,
             iconTooltip: loc[isForeign ? "ScenarioEditor_Header_ForeignTerritory" : "ScenarioEditor_Header_CurrentTerritory"]);
+
+        var conditions = ConfiguredConditions();
+        if (conditions.Count > 0) {
+            var areConditionsMet = ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, conditionService.TakeSnapshot());
+            DrawHeaderSegment(DescribeConditions(conditions),
+                icon: areConditionsMet ? FontAwesomeIcon.Check : FontAwesomeIcon.Hourglass,
+                muted: !areConditionsMet,
+                iconTooltip: loc[areConditionsMet ? "ScenarioEditor_Header_ConditionsMet" : "ScenarioEditor_Header_ConditionsNotMet"]);
+        }
 
         DrawHeaderSegment(Pluralize(ScenarioObject.Npcs.Count, "ScenarioEditor_Outline_ActorCountOne", "ScenarioEditor_Outline_ActorCount"));
         DrawHeaderSegment(ScenarioObject.Looping

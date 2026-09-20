@@ -14,14 +14,14 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, A
     public void Initialize() {
         clientState.Logout += OnLogout;
         clientState.Login += OnLogin;
-        manager.OnOrchestrationsChanged += Manager_OrchestrationsChanged;
+        manager.OnOrchestrationStateChanged += Manager_OrchestrationStateChanged;
         if (clientState.IsLoggedIn) {
             OnLogin();
         }
 
     }
 
-    private void Manager_OrchestrationsChanged()
+    private void Manager_OrchestrationStateChanged()
         => UpdateDtrText();
 
     private void OnLogin() {
@@ -45,14 +45,18 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, A
         if (_dtrBarEntry == null)
             return;
 
+        var activeScenarios = manager.ActiveOrchestrations.Count();
+        var waitingScenarios = manager.Orchestrations.Count - activeScenarios;
+
         switch (manager.Orchestrations.Count) {
             case 0:
                 _dtrBarEntry.Text = $"\uE083 \uE043";
                 _dtrBarEntry.Tooltip = null;
                 break;
             default:
-                _dtrBarEntry.Text = $"\uE083 {manager.Orchestrations.Count}";
-                _dtrBarEntry.Tooltip = $"{loc["DtrBar_LoadedScenarios"]} {manager.Orchestrations.Count}\n{loc["DtrBar_LoadedActors"]} {manager.Orchestrations.Sum(n => n.Scenario.Npcs.Count)}";
+                _dtrBarEntry.Text = $"\uE083 {activeScenarios}";
+                _dtrBarEntry.Tooltip = $"{loc["DtrBar_LoadedScenarios"]} {activeScenarios}\n{loc["DtrBar_LoadedActors"]} {manager.ActiveOrchestrations.Sum(n => n.Scenario!.Npcs.Count)}"
+                    + (waitingScenarios > 0 ? $"\n{loc["DtrBar_WaitingScenarios"]} {waitingScenarios}" : string.Empty);
                 break;
         }
     }
@@ -63,7 +67,7 @@ public class ArrpDtrControl(PluginConfig config, ScenarioOrchestrator manager, A
     }
 
     public void Dispose() {
-        manager.OnOrchestrationsChanged -= Manager_OrchestrationsChanged;
+        manager.OnOrchestrationStateChanged -= Manager_OrchestrationStateChanged;
         clientState.Login -= OnLogin;
         clientState.Logout -= OnLogout;
 

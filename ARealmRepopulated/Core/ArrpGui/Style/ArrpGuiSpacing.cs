@@ -11,6 +11,7 @@ internal static class ArrpGuiSpacing {
     public static readonly Vector2 HeaderCellPadding = new(0, 2);    
     public static readonly Vector2 BodyCellPadding = new(6, 0);    
     public static readonly Vector2 FooterCellPadding = new(0, 6);
+    public static readonly Vector2 ScrollBodyPadding = new(6, 0);
     
     public static readonly float WindowGripSpacing = 10f;
     public static readonly float InlineIconSpacing = 6f;    

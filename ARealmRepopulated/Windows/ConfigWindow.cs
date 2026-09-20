@@ -78,11 +78,32 @@ public class ConfigWindow(
         }
     }
 
+    /// <summary>
+    /// Whether the scenario is currently waiting on its conditions, or null when it has nothing to
+    /// wait for. Conditions live in the full scenario data, not in the file metadata this list is
+    /// built from, so they are only known for a scenario the orchestrator has actually read. The
+    /// answer is the cached flag, which turns over with the condition sweep rather than every frame.
+    /// </summary>
+    private bool? ScenarioConditionState(ScenarioFileData file) {
+        if (_orchestrator.Orchestrations.FirstOrDefault(o => o.Hash == file.FileHash) is not { } orchestration)
+            return null;
+
+        return orchestration.Data.Conditions.Any(c => c.IsConfigured) ? orchestration.AreConditionsMet : null;
+    }
+
+    private void DrawScenarioConditionBadge(bool areConditionsMet) {
+        ArrpGuiLayout.Badge(Dalamud.Interface.FontAwesomeIcon.Filter,
+            areConditionsMet ? ArrpGuiColors.TextColor : ArrpGuiColors.NoteColor,
+            loc[areConditionsMet ? "ListWnd_Scenario_ConditionsMet" : "ListWnd_Scenario_ConditionsNotMet"]);
+
+        ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
+    }
+
     private void DrawScenarioObjectConsumption() {
-        var totalLoadedScenarios = _orchestrator.Orchestrations.Count;
+        var totalLoadedScenarios = _orchestrator.ActiveOrchestrations.Count();
         var totalEnabledScenarios = _fileManager.GetScenarioFiles().Count(s => s.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location));
 
-        var totalLoadedNpcs = _orchestrator.Orchestrations.Sum(o => o.Scenario.Npcs.Count);
+        var totalLoadedNpcs = _orchestrator.ActiveOrchestrations.Sum(o => o.Scenario!.Npcs.Count);
         var softLimit = _config.ActorSoftLimit;
 
         var totalClientObjects = objectTable.ClientObjects.Count();
@@ -381,7 +402,15 @@ public class ConfigWindow(
                 }
                 ImGui.TableNextColumn();
 
-                ImGui.Text(s.MetaData.Title);
+                var conditionState = ScenarioConditionState(s);
+                if (conditionState.HasValue) {
+                    DrawScenarioConditionBadge(conditionState.Value);
+                }
+
+                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.NoteColor, conditionState == false)) {
+                    ImGui.Text(s.MetaData.Title);
+                }
+
                 if (!string.IsNullOrWhiteSpace(s.MetaData.Description)) {
                     ImGuiComponents.HelpMarker(s.MetaData.Description);
                 }

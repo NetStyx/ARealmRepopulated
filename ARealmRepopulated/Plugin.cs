@@ -8,6 +8,7 @@ using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
+using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Location;
@@ -47,6 +48,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<NpcAppearanceDataParser>()
             .AddSingleton<ScenarioOrchestrator>()
             .AddSingleton<ScenarioFileManager>()
+            .AddSingleton<ScenarioConditionService>()
             .AddSingleton<ScenarioMigrator>()
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
