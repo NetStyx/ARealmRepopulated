@@ -43,6 +43,12 @@ public unsafe class NpcActor(
         this.SetPositionFrom(localPlayer);
     }
 
+    public void Release()
+        => _actor = null;
+
+    public bool IsReleased
+        => _actor == null;
+
     public bool IsReady() {
         if (_actor->Timeline.TimelineSequencer.TimelineIds[0] == 3) {
             _isReady = true;
@@ -244,6 +250,9 @@ public unsafe class NpcActor(
 
     public unsafe void Draw() {
         framework.RunOnTick(() => {
+            if (_actor == null)
+                return;
+
             if (_actor->IsReadyToDraw()) {
                 Spawn();
             } else {

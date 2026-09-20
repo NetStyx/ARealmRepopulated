@@ -25,13 +25,22 @@ public class PathMovementRuntime {
 
     public bool IsUserReady { get; set; } = false;
     
+    public const float MinPointDistance = 0.01f;
+
+    public Vector3 FirstTargetPoint { get; private set; }
+
     public float CurrentSpeedValue
         => !IsFinished ? _path.GetSegmentSpeed(_currentSegmentIndex) : NpcActor.WalkingSpeed;
-
-    public void Compile(List<PathSegmentPoint> points, float tension = 0f, PathMovementIntegrationMode integrationMode = PathMovementIntegrationMode.CrossSingleBoundary) {
+    
+    public bool Compile(List<PathSegmentPoint> points, float tension = 0f, PathMovementIntegrationMode integrationMode = PathMovementIntegrationMode.CrossSingleBoundary) {
         if (points is null || points.Count < 2)
             throw new ArgumentException("Path movement requires at least 2 points.");
 
+        points = RemoveStackedPoints(points);
+        if (points.Count < 2)
+            return false;
+
+        FirstTargetPoint = points[1].Point;
         _path.Calculate(points, tension);
 
         if (_path.SegmentCount != points.Count - 1) {
@@ -41,7 +50,25 @@ public class PathMovementRuntime {
         _integrationMode = integrationMode;
         _currentDistanceAlongPath = 0f;
         _currentSegmentIndex = 0;
+        return true;
     }
+
+    /// <summary>
+    /// Removes points that are too close to each other.
+    /// </summary>
+    public static List<PathSegmentPoint> RemoveStackedPoints(List<PathSegmentPoint> points) {
+        var result = new List<PathSegmentPoint>(points.Count);
+        foreach (var point in points) {
+            if (result.Count > 0 && IsStacked(result[^1].Point, point.Point))
+                continue;
+
+            result.Add(point);
+        }
+        return result;
+    }
+
+    private static bool IsStacked(Vector3 a, Vector3 b)
+        => new Vector2(a.X - b.X, a.Z - b.Z).LengthSquared() < MinPointDistance * MinPointDistance;
 
     /// <summary>
     /// Advance along the precompiled path and get the next position and yaw.

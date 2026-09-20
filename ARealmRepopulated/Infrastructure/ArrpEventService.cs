@@ -20,7 +20,7 @@ public class ArrpEventService : IDisposable {
     public event Action<LocationData>? OnTerritoryLoadFinished;
     public event Action? OnCutsceneStarted;
     public event Action? OnCutsceneEnded;
-    private bool IsBetweenZones =>
+    public bool IsBetweenZones =>
         _condition[ConditionFlag.BetweenAreas] ||
         _condition[ConditionFlag.BetweenAreas51];
 
