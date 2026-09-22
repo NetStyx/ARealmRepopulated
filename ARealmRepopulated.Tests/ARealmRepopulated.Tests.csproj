@@ -55,8 +55,7 @@
     </ItemGroup>
     <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="8.0.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
-    <!-- IPluginLog exposes Serilog types; in game Dalamud provides it, the dev libs do not ship it -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />    
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Shouldly" Version="4.3.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
