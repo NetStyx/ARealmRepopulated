@@ -776,7 +776,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>{0} actors</value>
   </data>
   <data name="ScenarioEditor_Outline_Empty" xml:space="preserve">
-    <value>No actors yet. Use the add actor button above to create one.</value>
+    <value>No actors yet. Use the add actor button to create one.</value>
   </data>
   <data name="ScenarioEditor_Outline_ScenarioNodeHint" xml:space="preserve">
     <value>Edit the scenario title, description, location and looping.</value>

@@ -11,6 +11,7 @@ processes:
 components:
   ARealmRepopulated: hint
   ARealmRepopulated.Tests: assist
+  ARealmRepopulated.Wiki: assist
 ---
 
 This format is based on [AI-DECLARATION.md](https://ai-declaration.md/en/0.1.2).
