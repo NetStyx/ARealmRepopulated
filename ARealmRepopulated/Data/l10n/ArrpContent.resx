@@ -881,7 +881,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Conditions</value>
   </data>
   <data name="ScenarioEditor_Conditions_Desc" xml:space="preserve">
-    <value>Conditions decide when this scenario is allowed to appear. Its actors spawn once every condition holds, and are taken away again after the current run has finished. A scenario without conditions always runs.</value>
+    <value>Conditions decide when this scenario is allowed to run. Its actors spawn once every condition is fullfilled and are taken away again after the current run has finished. A scenario without conditions always runs.</value>
   </data>
   <data name="ScenarioEditor_Conditions_Add" xml:space="preserve">
     <value>Add condition</value>
@@ -899,13 +899,13 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Invert</value>
   </data>
   <data name="ScenarioEditor_Conditions_Input_NegateHint" xml:space="preserve">
-    <value>Invert this condition: it then holds exactly while it otherwise would not.</value>
+    <value>Inverting means that when the original condition is fullfilled, it will be interpreted as not fullfilled, and vice versa.</value>
   </data>
   <data name="ScenarioEditor_Conditions_CTime_Short" xml:space="preserve">
     <value>Eorzea time</value>
   </data>
   <data name="ScenarioEditor_Conditions_CTime_Desc" xml:space="preserve">
-    <value>Runs only during the given Eorzean hours. An hour lasts about three minutes of real time.</value>
+    <value>Runs only during the given Eorzean hours.</value>
   </data>
   <data name="ScenarioEditor_Conditions_CTime_Input_From" xml:space="preserve">
     <value>From:</value>
@@ -926,7 +926,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Chance</value>
   </data>
   <data name="ScenarioEditor_Conditions_CChance_Desc" xml:space="preserve">
-    <value>Rolled anew every few seconds and again after every run, so the scenario only shows up part of the time.</value>
+    <value>Rolled every few seconds and again after every run, so the scenario only shows up part of the time.</value>
   </data>
   <data name="ScenarioEditor_Conditions_CChance_Input_Percent" xml:space="preserve">
     <value>Chance:</value>
@@ -935,16 +935,16 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Waiting for conditions:</value>
   </data>
   <data name="ScenarioEditor_Header_ConditionsMet" xml:space="preserve">
-    <value>The conditions of this scenario currently hold. A chance is not counted here.</value>
+    <value>The conditions of this scenario are currently fullfilled. A chance is not counted here.</value>
   </data>
   <data name="ScenarioEditor_Header_ConditionsNotMet" xml:space="preserve">
-    <value>The conditions of this scenario do not currently hold, so its actors stay away.</value>
+    <value>The conditions of this scenario are not currently fullfilled, so its actors are not spawned.</value>
   </data>
   <data name="ListWnd_Scenario_ConditionsMet" xml:space="preserve">
-    <value>This scenario's conditions currently hold, so its actors are out.</value>
+    <value>This scenario's conditions are fullfilled. The actors will spawn.</value>
   </data>
   <data name="ListWnd_Scenario_ConditionsNotMet" xml:space="preserve">
-    <value>This scenario is waiting for its conditions, so its actors stay away.</value>
+    <value>This scenario is waiting for its conditions. No actors will spawn.</value>
   </data>
   <data name="ScenarioEditor_Conditions_CTime_SummaryNegated" xml:space="preserve">
     <value>outside {0}</value>
