@@ -238,7 +238,7 @@ public partial class ScenarioEditorWindow(
 
         var conditions = ConfiguredConditions();
         if (conditions.Count > 0) {
-            var areConditionsMet = ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, conditionService.TakeSnapshot());
+            var areConditionsMet = ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, conditionService.TakeIngameSnapshot());
             DrawHeaderSegment(DescribeConditions(conditions),
                 icon: areConditionsMet ? FontAwesomeIcon.Check : FontAwesomeIcon.Hourglass,
                 muted: !areConditionsMet,

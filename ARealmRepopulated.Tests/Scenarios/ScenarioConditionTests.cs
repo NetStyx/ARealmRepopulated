@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Linq;
 using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Data.Scenarios;
 using Shouldly;
@@ -7,10 +7,13 @@ namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioConditionTests {
 
-    private static readonly ScenarioConditionSnapshot Midnight = new(EorzeaHour: 0, Weather: 1);
+    private static readonly IngameConditionSnapshot Midnight = new(EorzeaTime: 0, Weather: 1);
 
-    private static bool Evaluate(ScenarioConditionSnapshot snapshot, params ScenarioCondition[] conditions)
-        => ScenarioConditionEvaluator.AreConditionsMet(conditions, snapshot, () => 50d);
+    private static bool Evaluate(IngameConditionSnapshot ingame, params ScenarioCondition[] conditions)
+        => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, CustomConditionSnapshot.Deterministic);
+
+    private static CustomConditionSnapshot Rolls(params (ScenarioChanceCondition Condition, double Roll)[] rolls)
+        => new(rolls.ToDictionary(r => r.Condition, r => r.Roll));
 
     [Fact]
     public void AreConditionsMet_WithoutConditions_IsMet()
@@ -71,7 +74,7 @@ public class ScenarioConditionTests {
         var condition = new ScenarioEorzeaTimeCondition { StartHour = 18, EndHour = 6, Negate = true };
 
         Evaluate(Midnight, condition).ShouldBeFalse();
-        Evaluate(Midnight with { EorzeaHour = 12 }, condition).ShouldBeTrue();
+        Evaluate(Midnight with { EorzeaTime = 12 }, condition).ShouldBeTrue();
     }
 
     [Theory]
@@ -91,7 +94,7 @@ public class ScenarioConditionTests {
 
         Evaluate(Midnight, time, weather).ShouldBeTrue();
         Evaluate(Midnight with { Weather = 7 }, time, weather).ShouldBeFalse();
-        Evaluate(Midnight with { EorzeaHour = 12 }, time, weather).ShouldBeFalse();
+        Evaluate(Midnight with { EorzeaTime = 12 }, time, weather).ShouldBeFalse();
     }
 
     [Theory]
@@ -102,7 +105,7 @@ public class ScenarioConditionTests {
     public void AreConditionsMet_WithChanceCondition_ComparesAgainstTheRoll(float percent, bool expected) {
         var condition = new ScenarioChanceCondition { Percent = percent };
 
-        ScenarioConditionEvaluator.AreConditionsMet([condition], Midnight, () => 50d).ShouldBe(expected);
+        ScenarioConditionEvaluator.AreConditionsMet([condition], Midnight, Rolls((condition, 50d))).ShouldBe(expected);
     }
 
     [Fact]
@@ -113,18 +116,15 @@ public class ScenarioConditionTests {
         ];
 
         ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, Midnight).ShouldBeTrue();
-        ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, Midnight with { EorzeaHour = 12 }).ShouldBeFalse();
+        ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, Midnight with { EorzeaTime = 12 }).ShouldBeFalse();
     }
 
     [Fact]
-    public void AreConditionsMet_WithSeveralChanceConditions_RollsForEachOfThem() {
-        var rolls = new Queue<double>([10d, 90d]);
-        ScenarioCondition[] conditions = [
-            new ScenarioChanceCondition { Percent = 50f },
-            new ScenarioChanceCondition { Percent = 50f },
-        ];
+    public void AreConditionsMet_WithSeveralChanceConditions_UsesTheRollOfEachOfThem() {
+        var first = new ScenarioChanceCondition { Percent = 50f };
+        var second = new ScenarioChanceCondition { Percent = 50f };
 
-        ScenarioConditionEvaluator.AreConditionsMet(conditions, Midnight, rolls.Dequeue).ShouldBeFalse();
-        rolls.Count.ShouldBe(0);
+        ScenarioConditionEvaluator.AreConditionsMet([first, second], Midnight, Rolls((first, 10d), (second, 10d))).ShouldBeTrue();
+        ScenarioConditionEvaluator.AreConditionsMet([first, second], Midnight, Rolls((first, 10d), (second, 90d))).ShouldBeFalse();
     }
 }

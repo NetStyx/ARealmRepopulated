@@ -78,12 +78,6 @@ public class ConfigWindow(
         }
     }
 
-    /// <summary>
-    /// Whether the scenario is currently waiting on its conditions, or null when it has nothing to
-    /// wait for. Conditions live in the full scenario data, not in the file metadata this list is
-    /// built from, so they are only known for a scenario the orchestrator has actually read. The
-    /// answer is the cached flag, which turns over with the condition sweep rather than every frame.
-    /// </summary>
     private bool? ScenarioConditionState(ScenarioFileData file) {
         if (_orchestrator.Orchestrations.FirstOrDefault(o => o.Hash == file.FileHash) is not { } orchestration)
             return null;

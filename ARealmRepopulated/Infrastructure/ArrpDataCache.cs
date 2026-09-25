@@ -175,11 +175,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
 
     public Weather? GetWeather(byte weatherId)
         => _weatherSheet.GetRowOrDefault(weatherId);
-
-    /// <summary>
-    /// The weathers a territory can actually roll, so the picker never offers one that cannot occur
-    /// there. Territories without a weather rate fall back to every named weather.
-    /// </summary>
+    
     public List<Weather> GetWeathersForTerritory(uint territoryTypeId) {
         var weatherRate = _territoryTypeSheet.GetRowOrDefault(territoryTypeId)?.WeatherRate.ValueNullable;
         if (weatherRate == null)

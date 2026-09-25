@@ -4,24 +4,22 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Conditions;
 
-/// <summary>
-/// Reads the world state the scenario conditions are judged against. Both reads are plain field
-/// reads - the Eorzean clock off the framework and the weather the environment is currently
-/// rendering, which is the one the player actually sees, overrides included.
-/// </summary>
 public unsafe class ScenarioConditionService {
 
     private readonly Random _random = new();
 
-    public ScenarioConditionSnapshot TakeSnapshot() {
+    public IngameConditionSnapshot TakeIngameSnapshot() {
         var framework = Framework.Instance();
         var envManager = EnvManager.Instance();
 
-        return new ScenarioConditionSnapshot(
+        return new IngameConditionSnapshot(
             framework != null ? ScenarioConditionEvaluator.ToEorzeaHour(framework->ClientTime.EorzeaTime) : 0,
             envManager != null ? envManager->ActiveWeather : (byte)0);
     }
 
-    public bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, ScenarioConditionSnapshot snapshot)
-        => ScenarioConditionEvaluator.AreConditionsMet(conditions, snapshot, () => _random.NextDouble() * 100d);
+    public CustomConditionSnapshot TakeCustomSnapshot(IReadOnlyList<ScenarioCondition> conditions)
+        => new(conditions.OfType<ScenarioChanceCondition>().ToDictionary(c => c, _ => _random.NextDouble() * 100d));
+
+    public bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
+        => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, TakeCustomSnapshot(conditions));
 }
