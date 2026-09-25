@@ -20,6 +20,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<Glasses> _glassesSheet = null!;
     private ExcelSheet<BNpcBase> _bnpcBaseSheet = null!;
     private ExcelSheet<BNpcName> _bnpcNameSheet = null!;
+    private ExcelSheet<Weather> _weatherSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
     private Dictionary<PoseType, ushort[]> _poseStateEmotes = [];
 
@@ -31,6 +32,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         _glassesSheet = dataManager.GetExcelSheet<Glasses>();
         _bnpcBaseSheet = dataManager.GetExcelSheet<BNpcBase>();
         _bnpcNameSheet = dataManager.GetExcelSheet<BNpcName>();
+        _weatherSheet = dataManager.GetExcelSheet<Weather>();
 
         _poseStateEmotes = BuildPoseStateEmotes();
     }
@@ -170,6 +172,27 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     public TerritoryType GetTerritoryType(ushort territoryTypeId) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
+
+    public Weather? GetWeather(byte weatherId)
+        => _weatherSheet.GetRowOrDefault(weatherId);
+    
+    public List<Weather> GetWeathersForTerritory(uint territoryTypeId) {
+        var weatherRate = _territoryTypeSheet.GetRowOrDefault(territoryTypeId)?.WeatherRate.ValueNullable;
+        if (weatherRate == null)
+            return GetNamedWeathers();
+
+        var weathers = weatherRate.Value.Weather
+            .Where(w => w.RowId != 0)
+            .Select(w => w.ValueNullable)
+            .OfType<Weather>()
+            .DistinctBy(w => w.RowId)
+            .ToList();
+
+        return weathers.Count > 0 ? weathers : GetNamedWeathers();
+    }
+
+    public List<Weather> GetNamedWeathers()
+        => [.. _weatherSheet.Where(w => w.RowId != 0 && !w.Name.IsEmpty)];
 
     public List<BNpcLookup> GetBNpcBases(int type, Predicate<string> pred) {
 

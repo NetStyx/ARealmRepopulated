@@ -2,6 +2,7 @@ using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
+using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
@@ -21,19 +22,26 @@ public unsafe class ScenarioOrchestrator(
     PluginConfig config,
     NpcServices npcServices,
     ArrpGameHooks hooks,
-    ArrpEventService eventService) : IDisposable {
+    ArrpEventService eventService,
+    ScenarioConditionService conditionService) : IDisposable {
 
     private readonly Lock _scenarioActionLock = new();
     private const float ProximityCheckInterval = 0.5f;
+    private const float ConditionCheckInterval = 1f;
     private float _lastProximityCheck = 0f;
+    private float _lastConditionCheck = 0f;
 
     public List<Orchestration> Orchestrations { get; private set; } = [];
-    public event Action? OnOrchestrationsChanged;
+    public IEnumerable<Orchestration> ActiveOrchestrations => Orchestrations.Where(o => o.IsActive);
+    public event Action? OnOrchestrationStateChanged;
 
     private void Game_CharacterDestroyed(Character* chara) {
         using var lockScope = _scenarioActionLock.EnterScope();
-        foreach (var orchestration in Orchestrations) {            
-            var removed = orchestration.Scenario.Npcs.RemoveAll(n => n.Actor.IsReleased || (Character*)n.Actor.Address == chara);
+        foreach (var orchestration in Orchestrations) {
+            if (orchestration.Scenario is not { } scenario)
+                continue;
+
+            var removed = scenario.Npcs.RemoveAll(n => n.Actor.IsReleased || (Character*)n.Actor.Address == chara);
             if (removed > 0) {
                 pluginLog.Verbose($"Character finalization in progress. Removing character {(nint)chara:X} from scenario");
             }
@@ -89,9 +97,9 @@ public unsafe class ScenarioOrchestrator(
             return;
 
         using var lockScope = _scenarioActionLock.EnterScope();
-        UnloadOrchestration(orchestration);
+        Deactivate(orchestration);
         Orchestrations.Remove(orchestration);
-        OnOrchestrationsChanged?.Invoke();
+        OnOrchestrationStateChanged?.Invoke();
     }
 
     private void LoadFile(ScenarioFileData data) {
@@ -112,7 +120,7 @@ public unsafe class ScenarioOrchestrator(
             pluginLog.Debug("Skipping load of scenario {FileName}: Cutscene is running", [data.FileName]);
             return;
         }
-        
+
         if (!eventService.IsTerritoryReady || eventService.IsBetweenZones || objectTable.LocalPlayer == null) {
             pluginLog.Debug("Skipping load of scenario {FileName}: Territory is not ready", [data.FileName]);
             return;
@@ -127,27 +135,16 @@ public unsafe class ScenarioOrchestrator(
 
             using var lockScope = _scenarioActionLock.EnterScope();
 
-            var spawnedActorCount = Orchestrations.Sum(o => o.Scenario.Npcs.Count);
-            if (spawnedActorCount + scenarioData.Npcs.Count > config.ActorSoftLimit) {
-                pluginLog.Warning("Cannot load scenario {FileName}: would exceed NPC limit ({Current}+{Required}/{Max})", [data.FileName, spawnedActorCount, scenarioData.Npcs.Count, config.ActorSoftLimit]);
-                return;
+            if (scenarioData.Conditions.Count == 0) {
+                pluginLog.Info("Registering scenario {FileName} without conditions", [data.FileName]);
+            } else {
+                pluginLog.Info("Registering scenario {FileName} with conditions [{Conditions}]",
+                    [data.FileName, string.Join("; ", scenarioData.Conditions)]);
             }
 
-            var objectTableActorCount = objectTable.ClientObjects.Count();
-            if (objectTableActorCount + scenarioData.Npcs.Count > config.ActorHardLimit) {
-                pluginLog.Warning("Cannot load scenario {FileName}: would exceed game object limit ({Current}+{Required}/{Max})", [data.FileName, objectTableActorCount, scenarioData.Npcs.Count, config.ActorHardLimit]);
-                return;
-            }
-
-            var scenarioInstance = ParseScenarioData(scenarioData);
-            if (scenarioInstance == null) {
-                pluginLog.Warning("Cannot load scenario {FileName}: Could not spawn all actors", [data.FileName]);
-                return;
-            }
-
-            pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), data.FileName]);
-            Orchestrations.Add(new Orchestration { Scenario = scenarioInstance, Hash = data.FileHash });
-            OnOrchestrationsChanged?.Invoke();
+            Orchestrations.Add(new Orchestration { Hash = data.FileHash, FileName = data.FileName, Data = scenarioData });
+            _lastConditionCheck = ConditionCheckInterval + 1f; // force a condition check on next update
+            OnOrchestrationStateChanged?.Invoke();
         }
     }
 
@@ -197,47 +194,117 @@ public unsafe class ScenarioOrchestrator(
         return scenario;
     }
 
+    private bool TryActivate(Orchestration orchestration) {
+
+        var spawnedActorCount = Orchestrations.Sum(o => o.Scenario?.Npcs.Count ?? 0);
+        if (spawnedActorCount + orchestration.Data.Npcs.Count > config.ActorSoftLimit) {
+            pluginLog.Warning("Cannot spawn scenario {FileName}: would exceed NPC limit ({Current}+{Required}/{Max})", [orchestration.FileName, spawnedActorCount, orchestration.Data.Npcs.Count, config.ActorSoftLimit]);
+            return false;
+        }
+
+        var objectTableActorCount = objectTable.ClientObjects.Count();
+        if (objectTableActorCount + orchestration.Data.Npcs.Count > config.ActorHardLimit) {
+            pluginLog.Warning("Cannot spawn scenario {FileName}: would exceed game object limit ({Current}+{Required}/{Max})", [orchestration.FileName, objectTableActorCount, orchestration.Data.Npcs.Count, config.ActorHardLimit]);
+            return false;
+        }
+
+        if (ParseScenarioData(orchestration.Data) is not Scenario scenarioInstance) {
+            pluginLog.Warning("Cannot spawn scenario {FileName}: Could not spawn all actors", [orchestration.FileName]);
+            return false;
+        }
+
+        orchestration.Scenario = scenarioInstance;
+        pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), orchestration.FileName]);
+        return true;
+    }
+
+    private void Deactivate(Orchestration orchestration) {
+        if (orchestration.Scenario is not { } scenario)
+            return;
+
+        for (var i = scenario.Npcs.Count - 1; i >= 0; i--) {
+            var npc = scenario.Npcs[i];
+            scenario.Npcs.Remove(npc);
+            npcServices.DespawnNpc(npc.Actor);
+        }
+        orchestration.Scenario = null;
+    }
+
     private void AdvanceScenarios(TimeSpan time) {
         if (objectTable.LocalPlayer == null)
             return;
 
         using var lockScope = _scenarioActionLock.EnterScope();
+        
+        IngameConditionSnapshot? ingameSnapshot = null;
+        _lastConditionCheck += (float)time.TotalSeconds;
+        if (_lastConditionCheck > ConditionCheckInterval) {
+            ingameSnapshot = conditionService.TakeIngameSnapshot();
+            _lastConditionCheck = 0f;
+        }
 
         _lastProximityCheck += (float)time.TotalSeconds;
         if (_lastProximityCheck > ProximityCheckInterval) {
-            Orchestrations.ForEach(s => s.Scenario.Proximity((BattleChara*)objectTable.LocalPlayer!.Address));
+            ActiveOrchestrations.ToList().ForEach(s => s.Scenario!.Proximity((BattleChara*)objectTable.LocalPlayer!.Address));
             _lastProximityCheck = 0f;
         }
 
         var removableList = new List<Orchestration>();
+        var stateChanged = false;
+
         foreach (var orchestration in Orchestrations) {
 
-            // If there are no NPCs in the scenario, there's no need to advance it.
-            // This can happen if the scenario is new and simply does not contain anything yet OR if all NPCs were removed due to character destruction (while zone changing for example) or other reasons.
-            if (orchestration.Scenario.Npcs.Count == 0) {
+            if (ingameSnapshot is { } snapshot) {
+                orchestration.AreConditionsMet = conditionService.AreConditionsMet(orchestration.Data.Conditions, snapshot);
+                if (!orchestration.IsActive && orchestration.AreConditionsMet && TryActivate(orchestration))
+                    stateChanged = true;
+            }
+
+            // the scenario file was loaded, but the conditions are not met yet
+            if (orchestration.Scenario is not { } scenario)
+                continue;
+
+            // Npc-less scenarios can happen if all NPCs were removed due to character destruction.
+            if (scenario.Npcs.Count == 0) {
                 removableList.Add(orchestration);
                 continue;
             }
 
-            if (!orchestration.Scenario.IsFinished) {
-                orchestration.Scenario.Advance(time);
+            // if the scenario is running, we advance it.
+            if (!scenario.IsFinished) {
+                scenario.Advance(time);
                 continue;
             }
 
-            if (!orchestration.Scenario.IsLooping) {
-                pluginLog.Debug("Scenario finished and not looping. Unloading orchestration instance {InstanceName}", [orchestration.Scenario.ScenarioInstance.AsHexString()]);
+            // the run is finished and the scenario is not looping, so we unload it.
+            if (!scenario.IsLooping) {
+                pluginLog.Debug("Scenario finished and not looping. Unloading orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
                 removableList.Add(orchestration);
                 continue;
-            }
-            orchestration.Scenario.WaitForNextRun(time);
+            } 
+            
+            // the scenario is looping, so we check if the conditions are still met before we start a new run.
+            if (!orchestration.AreConditionsMet) {
+                pluginLog.Debug("Conditions no longer met. Despawning actors of orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
+                Deactivate(orchestration);
+                stateChanged = true;
+                continue;
+            } 
+            
+            // the scenario is looping and the conditions are still met, so we wait for the next run.
+            scenario.WaitForNextRun(time);            
         }
 
         if (removableList.Count > 0) {
             removableList.ForEach(r => {
-                UnloadOrchestration(r);
+                Deactivate(r);
                 Orchestrations.Remove(r);
             });
-            OnOrchestrationsChanged?.Invoke();
+            stateChanged = true;
+        }
+
+        if (stateChanged) {
+            OnOrchestrationStateChanged?.Invoke();
         }
     }
 
@@ -248,17 +315,9 @@ public unsafe class ScenarioOrchestrator(
         pluginLog.Info("Unloading current scenarios");
 
         using var lockScope = _scenarioActionLock.EnterScope();
-        Orchestrations.ForEach(UnloadOrchestration);
+        Orchestrations.ForEach(Deactivate);
         Orchestrations.Clear();
-        OnOrchestrationsChanged?.Invoke();
-    }
-
-    private void UnloadOrchestration(Orchestration orchestration) {
-        for (var i = orchestration.Scenario.Npcs.Count - 1; i >= 0; i--) {
-            var npc = orchestration.Scenario.Npcs[i];
-            orchestration.Scenario.Npcs.Remove(npc);
-            npcServices.DespawnNpc(npc.Actor);
-        }
+        OnOrchestrationStateChanged?.Invoke();
     }
 
     public void Reload() {
@@ -291,11 +350,17 @@ public unsafe class ScenarioOrchestrator(
 
 public class Orchestration {
     public required string Hash { get; set; }
-    public required Scenario Scenario { get; set; }
+    public required string FileName { get; set; }
+    public required ScenarioData Data { get; set; }    
+    public Scenario? Scenario { get; set; }
+
+    public bool IsActive => Scenario != null;
+    
+    public bool AreConditionsMet { get; set; }
 }
 
 public static unsafe class ScenarioManagerExtensions {
     public static ScenarioNpc? GetScenarioNpcByAddress(this ScenarioOrchestrator manager, Character* actor) {
-        return manager.Orchestrations.SelectMany(o => o.Scenario.Npcs).FirstOrDefault(n => (BattleChara*)n.Actor.Address == actor);
+        return manager.ActiveOrchestrations.SelectMany(o => o.Scenario!.Npcs).FirstOrDefault(n => (BattleChara*)n.Actor.Address == actor);
     }
 }

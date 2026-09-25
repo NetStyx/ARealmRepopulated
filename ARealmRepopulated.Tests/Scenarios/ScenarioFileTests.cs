@@ -122,6 +122,39 @@ public class ScenarioFileTests {
         json.ShouldContain("\"Walking\"");
     }
 
+    [Fact]
+    public void ScenarioFile_IsKeepingConditionsBetweenSerialization() {
+
+        var scenario = new ScenarioData {
+            Conditions = [
+                new ScenarioEorzeaTimeCondition { StartHour = 21, EndHour = 4 },
+                new ScenarioWeatherCondition { WeatherIds = [7, 8], Negate = true },
+                new ScenarioChanceCondition { Percent = 12.5f },
+            ]
+        };
+
+        var restoredScenario = RecodeWithPluginOptions(scenario);
+
+        restoredScenario.Conditions.Count.ShouldBe(3);
+
+        var restoredTime = restoredScenario.Conditions[0].ShouldBeOfType<ScenarioEorzeaTimeCondition>();
+        restoredTime.StartHour.ShouldBe(21);
+        restoredTime.EndHour.ShouldBe(4);
+        restoredTime.Negate.ShouldBeFalse();
+
+        var restoredWeather = restoredScenario.Conditions[1].ShouldBeOfType<ScenarioWeatherCondition>();
+        restoredWeather.WeatherIds.ShouldBe([(byte)7, (byte)8]);
+        restoredWeather.Negate.ShouldBeTrue();
+
+        var restoredChance = restoredScenario.Conditions[2].ShouldBeOfType<ScenarioChanceCondition>();
+        restoredChance.Percent.ShouldBe(12.5f);
+    }
+
+    [Fact]
+    public void ScenarioFile_WithoutConditions_RestoresAnEmptyConditionList() {
+        RecodeWithPluginOptions(new ScenarioData()).Conditions.ShouldBeEmpty();
+    }
+
     private static ScenarioData RecodeWithPluginOptions(ScenarioData data) {
         var json = JsonSerializer.Serialize(data, ScenarioFileManager.ScenarioLoadSerializerOptions);
         json.ShouldNotBeNullOrEmpty();

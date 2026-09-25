@@ -16,6 +16,7 @@ public class ScenarioData : IScenarioMetaData {
     public bool Looping { get; set; } = true;
     public float LoopDelay { get; set; } = 0f;
     public bool Enabled { get; set; } = true;
+    public List<ScenarioCondition> Conditions { get; set; } = [];
 }
 
 public class ScenarioFileMetaData : IScenarioMetaData {

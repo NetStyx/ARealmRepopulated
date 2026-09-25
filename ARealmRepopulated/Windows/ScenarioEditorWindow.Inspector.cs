@@ -31,6 +31,21 @@ public partial class ScenarioEditorWindow {
     private void DrawScenarioInspector() {
         ArrpGuiLayout.PanelHeader("##arrpScenarioPanelHeader", FontAwesomeIcon.Film, ScenarioTitle(), loc["ScenarioEditor_BaseData_Title"]);
 
+        using var tabBar = ImRaii.TabBar("##arrpScenarioInspectorTabs");
+        if (!tabBar.Success)
+            return;
+
+        using (var general = ImRaii.TabItem($"{loc["ScenarioEditor_BaseData_General_Title"]}##arrpScenarioTabGeneral", ImGuiTabItemFlags.NoTooltip)) {
+            if (general.Success)
+                DrawTabBody("##arrpScenarioTabGeneralBody", DrawScenarioGeneralTab);
+        }
+
+        using var conditions = ImRaii.TabItem($"{loc["ScenarioEditor_Conditions_Title"]}##arrpScenarioTabConditions", ImGuiTabItemFlags.NoTooltip);
+        if (conditions.Success)
+            DrawScenarioConditionsTab();
+    }
+
+    private void DrawScenarioGeneralTab() {
         using (ImRaii.Disabled())
             ImGui.TextWrapped(loc["ScenarioEditor_BaseData_Desc"]);
 
