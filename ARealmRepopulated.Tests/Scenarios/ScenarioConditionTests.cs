@@ -1,4 +1,3 @@
-using System.Linq;
 using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Data.Scenarios;
 using Shouldly;
@@ -11,9 +10,6 @@ public class ScenarioConditionTests {
 
     private static bool Evaluate(IngameConditionSnapshot ingame, params ScenarioCondition[] conditions)
         => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, CustomConditionSnapshot.Deterministic);
-
-    private static CustomConditionSnapshot Rolls(params (ScenarioChanceCondition Condition, double Roll)[] rolls)
-        => new(rolls.ToDictionary(r => r.Condition, r => r.Roll));
 
     [Fact]
     public void AreConditionsMet_WithoutConditions_IsMet()
@@ -105,7 +101,7 @@ public class ScenarioConditionTests {
     public void AreConditionsMet_WithChanceCondition_ComparesAgainstTheRoll(float percent, bool expected) {
         var condition = new ScenarioChanceCondition { Percent = percent };
 
-        ScenarioConditionEvaluator.AreConditionsMet([condition], Midnight, Rolls((condition, 50d))).ShouldBe(expected);
+        ScenarioConditionEvaluator.AreConditionsMet([condition], Midnight, new CustomConditionSnapshot(ChanceRoll: 50d)).ShouldBe(expected);
     }
 
     [Fact]
@@ -120,11 +116,13 @@ public class ScenarioConditionTests {
     }
 
     [Fact]
-    public void AreConditionsMet_WithSeveralChanceConditions_UsesTheRollOfEachOfThem() {
-        var first = new ScenarioChanceCondition { Percent = 50f };
-        var second = new ScenarioChanceCondition { Percent = 50f };
+    public void AreConditionsMet_WithSeveralChanceConditions_SharesOneRollAndActsAsTheLowestChance() {
+        ScenarioCondition[] conditions = [
+            new ScenarioChanceCondition { Percent = 50f },
+            new ScenarioChanceCondition { Percent = 30f },
+        ];
 
-        ScenarioConditionEvaluator.AreConditionsMet([first, second], Midnight, Rolls((first, 10d), (second, 10d))).ShouldBeTrue();
-        ScenarioConditionEvaluator.AreConditionsMet([first, second], Midnight, Rolls((first, 10d), (second, 90d))).ShouldBeFalse();
+        ScenarioConditionEvaluator.AreConditionsMet(conditions, Midnight, new CustomConditionSnapshot(ChanceRoll: 20d)).ShouldBeTrue();
+        ScenarioConditionEvaluator.AreConditionsMet(conditions, Midnight, new CustomConditionSnapshot(ChanceRoll: 40d)).ShouldBeFalse();
     }
 }

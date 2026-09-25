@@ -12,14 +12,14 @@ public unsafe class ScenarioConditionService {
         var framework = Framework.Instance();
         var envManager = EnvManager.Instance();
 
-        return new IngameConditionSnapshot(
+        return new(
             framework != null ? ScenarioConditionEvaluator.ToEorzeaHour(framework->ClientTime.EorzeaTime) : 0,
             envManager != null ? envManager->ActiveWeather : (byte)0);
     }
 
-    public CustomConditionSnapshot TakeCustomSnapshot(IReadOnlyList<ScenarioCondition> conditions)
-        => new(conditions.OfType<ScenarioChanceCondition>().ToDictionary(c => c, _ => _random.NextDouble() * 100d));
+    public CustomConditionSnapshot TakeCustomSnapshot()
+        => new(_random.NextDouble() * 100d);
 
     public bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
-        => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, TakeCustomSnapshot(conditions));
+        => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, TakeCustomSnapshot());
 }
