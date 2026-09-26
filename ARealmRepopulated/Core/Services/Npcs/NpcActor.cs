@@ -29,14 +29,16 @@ public unsafe class NpcActor(
     private bool _isReady = false;
     private BattleChara* _actor = null;
     private NpcAppearanceData? _appearance = null;
+    private NpcSpawnOptions _spawnOptions = NpcSpawnOptions.Default;
 
     private Vector3 _emoteOffset = Vector3.Zero;
     private Vector3 _drawOffset = Vector3.Zero;
 
     public IntPtr Address { get => new(_actor); }
 
-    public void Initialize(BattleChara* actorPointer) {
+    public void Initialize(BattleChara* actorPointer, NpcSpawnOptions spawnOptions) {
         _actor = actorPointer;
+        _spawnOptions = spawnOptions;
 
         var localPlayer = (BattleChara*)objectTable.LocalPlayer!.Address;
         this.SetRotationFrom(localPlayer);
@@ -59,9 +61,8 @@ public unsafe class NpcActor(
     public void Spawn() {
         _actor->Alpha = 1.0f;
         _actor->EnableDraw();
-
-        if (_appearance != null)
-            appearanceService.ApplyExtendedAppearance((Character*)_actor, _appearance);
+        
+        SetExtendedAppearance();        
     }
 
     public void Despawn() {
@@ -151,7 +152,6 @@ public unsafe class NpcActor(
     public bool CanTrack()
         => _actor->LookAt.Controller.ParamCount > 0;
 
-
     // See the bottom of the file for a bit research into the soft target.
     public void LookAt(BattleChara* target) {
         var targetId = target->GetGameObjectId();
@@ -237,15 +237,31 @@ public unsafe class NpcActor(
     }
 
     public Animations GetAnimation()
-        => appearanceService.GetAnimation(_actor);
-    
+        => appearanceService.GetAnimation(_actor);            
+
     public void SetAppearance(NpcAppearanceData appearanceFile) {
-        _appearance = appearanceFile;
-        appearanceService.Apply((Character*)_actor, appearanceFile);
+        // if the appearance management is set to external, we will always use the default appearance for the npc actor, regardless of what is passed in here.
+        if (_spawnOptions.AppearanceManagement == AppearanceManagement.External) {            
+            _appearance = DefaultAppearance();
+        } else {
+            _appearance = appearanceFile;
+        }
+
+        appearanceService.Apply((Character*)_actor, _appearance);
+    }
+
+    public void SetExtendedAppearance(){
+        // same as for the default appearance, dont apply extended appearance if an external plugin is supposed to manage it.
+        if (_appearance != null && _spawnOptions.AppearanceManagement == AppearanceManagement.Internal) {
+            appearanceService.ApplyExtendedAppearance((Character*)_actor, _appearance);
+        }
     }
 
     public void SetDefaultAppearance()
-        => SetAppearance(NpcAppearanceData.FromResource("DefaultHumanFemale.json")!);
+        => SetAppearance(DefaultAppearance());
+
+    private static NpcAppearanceData DefaultAppearance()
+        => NpcAppearanceData.FromResource("DefaultHumanFemale.json")!;
 
     public void Talk(string text, float playTime = 3f)
         => cbs.Talk((Character*)_actor, text, playTime);

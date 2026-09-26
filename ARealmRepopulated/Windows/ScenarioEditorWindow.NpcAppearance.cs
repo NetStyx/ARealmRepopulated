@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Services.Npcs;
@@ -23,6 +24,25 @@ public partial class ScenarioEditorWindow {
         => string.IsNullOrWhiteSpace(identifier) ? ""
         : usePrefix ? ActorName.IntegrationPrefix + identifier
         : identifier;
+
+    private static bool IsRemoteAppearanceManagement(ScenarioNpcData npc)
+        => npc.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
+    
+    private static void SetStableActorName(ScenarioNpcData npc, string name) {
+        npc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, name);
+        if (string.IsNullOrWhiteSpace(name))
+            npc.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, "");
+    }
+
+    private void DrawNpcSetupTab() {
+        DrawNpcBaseAppearanceInfo();
+        
+        if (SelectedScenarioNpc == null || !IsRemoteAppearanceManagement(SelectedScenarioNpc))
+            return;
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
+        ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Appearance_ManagedExternally"]);
+    }
     
     private unsafe void DrawNpcAppearanceSources() {
         if (SelectedScenarioNpc == null)
@@ -137,11 +157,16 @@ public partial class ScenarioEditorWindow {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        DrawNpcAppearanceSources();
+        var isExternal = IsRemoteAppearanceManagement(SelectedScenarioNpc);
+        using (ImRaii.Disabled(isExternal))
+            DrawNpcAppearanceSources();
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+        if (isExternal)
+            return;
 
         using var cellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.TableCellPadding);
         using var t = ImRaii.Table("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings);
@@ -211,6 +236,7 @@ public partial class ScenarioEditorWindow {
         if (SelectedScenarioNpc == null)
             return;
 
+        using var cellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.TableCellPadding);
         using var table = ImRaii.Table("##npcAppearanceEditorNpcValues", 3, ImGuiTableFlags.NoSavedSettings);
         if (!table.Success)
             return;
@@ -268,103 +294,84 @@ public partial class ScenarioEditorWindow {
         if (SelectedScenarioNpc == null)
             return;
 
-        using var table = ImRaii.Table("##npcAppearanceEditorEquipmentValues", 2, ImGuiTableFlags.NoSavedSettings);
-        if (!table.Success)
-            return;
+        var appearance = SelectedScenarioNpc.Appearance;
+        ArrpGuiForm.Draw("##npcAppearanceEditorEquipmentForm", form => {
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EMainHand"], DescribeWeapon(ItemSlots.MainHand, appearance.MainHand));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EOffHand"], DescribeWeapon(ItemSlots.OffHand, appearance.OffHand));
 
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EMainHand"], ItemSlots.MainHand, SelectedScenarioNpc.Appearance.MainHand);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EOffHand"], ItemSlots.OffHand, SelectedScenarioNpc.Appearance.OffHand);
-
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EHeadgear"], ItemSlots.Head, SelectedScenarioNpc.Appearance.HeadGear);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EBody"], ItemSlots.Body, SelectedScenarioNpc.Appearance.Body);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EHands"], ItemSlots.Hands, SelectedScenarioNpc.Appearance.Hands);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ELegs"], ItemSlots.Legs, SelectedScenarioNpc.Appearance.Legs);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EFeet"], ItemSlots.Feet, SelectedScenarioNpc.Appearance.Feet);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EEars"], ItemSlots.Ears, SelectedScenarioNpc.Appearance.Ears);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ENeck"], ItemSlots.Neck, SelectedScenarioNpc.Appearance.Neck);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_EWrist"], ItemSlots.Wrists, SelectedScenarioNpc.Appearance.Wrists);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingLeft"], ItemSlots.LeftRing, SelectedScenarioNpc.Appearance.LeftRing);
-        DrawNpcEquipmentRow(loc["ScenarioEditor_ActorData_Appearance_ERingRight"], ItemSlots.RightRing, SelectedScenarioNpc.Appearance.RightRing);
-        DrawNpcGlassesRow(loc["ScenarioEditor_ActorData_Appearance_EGlasses"], SelectedScenarioNpc.Appearance.Glasses);
-
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EHeadgear"], DescribeEquipment(ItemSlots.Head, appearance.HeadGear));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EBody"], DescribeEquipment(ItemSlots.Body, appearance.Body));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EHands"], DescribeEquipment(ItemSlots.Hands, appearance.Hands));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_ELegs"], DescribeEquipment(ItemSlots.Legs, appearance.Legs));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EFeet"], DescribeEquipment(ItemSlots.Feet, appearance.Feet));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EEars"], DescribeEquipment(ItemSlots.Ears, appearance.Ears));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_ENeck"], DescribeEquipment(ItemSlots.Neck, appearance.Neck));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EWrist"], DescribeEquipment(ItemSlots.Wrists, appearance.Wrists));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_ERingLeft"], DescribeEquipment(ItemSlots.LeftRing, appearance.LeftRing));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_ERingRight"], DescribeEquipment(ItemSlots.RightRing, appearance.RightRing));
+            DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_EGlasses"], DescribeGlasses(appearance.Glasses));
+        });
     }
 
     private void DrawNpcIntegrationInfo() {
         if (SelectedScenarioNpc == null)
             return;
 
-        ImGui.TextDisabled(loc["ScenarioEditor_ActorData_Appearance_Integration_Desc"]);
-        ImGui.Separator();
-
-        using var table = ImRaii.Table("##npcIntegrationEditorValues", 2, ImGuiTableFlags.NoSavedSettings);
-        if (!table.Success)
-            return;
-
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, 300);
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName"]);
-        ImGui.SameLine();
-        ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc"]);
-
-        ImGui.TableNextColumn();
-        var currentName = SelectedScenarioNpc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
-
-        if (!ReferenceEquals(_actorNameOwner, SelectedScenarioNpc)) {
-            _actorNameOwner = SelectedScenarioNpc;
+        var npc = SelectedScenarioNpc;
+        var currentName = npc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
+        if (!ReferenceEquals(_actorNameOwner, npc)) {
+            _actorNameOwner = npc;
             _actorNameUsePrefix = currentName.Length == 0 || ActorName.HasPrefix(currentName);
         }
 
-        var usePrefix = _actorNameUsePrefix;
-        if (ImGui.Checkbox("##npcIntegrationEditorGeneralLinkPrefix", ref usePrefix)) {
-            _actorNameUsePrefix = usePrefix;
+        ArrpGuiForm.Draw("##npcIntegrationEditorForm", form => {
+            form.Row(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName"], () => {
+                var usePrefix = _actorNameUsePrefix;
+                if (ImGui.Checkbox("##npcIntegrationEditorGeneralLinkPrefix", ref usePrefix)) {
+                    _actorNameUsePrefix = usePrefix;
 
-            var toggledIdentifier = usePrefix ? ActorName.Filter(currentName) : ActorName.WithoutPrefix(currentName);
-            currentName = ComposeActorName(usePrefix, toggledIdentifier);
-            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentName);
-        }
-        ImGui.SameLine();
+                    var toggledIdentifier = usePrefix ? ActorName.Filter(currentName) : ActorName.WithoutPrefix(currentName);
+                    currentName = ComposeActorName(usePrefix, toggledIdentifier);
+                    SetStableActorName(npc, currentName);
+                }
+                ImGui.SameLine();
 
-        var currentIdenitfer = usePrefix ? ActorName.WithoutPrefix(currentName) : currentName;
-        var nameFlags = usePrefix ? ImGuiInputTextFlags.CharsNoBlank : ImGuiInputTextFlags.None;
-        var nameLimit = usePrefix ? ActorName.MaxPrefixedNameBytes : ActorName.MaxNameBytes;
-        if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: nameLimit, flags: nameFlags)) {
-            currentIdenitfer = ActorName.TruncateToBytes(usePrefix ? ActorName.Clean(currentIdenitfer) : currentIdenitfer.Trim(), nameLimit);
-            currentName = ComposeActorName(usePrefix, currentIdenitfer);
-            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, currentName);
-        }
-        ImGui.SameLine();
-        if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {            
-            _actorNameUsePrefix = true;
-            SelectedScenarioNpc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, ActorName.IntegrationPrefix + characterCreationData.GetRandomName());
-        }
-        if (ImGui.IsItemHovered()) {
-            ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
-        }
+                var currentIdenitfer = usePrefix ? ActorName.WithoutPrefix(currentName) : currentName;
+                var nameFlags = usePrefix ? ImGuiInputTextFlags.CharsNoBlank : ImGuiInputTextFlags.None;
+                var nameLimit = usePrefix ? ActorName.MaxPrefixedNameBytes : ActorName.MaxNameBytes;
+                if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: nameLimit, flags: nameFlags)) {
+                    currentIdenitfer = ActorName.TruncateToBytes(usePrefix ? ActorName.Clean(currentIdenitfer) : currentIdenitfer.Trim(), nameLimit);
+                    currentName = ComposeActorName(usePrefix, currentIdenitfer);
+                    SetStableActorName(npc, currentName);
+                }
+                ImGui.SameLine();
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {
+                    _actorNameUsePrefix = true;
+                    currentName = ActorName.IntegrationPrefix + characterCreationData.GetRandomName();
+                    SetStableActorName(npc, currentName);
+                }
+                if (ImGui.IsItemHovered()) {
+                    ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
+                }
 
-        if (!string.IsNullOrWhiteSpace(currentName)) {
-            ImGui.SameLine();
-            if (ImGuiComponents.IconButton("##scenarioNpcAppearanceEditorIntegrationCopyInternalName", FontAwesomeIcon.Copy)) {
-                ImGui.SetClipboardText(currentName);
-            }
-            if (ImGui.IsItemHovered()) {
-                ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint"]);
-            }
-        }
+                if (!string.IsNullOrWhiteSpace(currentName)) {
+                    ImGui.SameLine();
+                    if (ImGuiComponents.IconButton("##scenarioNpcAppearanceEditorIntegrationCopyInternalName", FontAwesomeIcon.Copy)) {
+                        ImGui.SetClipboardText(currentName);
+                    }
+                    if (ImGui.IsItemHovered()) {
+                        ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint"]);
+                    }
+                }
+            }, loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc"]);
 
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result"]);
+            if (string.IsNullOrWhiteSpace(currentName))
+                return;
 
-        ImGui.TableNextColumn();
-        ImGui.TextDisabled(string.IsNullOrWhiteSpace(currentName)
-            ? loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Unset"]
-            : string.Format(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Value"], currentName, ActorName.ByteLength(currentName), ActorName.MaxNameBytes));
+            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], IsRemoteAppearanceManagement(npc),
+                isExternal => npc.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, isExternal ? "true" : ""),
+                loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance_Desc"]);
+        });
     }
 
     private static void DrawNpcModelRow(string description, byte? val) {
@@ -372,71 +379,42 @@ public partial class ScenarioEditorWindow {
         ImGui.Text(description);
         ImGui.TextDisabled((val ?? 0).ToString());
     }
-    private void DrawNpcEquipmentRow(string description, ItemSlots slot, WeaponModel? model) {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(description);
+    private static void DrawValueRow(ArrpGuiForm form, string label, string value)
+        => form.Row(label, () => {
+            ImGui.AlignTextToFramePadding();
+            ImGui.TextDisabled(value);
+        });
 
-        ImGui.TableNextColumn();
-        if (model == null) {
-            ImGui.TextDisabled("-");
-            return;
-        }
+    private string DescribeWeapon(ItemSlots slot, WeaponModel? model) {
+        if (model == null)
+            return "-";
 
         var weaponModel = dataCache.GetItemByModel(slot, model.ModelSetId, model.Base, model.Variant);
-        if (weaponModel == ItemModelData.Empty || weaponModel.Item == 0) {
-            ImGui.TextDisabled($"-");
-            return;
-        }
+        if (weaponModel == ItemModelData.Empty || weaponModel.Item == 0)
+            return "-";
 
         var weaponItem = dataCache.GetItem(weaponModel.Item);
-        ImGui.TextDisabled(weaponItem != null ? weaponItem.Value.Name.ToString() : $"Unknown Item {weaponModel.Item}");
-
+        return weaponItem != null ? weaponItem.Value.Name.ToString() : $"Unknown Item {weaponModel.Item}";
     }
 
-    private void DrawNpcEquipmentRow(string description, ItemSlots slot, EquipmentModel? model) {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(description);
+    private string DescribeEquipment(ItemSlots slot, EquipmentModel? model) {
+        if (model == null)
+            return "-";
 
-        ImGui.TableNextColumn();
-        if (model == null) {
-            ImGui.TextDisabled("-");
-            return;
-        }
         var equipModel = dataCache.GetItemByModel(slot, 0, model.ModelId, model.Variant);
-        if (equipModel == ItemModelData.Empty || equipModel.Item == 0) {
-            if (equipModel.ModelBase != 0) {
-                ImGui.TextDisabled($"(?) " + equipModel.ModelBase);
-            } else {
-                ImGui.TextDisabled($"-");
-            }
-            return;
-        }
+        if (equipModel == ItemModelData.Empty || equipModel.Item == 0)
+            return equipModel.ModelBase != 0 ? $"(?) {equipModel.ModelBase}" : "-";
 
         var equipItem = dataCache.GetItem(equipModel.Item);
-        ImGui.TextDisabled(equipItem != null ? equipItem.Value.Name.ToString() : $"Unknown Item {equipModel.Item}");
+        return equipItem != null ? equipItem.Value.Name.ToString() : $"Unknown Item {equipModel.Item}";
     }
 
-    private void DrawNpcGlassesRow(string description, ushort? glassesId) {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(description);
+    private string DescribeGlasses(ushort? glassesId) {
+        if (glassesId is null or 0)
+            return "-";
 
-        ImGui.TableNextColumn();
-        if (glassesId is null or 0) {
-            ImGui.TextDisabled("-");
-            return;
-        }
-
-        var glasses = dataCache.GetGlasses(glassesId.Value);
-        var glassesName = glasses?.Name.ToString() ?? "";
-        if (string.IsNullOrWhiteSpace(glassesName)) {
-            ImGui.TextDisabled($"(?) {glassesId}");
-            return;
-        }
-
-        ImGui.TextDisabled(glassesName);
+        var glassesName = dataCache.GetGlasses(glassesId.Value)?.Name.ToString() ?? "";
+        return string.IsNullOrWhiteSpace(glassesName) ? $"(?) {glassesId}" : glassesName;
     }
 
 }

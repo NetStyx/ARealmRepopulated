@@ -88,7 +88,7 @@ public class ActorNameTests {
     [Fact]
     public void TruncateToBytes_CountsBytesNotCharacters() {
         // Six characters are the chinese client's limit and already take 18 bytes.
-        ActorName.ByteLength("光之战士光之").ShouldBe(18);
+        Encoding.UTF8.GetByteCount("光之战士光之").ShouldBe(18);
         ActorName.TruncateToBytes("光之战士光之", 18).ShouldBe("光之战士光之");
     }
 
@@ -102,7 +102,7 @@ public class ActorNameTests {
         var truncated = ActorName.TruncateToBytes("a🍎b", 4);
 
         truncated.ShouldBe("a");
-        ActorName.ByteLength(truncated).ShouldBe(1);
+        Encoding.UTF8.GetByteCount(truncated).ShouldBe(1);
     }
 
     [Theory]

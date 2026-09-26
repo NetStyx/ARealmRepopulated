@@ -44,8 +44,8 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         battleCharacter->HomeWorld = player->HomeWorld;
         battleCharacter->CurrentWorld = player->CurrentWorld;
 
-        var npcActor = serviceProvider.GetRequiredService<NpcActor>();
-        npcActor.Initialize(battleCharacter);
+        var npcActor = serviceProvider.GetRequiredService<NpcActor>();        
+        npcActor.Initialize(battleCharacter, options);
         npcActor.SetName(options.Name);
 
         Actors.Add(npcActor);
@@ -145,4 +145,18 @@ public class NpcSpawnOptions {
 
     public ObjectKind Kind { get; set; } = ObjectKind.BattleNpc;
     public string Name { get; set; } = "";
+    public AppearanceManagement AppearanceManagement { get; set; } = AppearanceManagement.Internal;
+}
+
+public enum AppearanceManagement {
+    /// <summary>
+    /// The actors appearance is managed by this plugin.
+    /// </summary>
+    Internal,
+
+    /// <summary>
+    /// Another plugin manages the actors look. The actor then always spawns with the default appearance,
+    /// to avoid introducing desyncs with other plugins.
+    /// </summary>
+    External
 }

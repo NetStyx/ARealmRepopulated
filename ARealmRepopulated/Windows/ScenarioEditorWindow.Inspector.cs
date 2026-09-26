@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Bindings.ImGui;
@@ -90,10 +91,11 @@ public partial class ScenarioEditorWindow {
         });
     }
 
-    private void DrawActorInspector(ScenarioNpcData npc) {
+    private void DrawActorInspector(ScenarioNpcData npc) {        
         ArrpGuiLayout.PanelHeader("##arrpActorPanelHeader", FontAwesomeIcon.User, ActorLabel(npc),
             Pluralize(npc.Actions.Count, "ScenarioEditor_Inspector_Actor_SubtitleOne", "ScenarioEditor_Inspector_Actor_Subtitle"),
-            trailing: () => DrawDeleteAction("##arrpActorDelete", "ScenarioEditor_Inspector_Actor_Delete"));
+            trailing: () => DrawDeleteAction("##arrpActorDelete", "ScenarioEditor_Inspector_Actor_Delete"),
+            titleSuffix: npc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName) ? () => DrawActorNameSuffix(actorName) : null);
 
         using var tabBar = ImRaii.TabBar("##arrpActorInspectorTabs");
         if (!tabBar.Success)
@@ -106,17 +108,19 @@ public partial class ScenarioEditorWindow {
 
         using (var setup = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Setup"]}##arrpActorTabSetup", ImGuiTabItemFlags.NoTooltip)) {
             if (setup.Success)
-                DrawTabBody("##arrpActorTabSetupBody", DrawNpcBaseAppearanceInfo);
+                DrawTabBody("##arrpActorTabSetupBody", DrawNpcSetupTab);
         }
 
-        using (var model = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##arrpActorTabModel", ImGuiTabItemFlags.NoTooltip)) {
-            if (model.Success)
-                DrawTabBody("##arrpActorTabModelBody", DrawNpcCustomizeAppearanceInfo);
-        }
+        if (!IsRemoteAppearanceManagement(npc)) {
+            using (var model = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##arrpActorTabModel", ImGuiTabItemFlags.NoTooltip)) {
+                if (model.Success)
+                    DrawTabBody("##arrpActorTabModelBody", DrawNpcCustomizeAppearanceInfo);
+            }
 
-        using (var equipment = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##arrpActorTabEquipment", ImGuiTabItemFlags.NoTooltip)) {
-            if (equipment.Success)
-                DrawTabBody("##arrpActorTabEquipmentBody", DrawNpcEquipmentAppearanceInfo);
+            using (var equipment = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##arrpActorTabEquipment", ImGuiTabItemFlags.NoTooltip)) {
+                if (equipment.Success)
+                    DrawTabBody("##arrpActorTabEquipmentBody", DrawNpcEquipmentAppearanceInfo);
+            }
         }
 
         if (!config.RuntimeConfig.ModdingToolsInstalled)
@@ -127,6 +131,15 @@ public partial class ScenarioEditorWindow {
             DrawTabBody("##arrpActorTabIntegrationBody", DrawNpcIntegrationInfo);
     }
     
+    private static void DrawActorNameSuffix(string actorName) {
+        ImGui.SameLine(0, 0);
+        ImGui.Text(" [");
+        ImGui.SameLine(0, 0);
+        ImGui.TextColored(ArrpGuiColors.ArrpGreen, actorName);
+        ImGui.SameLine(0, 0);
+        ImGui.Text("]");
+    }
+
     private static void DrawTabBody(string id, Action draw) {
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
 
