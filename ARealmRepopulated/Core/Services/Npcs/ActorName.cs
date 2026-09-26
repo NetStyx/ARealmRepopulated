@@ -12,9 +12,6 @@ public static class ActorName {
     public const int MaxNameBytes = 63;    
     public const int MaxPrefixedNameBytes = 15;
 
-    public static int ByteLength(string value)
-        => string.IsNullOrEmpty(value) ? 0 : Encoding.UTF8.GetByteCount(value);
-
     public static bool HasPrefix(string name)
         => name?.StartsWith(IntegrationPrefix, StringComparison.Ordinal) ?? false;
 

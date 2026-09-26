@@ -30,26 +30,26 @@ public static class ArrpGuiLayout {
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
     }
-    
-    public static void PanelHeader(string id, FontAwesomeIcon icon, string title, string? subtitle = null, Action? trailing = null)
-        => HeaderRow(id, () => DrawPanelHeaderLine(icon, title, subtitle), trailing);
 
-    /// <summary>Header row for a panel led by an arbitrary control instead of an icon.</summary>
     public static void PanelHeader(string id, Action leading, string title, string? subtitle = null, Action? trailing = null)
         => HeaderRow(id, () => DrawPanelHeaderLine(leading, title, subtitle), trailing);
 
-    private static void DrawPanelHeaderLine(FontAwesomeIcon icon, string title, string? subtitle)
+    public static void PanelHeader(string id, FontAwesomeIcon icon, string title, string? subtitle = null, Action? trailing = null, Action? titleSuffix = null)
+        => HeaderRow(id, () => DrawPanelHeaderLine(icon, title, subtitle, titleSuffix), trailing);
+
+    private static void DrawPanelHeaderLine(FontAwesomeIcon icon, string title, string? subtitle, Action? titleSuffix)
         => DrawPanelHeaderLine(() => {
             using (ImRaii.PushFont(UiBuilder.IconFont))
                 ImGui.Text(icon.ToIconString());
-        }, title, subtitle);
+        }, title, subtitle, titleSuffix);
 
-    private static void DrawPanelHeaderLine(Action leading, string title, string? subtitle) {
+    private static void DrawPanelHeaderLine(Action leading, string title, string? subtitle, Action? titleSuffix = null) {
         ImGui.AlignTextToFramePadding();
         leading();
 
         ImGui.SameLine(0, ArrpGuiSpacing.HeadingPartSpacing);
         ImGui.Text(title);
+        titleSuffix?.Invoke();
 
         if (!string.IsNullOrWhiteSpace(subtitle)) {
             ImGui.SameLine(0, ArrpGuiSpacing.HeadingPartSpacing);
@@ -71,7 +71,28 @@ public static class ArrpGuiLayout {
         if (!string.IsNullOrEmpty(tooltip) && ImGui.IsItemHovered())
             ImGui.SetTooltip(tooltip);
     }
-    
+        
+    /// <summary> Wrapped text led by an icon that is centred vertically on the whole text. </summary>
+    public static void IconNote(FontAwesomeIcon icon, Vector4 color, string text) {
+        var top = ImGui.GetCursorPosY();
+        var glyph = icon.ToIconString();
+
+        Vector2 iconSize;
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+            iconSize = ImGui.CalcTextSize(glyph);
+
+        var wrapWidth = ImGui.GetContentRegionAvail().X - iconSize.X - ArrpGuiSpacing.InlineIconSpacing;
+        var textHeight = ImGui.CalcTextSize(text, false, wrapWidth).Y;
+
+        ImGui.SetCursorPosY(top + Math.Max(0, (textHeight - iconSize.Y) / 2));
+        using (ImRaii.PushFont(UiBuilder.IconFont))
+            ImGui.TextColored(color, glyph);
+
+        ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
+        ImGui.SetCursorPosY(top);
+        ImGui.TextWrapped(text);
+    }
+
     public static void RightAlignedBadge(FontAwesomeIcon icon, Vector4? color = null, string? tooltip = null) {
         using (ImRaii.PushFont(UiBuilder.IconFont)) {
             var glyph = icon.ToIconString();

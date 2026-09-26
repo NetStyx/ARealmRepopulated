@@ -90,10 +90,7 @@ public partial class ScenarioEditorWindow {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         if (!condition.IsConfigured) {
-            ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow);
-            ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextWrapped(loc["ScenarioEditor_Conditions_Unconfigured"]);
+            ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_Conditions_Unconfigured"]);
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         }
 

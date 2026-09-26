@@ -161,6 +161,9 @@ public unsafe class ScenarioOrchestrator(
             if (scenarioNpc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
                 spawnOptions.Kind = ObjectKind.Pc;
                 spawnOptions.Name = actorName;
+                if (scenarioNpc.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal) {
+                    spawnOptions.AppearanceManagement = AppearanceManagement.External;
+                }
             }
 
             if (!npcServices.TrySpawnNpc(spawnOptions, out var npc)) {
@@ -177,8 +180,8 @@ public unsafe class ScenarioOrchestrator(
                 npc.SetAppearance(scenarioNpc.Appearance);
             } else {
                 npc.SetDefaultAppearance();
-
             }
+
             var scenarioNpcObject = serviceProvider.GetRequiredService<ScenarioNpc>();
             scenarioNpcObject.Actor = npc;
             scenarioNpcObject.Id = scenarioNpcIndex;
@@ -188,6 +191,7 @@ public unsafe class ScenarioOrchestrator(
             scenarioNpcObject.SetActions(scenarioNpc.Actions);
 
             npc.Draw();
+            
             scenario.Npcs.Add(scenarioNpcObject);
             scenarioNpcIndex++;
         }

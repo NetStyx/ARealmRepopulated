@@ -719,7 +719,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Integration</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName" xml:space="preserve">
-    <value>Stable Actor Prefix / Name</value>
+    <value>Stable actor name</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Desc" xml:space="preserve">
     <value>Gives the actor a fixed name other plugins can work with. With the checkbox on, the name you enter will be prefixed with &quot;Arrp &quot;. The following rules apply: 2 to 15 latin letters, hyphens and apostrophes allowed between them, anything else is corrected away. With the checkbox off, the name is yours to write without restrictions, but other plugins might not recognize it anymore.</value>
@@ -727,20 +727,17 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint" xml:space="preserve">
     <value>Generate a random, yet valid, actor name.</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result" xml:space="preserve">
-    <value>Resulting actor name</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Value" xml:space="preserve">
-    <value>{0} ({1}/{2} bytes)</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Result_Unset" xml:space="preserve">
-    <value>Not set, the actor keeps its generated name.</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Clipboard_Hint" xml:space="preserve">
     <value>Copy to clipboard</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Integration_Desc" xml:space="preserve">
-    <value>This sections manages settings for integration with other plugins. Usage is optional.</value>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance" xml:space="preserve">
+    <value>Leave appearance to other plugins</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance_Desc" xml:space="preserve">
+    <value>The actor always spawns with the default appearance, so another plugin can manage its look without the two working against each other. You should enable this for all actors that share the same stable actor key across scenarios.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ManagedExternally" xml:space="preserve">
+    <value>The appearance of this actor is left to other plugins, as enabled by you in the Integration tab. It will always spawn with the default appearance which can then be altered externally, so modification here is no longer possible.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Setup_PickPreset" xml:space="preserve">
     <value>Pick from preset</value>
