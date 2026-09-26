@@ -21,7 +21,6 @@ public unsafe class ScenarioOrchestrator(
     ScenarioFileManager fileManager,
     PluginConfig config,
     NpcServices npcServices,
-    ArrpGameHooks hooks,
     ArrpEventService eventService,
     ScenarioConditionService conditionService) : IDisposable {
 
@@ -35,7 +34,7 @@ public unsafe class ScenarioOrchestrator(
     public IEnumerable<Orchestration> ActiveOrchestrations => Orchestrations.Where(o => o.IsActive);
     public event Action? OnOrchestrationStateChanged;
 
-    private void Game_CharacterDestroyed(Character* chara) {
+    private void NpcServices_ActorDestroyed(Character* chara) {
         using var lockScope = _scenarioActionLock.EnterScope();
         foreach (var orchestration in Orchestrations) {
             if (orchestration.Scenario is not { } scenario)
@@ -329,7 +328,7 @@ public unsafe class ScenarioOrchestrator(
     }
 
     public void Initialize() {
-        hooks.OnCharacterDestroyed += Game_CharacterDestroyed;
+        npcServices.OnActorDestroyed += NpcServices_ActorDestroyed;
         eventService.OnTerritoryLoadFinished += EventService_OnTerritoryReady;
         eventService.OnCutsceneStarted += EventService_OnCutsceneStarted;
         eventService.OnCutsceneEnded += EventService_OnCutsceneEnded;
@@ -339,7 +338,7 @@ public unsafe class ScenarioOrchestrator(
     }
 
     public void Dispose() {
-        hooks.OnCharacterDestroyed -= Game_CharacterDestroyed;
+        npcServices.OnActorDestroyed -= NpcServices_ActorDestroyed;
         eventService.OnTerritoryLoadFinished -= EventService_OnTerritoryReady;
         eventService.OnCutsceneStarted -= EventService_OnCutsceneStarted;
         eventService.OnCutsceneEnded -= EventService_OnCutsceneEnded;

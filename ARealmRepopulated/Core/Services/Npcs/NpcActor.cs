@@ -241,8 +241,10 @@ public unsafe class NpcActor(
 
     public void SetAppearance(NpcAppearanceData appearanceFile) {
         // if the appearance management is set to external, we will always use the default appearance for the npc actor, regardless of what is passed in here.
-        if (_spawnOptions.AppearanceManagement == AppearanceManagement.External) {            
+        if (_spawnOptions.AppearanceManagement == AppearanceManagement.External) {
             _appearance = DefaultAppearance();
+            // the voice is kept from the given file though, as external plugins do not set one.
+            _appearance.Voice = appearanceFile.Voice;
         } else {
             _appearance = appearanceFile;
         }

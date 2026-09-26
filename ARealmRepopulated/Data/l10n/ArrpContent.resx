@@ -466,17 +466,29 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   <data name="ScenarioEditor_ActorData_Appearance_CRaceTribeGender" xml:space="preserve">
     <value>Race / Tribe / Gender</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CBase" xml:space="preserve">
-    <value>Base ID</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CSkeleton" xml:space="preserve">
-    <value>Base Skeleton ID</value>
+  <data name="ScenarioEditor_ActorData_Appearance_CModelSkeleton" xml:space="preserve">
+    <value>Model / Skeleton ID</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CWeaponsHidden" xml:space="preserve">
     <value>Hide Weapons</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CHeadgearHidden" xml:space="preserve">
     <value>Hide Headgear</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice" xml:space="preserve">
+    <value>Voice</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_Desc" xml:space="preserve">
+    <value>The voice the actor uses for emotes that come with a voice line. Taken over from a character file or a picked character if they have one.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_Entry" xml:space="preserve">
+    <value>Voice {0}</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_Other" xml:space="preserve">
+    <value>Other voice ({0})</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CHeight" xml:space="preserve">
     <value>Height</value>

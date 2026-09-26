@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.Native;
+using ARealmRepopulated.Core.Numbers;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
@@ -79,11 +80,11 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
         chara->DrawData.HideWeapons(file.HideWeapons);
         chara->DrawData.HideHeadgear(0, file.HideHeadgear);
-        /*
-        if (!(&chara->DrawData.CustomizeData)->NormalizeCustomizeData(&chara->DrawData.CustomizeData))
-        {
-            chara->DrawData.CustomizeData = new CustomizeData();
-        }*/
+
+        // the voice for human models comes from a selection boiled down to a byte in every other case, the sound pack of the model is used.
+        chara->Vfx.VoiceId = dataCache.IsHumanModel(file.ModelCharaId)
+            ? file.Voice ?? 0
+            : dataCache.GetModelSoundPack(file.ModelCharaId);        
     }
 
     public void ApplyExtendedAppearance(Character* chara, NpcAppearanceData file) {
@@ -210,6 +211,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.HideHeadgear = chara->DrawData.IsHatHidden;
 
         file.Glasses = chara->DrawData.GlassesIds[0];
+        file.Voice = (byte?)chara->Vfx.VoiceId.InRangeOrDefault<ushort>(1, byte.MaxValue);
 
         file.MainHand = WeaponModel.Read(chara, WeaponSlot.MainHand);
         file.OffHand = WeaponModel.Read(chara, WeaponSlot.OffHand);

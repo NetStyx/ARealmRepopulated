@@ -29,7 +29,6 @@ public class DalamudDiWrapper(IDalamudPluginInterface pluginInterface, IPluginLo
             .AddSingleton(pluginInterface.GetRequiredService<IDtrBar>())
             .AddSingleton(pluginInterface.GetRequiredService<IGameGui>())
             .AddSingleton(pluginInterface.GetRequiredService<ITextureProvider>())
-            .AddSingleton<ArrpGameHooks>()
             .AddSingleton<ArrpEventService>()
             .AddSingleton<ArrpDataCache>()
             .AddSingleton<ArrpCharacterCreationData>()

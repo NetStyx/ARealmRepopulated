@@ -81,7 +81,9 @@ public enum NpcBodyType : byte {
 
 public class NpcAppearanceData {
 
-    public static readonly NpcAppearanceData Default = FromResource("DefaultHumanFemale.json")!;
+    // When multiple actors were defined at the same time without saving, then the shared Default would apply to all of them. 
+    // Therefore: create a new instance on every read.
+    public static NpcAppearanceData Default => FromResource("DefaultHumanFemale.json")!;
 
     public const float ScaleMin = 0.01f;
     public const float ScaleMax = 50.0f; // Max scaling seen in BNpc sheets says 42
@@ -130,6 +132,8 @@ public class NpcAppearanceData {
     public byte? FacePaintColor { get; set; }
 
     public ushort? Glasses { get; set; }
+    
+    public byte? Voice { get; set; }
 
     public NpcExtendedAppearance? ExtendedAppearance { get; set; }
 

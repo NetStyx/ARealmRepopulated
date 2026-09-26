@@ -108,5 +108,6 @@
     },
 
     "HideWeapons": true,
-    "Transparency": null
+    "Transparency": null,
+    "Voice": 57
 }

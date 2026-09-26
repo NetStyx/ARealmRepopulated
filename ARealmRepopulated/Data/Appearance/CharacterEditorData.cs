@@ -27,6 +27,8 @@ public class CharacterEditorRace {
     public uint[] MouthShapes { get; set; } = [];
     public uint[] LipColorsDark { get; set; } = [];
     public uint[] TailEarShapes { get; set; } = [];
+    
+    public byte[] Voices { get; set; } = [];
 
     public bool HasLipstick { get; set; }
     public bool HasMuscleMass { get; set; }
