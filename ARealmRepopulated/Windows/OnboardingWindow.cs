@@ -50,7 +50,7 @@ public class OnboardingWindow(
     private bool _demoNpcSpawned = false;
     public override void Draw() {
 
-        using (var child = ImRaii.Child("", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize)) {
+        using (var child = ImRaii.Child("##onboardingWindowContent", new Vector2(0, -50), border: false, flags: ImGuiWindowFlags.NoResize)) {
             if (child.Success) {
                 ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
                 ImGui.TextWrapped(loc["OnboardingWnd_Header"]);
