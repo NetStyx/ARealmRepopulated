@@ -71,8 +71,7 @@ public static class ArrpGuiLayout {
         if (!string.IsNullOrEmpty(tooltip) && ImGui.IsItemHovered())
             ImGui.SetTooltip(tooltip);
     }
-        
-    /// <summary> Wrapped text led by an icon that is centred vertically on the whole text. </summary>
+            
     public static void IconNote(FontAwesomeIcon icon, Vector4 color, string text) {
         var top = ImGui.GetCursorPosY();
         var glyph = icon.ToIconString();

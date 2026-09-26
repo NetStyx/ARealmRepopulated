@@ -25,7 +25,7 @@ public partial class ScenarioEditorWindow {
         : usePrefix ? ActorName.IntegrationPrefix + identifier
         : identifier;
 
-    private static bool IsAppearanceExternal(ScenarioNpcData npc)
+    private static bool IsRemoteAppearanceManagement(ScenarioNpcData npc)
         => npc.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
     
     private static void SetStableActorName(ScenarioNpcData npc, string name) {
@@ -37,7 +37,7 @@ public partial class ScenarioEditorWindow {
     private void DrawNpcSetupTab() {
         DrawNpcBaseAppearanceInfo();
         
-        if (SelectedScenarioNpc == null || !IsAppearanceExternal(SelectedScenarioNpc))
+        if (SelectedScenarioNpc == null || !IsRemoteAppearanceManagement(SelectedScenarioNpc))
             return;
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
@@ -157,7 +157,7 @@ public partial class ScenarioEditorWindow {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        var isExternal = IsAppearanceExternal(SelectedScenarioNpc);
+        var isExternal = IsRemoteAppearanceManagement(SelectedScenarioNpc);
         using (ImRaii.Disabled(isExternal))
             DrawNpcAppearanceSources();
 
@@ -368,7 +368,7 @@ public partial class ScenarioEditorWindow {
             if (string.IsNullOrWhiteSpace(currentName))
                 return;
 
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], IsAppearanceExternal(npc),
+            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], IsRemoteAppearanceManagement(npc),
                 isExternal => npc.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, isExternal ? "true" : ""),
                 loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance_Desc"]);
         });

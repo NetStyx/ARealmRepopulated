@@ -111,7 +111,7 @@ public partial class ScenarioEditorWindow {
                 DrawTabBody("##arrpActorTabSetupBody", DrawNpcSetupTab);
         }
 
-        if (!IsAppearanceExternal(npc)) {
+        if (!IsRemoteAppearanceManagement(npc)) {
             using (var model = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##arrpActorTabModel", ImGuiTabItemFlags.NoTooltip)) {
                 if (model.Success)
                     DrawTabBody("##arrpActorTabModelBody", DrawNpcCustomizeAppearanceInfo);

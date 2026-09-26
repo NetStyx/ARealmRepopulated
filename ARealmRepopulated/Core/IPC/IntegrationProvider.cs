@@ -6,7 +6,7 @@ namespace ARealmRepopulated.Core.IPC;
 public static class IntegrationProvider {
 
     public const string ActorNameConfigKey = "Integration.General.Actor.Name";
-    public const string ExternalAppearanceConfigKey = "Integration.General.Appearance.External";
+    public const string ExternalAppearanceConfigKey = "Integration.General.Actor.Appearance.External";
 
     public static bool TryGetIntegrationProperty(this ScenarioNpcData npcData, string key, out string data, string defaultValue = "") {
         data = "";
