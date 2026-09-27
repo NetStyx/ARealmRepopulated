@@ -106,7 +106,8 @@ public static class CharaFileReader {
             
             Transparency = json["Transparency"].GetFloatOrNull(),
 
-            Glasses = (json["Glasses"] as JsonObject)?["GlassesId"].GetUShortOrNull()            
+            Glasses = (json["Glasses"] as JsonObject)?["GlassesId"].GetUShortOrNull(),
+            Voice = json["Voice"].GetByteOrNull()
         };
 
         data.MainHand = ReadWeapon(json["MainHand"] as JsonObject);

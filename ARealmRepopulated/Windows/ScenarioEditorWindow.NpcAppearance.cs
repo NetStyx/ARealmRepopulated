@@ -36,7 +36,7 @@ public partial class ScenarioEditorWindow {
 
     private void DrawNpcSetupTab() {
         DrawNpcBaseAppearanceInfo();
-        
+
         if (SelectedScenarioNpc == null || !IsRemoteAppearanceManagement(SelectedScenarioNpc))
             return;
 
@@ -165,70 +165,73 @@ public partial class ScenarioEditorWindow {
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        if (isExternal)
+        var appearance = SelectedScenarioNpc.Appearance;
+        ArrpGuiForm.Draw("##npcAppearanceEditorSetupForm", form => {            
+            if (!isExternal) {
+                DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CRaceTribeGender"], $"{appearance.Race} / {appearance.Tribe} / {appearance.Sex}");
+                DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CModelSkeleton"], $"{appearance.ModelCharaId} / {appearance.ModelSkeletonId}");
+
+                form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_CScale"], () => {
+                    var scale = appearance.Scale ?? NpcAppearanceData.ScaleDefault;
+                    if (ImGui.SliderFloat("##npcAppearanceEditorSetupScale", ref scale, NpcAppearanceData.ScaleSoftMin, NpcAppearanceData.ScaleSoftMax, "%.2f")) {
+                        appearance.Scale = Math.Clamp(scale, NpcAppearanceData.ScaleMin, NpcAppearanceData.ScaleMax);
+                    }
+                }, loc["ScenarioEditor_ActorData_Appearance_CScale_Desc"]);
+
+                form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_CHeightMultiplier"], () => {
+                    var heightMultiplier = appearance.HeightMultiplier ?? NpcAppearanceData.HeightMultiplierDefault;
+                    if (ImGui.SliderFloat("##npcAppearanceEditorSetupHeightMultiplier", ref heightMultiplier,
+                            NpcAppearanceData.HeightMultiplierMin, NpcAppearanceData.HeightMultiplierMax, "%.2f")) {
+                        appearance.HeightMultiplier = Math.Clamp(heightMultiplier,
+                            NpcAppearanceData.HeightMultiplierMin, NpcAppearanceData.HeightMultiplierMax);
+                    }
+                }, loc["ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc"]);
+            }
+
+            // other plugins do not seem to handle voices ... so we still have that responsibility
+            DrawNpcVoiceRow(form, appearance);
+
+            if (!isExternal) {
+                form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_CWeaponsHidden"], appearance.HideWeapons, hide => appearance.HideWeapons = hide);
+                form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"], appearance.HideHeadgear, hide => appearance.HideHeadgear = hide);
+            }
+        });
+    }
+
+    private void DrawNpcVoiceRow(ArrpGuiForm form, NpcAppearanceData appearance) {
+        if (!dataCache.IsHumanModel(appearance.ModelCharaId))
             return;
 
-        using var cellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.TableCellPadding);
-        using var t = ImRaii.Table("##npcAppearanceEditorRaceTribeGenderTable", 3, ImGuiTableFlags.NoSavedSettings);
-        if (!t.Success)
+        var voices = characterCreationData.GetVoices(appearance.Race, appearance.Tribe, appearance.Sex);
+        if (voices.Length == 0 && appearance.Voice == null)
             return;
 
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch);
+        form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_Voice"], () => {
+            using var combo = ImRaii.Combo("##npcVoiceEditorVoice", DescribeVoice(voices, appearance.Voice));
+            if (!combo.Success)
+                return;
 
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CRaceTribeGender"]);
-        ImGui.TextDisabled($"{SelectedScenarioNpc.Appearance.Race} / {SelectedScenarioNpc.Appearance.Tribe} / {SelectedScenarioNpc.Appearance.Sex}");
+            if (ImGui.Selectable(loc["ScenarioEditor_ActorData_Appearance_Voice_None"], appearance.Voice == null)) {
+                appearance.Voice = null;
+            }
 
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CBase"]);
-        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelCharaId.ToString());
+            for (var i = 0; i < voices.Length; i++) {
+                if (ImGui.Selectable($"{loc["ScenarioEditor_ActorData_Appearance_Voice_Entry", i + 1]}##npcVoiceEditorVoice{voices[i]}", appearance.Voice == voices[i])) {
+                    appearance.Voice = voices[i];
+                }
+            }
+        }, loc["ScenarioEditor_ActorData_Appearance_Voice_Desc"]);
+    }
 
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CSkeleton"]);
-        ImGui.TextDisabled(SelectedScenarioNpc.Appearance.ModelSkeletonId.ToString());
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CScale"]);
-        ImGui.SameLine();
-        ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_CScale_Desc"]);
-        var scale = SelectedScenarioNpc.Appearance.Scale ?? NpcAppearanceData.ScaleDefault;
-        ImGui.SetNextItemWidth(-1);
-        if (ImGui.SliderFloat("##npcAppearanceEditorSetupScale", ref scale, NpcAppearanceData.ScaleSoftMin, NpcAppearanceData.ScaleSoftMax, "%.2f")) {
-            SelectedScenarioNpc.Appearance.Scale = Math.Clamp(scale, NpcAppearanceData.ScaleMin, NpcAppearanceData.ScaleMax);
+    private string DescribeVoice(byte[] voices, byte? voice) {
+        if (voice == null) {
+            return loc["ScenarioEditor_ActorData_Appearance_Voice_None"];
         }
-
-        ImGui.TableNextColumn();
-        ImGui.Text(loc["ScenarioEditor_ActorData_Appearance_CHeightMultiplier"]);
-        ImGui.SameLine();
-        ImGuiComponents.HelpMarker(loc["ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc"]);
-        var heightMultiplier = SelectedScenarioNpc.Appearance.HeightMultiplier ?? NpcAppearanceData.HeightMultiplierDefault;
-        ImGui.SetNextItemWidth(-1);
-        if (ImGui.SliderFloat("##npcAppearanceEditorSetupHeightMultiplier", ref heightMultiplier,
-                NpcAppearanceData.HeightMultiplierMin, NpcAppearanceData.HeightMultiplierMax, "%.2f")) {
-            SelectedScenarioNpc.Appearance.HeightMultiplier = Math.Clamp(heightMultiplier,
-                NpcAppearanceData.HeightMultiplierMin, NpcAppearanceData.HeightMultiplierMax);
-        }
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        var hideWeapons = SelectedScenarioNpc.Appearance.HideWeapons;
-        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CWeaponsHidden"]}##npcAppearanceEditorSetupHideWeapons", ref hideWeapons)) {
-            SelectedScenarioNpc.Appearance.HideWeapons = hideWeapons;
-        }
-
-        var hideHeadgear = SelectedScenarioNpc.Appearance.HideHeadgear;
-        ImGui.TableNextColumn();
-        if (ImGui.Checkbox($"{loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"]}##npcAppearanceEditorSetupHideHeadgear", ref hideHeadgear)) {
-            SelectedScenarioNpc.Appearance.HideHeadgear = hideHeadgear;
-        }
+        
+        var index = Array.IndexOf(voices, voice.Value);
+        return index >= 0
+            ? loc["ScenarioEditor_ActorData_Appearance_Voice_Entry", index + 1]
+            : loc["ScenarioEditor_ActorData_Appearance_Voice_Other", voice.Value];
     }
 
     private void DrawNpcCustomizeAppearanceInfo() {

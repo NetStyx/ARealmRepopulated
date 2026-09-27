@@ -21,6 +21,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     private ExcelSheet<BNpcBase> _bnpcBaseSheet = null!;
     private ExcelSheet<BNpcName> _bnpcNameSheet = null!;
     private ExcelSheet<Weather> _weatherSheet = null!;
+    private ExcelSheet<ModelChara> _modelCharaSheet = null!;
     private readonly List<ItemModelData> _itemModelData = [];
     private Dictionary<PoseType, ushort[]> _poseStateEmotes = [];
 
@@ -33,6 +34,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         _bnpcBaseSheet = dataManager.GetExcelSheet<BNpcBase>();
         _bnpcNameSheet = dataManager.GetExcelSheet<BNpcName>();
         _weatherSheet = dataManager.GetExcelSheet<Weather>();
+        _modelCharaSheet = dataManager.GetExcelSheet<ModelChara>();
 
         _poseStateEmotes = BuildPoseStateEmotes();
     }
@@ -172,6 +174,13 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     public TerritoryType GetTerritoryType(ushort territoryTypeId) {
         return _territoryTypeSheet.GetRowOrDefault(territoryTypeId) ?? _territoryTypeSheet.First();
     }
+        
+    // at least i think '1' stands for most human(oid)s ...
+    public bool IsHumanModel(int modelCharaId)        
+        => modelCharaId == 0 || _modelCharaSheet.GetRowOrDefault((uint)modelCharaId)?.Type == 1;
+    
+    public ushort GetModelSoundPack(int modelCharaId)
+        => _modelCharaSheet.GetRowOrDefault((uint)modelCharaId)?.SEPack ?? 0;
 
     public Weather? GetWeather(byte weatherId)
         => _weatherSheet.GetRowOrDefault(weatherId);
@@ -313,9 +322,13 @@ public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager data
             raceData.HasLipstick = race != NpcRace.Hrothgar;
             raceData.HasMuscleMass = hasMuscleMass != null;
             raceData.HasTailEarShapes = hasTailEarShapes != null;
+            raceData.Voices = [.. charaRow.VoiceStruct.Where(v => v != 0)];
         }
 
     }
+
+    public byte[] GetVoices(NpcRace race, NpcTribe tribe, NpcSex gender)
+        => _characterEditorData.Races.FirstOrDefault(x => x.Race == race && x.Tribe == tribe && x.Gender == gender)?.Voices ?? [];
 
     [GeneratedRegex(@"^[A-Za-z]+(?:['-][A-Za-z]+)*$", RegexOptions.Compiled)]
     private static partial Regex CharacterNameRegex();

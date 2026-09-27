@@ -462,16 +462,28 @@
   <data name="ScenarioEditor_ActorData_Appearance_CRaceTribeGender" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CBase" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CSkeleton" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Appearance_CModelSkeleton" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CWeaponsHidden" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CHeadgearHidden" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_None" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_Entry" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Voice_Other" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CHeight" xml:space="preserve">

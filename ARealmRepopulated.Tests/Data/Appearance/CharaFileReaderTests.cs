@@ -104,6 +104,22 @@ public class CharaFileReaderTests {
     }
 
     [Fact]
+    public void Read_WithVoice_ReadsTheVoiceId() {
+        var appearance = CharaFileReader.Read("""
+            { "Race": "Miqote", "Tribe": "KeeperOfTheMoon", "Gender": "Feminine", "Voice": 75 }
+            """);
+
+        appearance.Voice.ShouldBe((byte)75);
+    }
+
+    [Fact]
+    public void Read_WithoutVoice_LeavesVoiceUnset() {
+        var appearance = CharaFileReader.Read(MinimalChara);
+
+        appearance.Voice.ShouldBeNull();
+    }
+
+    [Fact]
     public void Read_WithMissingOptionalEntries_ReadsWhatIsThere() {
         // one absent entry used to fail the whole file instead of just going unset
         var appearance = CharaFileReader.Read("""
