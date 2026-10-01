@@ -8,10 +8,13 @@ using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +24,7 @@ namespace ARealmRepopulated.Windows;
 
 public class ConfigWindow(
     IServiceProvider serviceProvider,
+    IDalamudPluginInterface pluginInterface,
     IPluginLog log,
     IClientState state,
     IObjectTable objectTable,
@@ -160,40 +164,55 @@ public class ConfigWindow(
             }
         }
 
-        using var changelogTab = ImRaii.TabItem(loc["ListWnd_Changelog_Title"], ImGuiTabItemFlags.NoTooltip);
-        if (changelogTab.Success) {
-            ChangelogTab();
+        using var infoTab = ImRaii.TabItem(loc["ListWnd_Info_Title"], ImGuiTabItemFlags.NoTooltip);
+        if (infoTab.Success) {
+            InfoTab();
         }
     }
 
-    private void ChangelogTab() {
+    private Version? _selectedChangelogVersion;    private void InfoTab() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         var entries = changelogService.Changelog.OrderByDescending(c => c.Version).ToList();
-        if (entries.Count == 0)
-            return;
-
         var currentVersion = typeof(Plugin).Assembly.GetName().Version ?? new Version();
-        _selectedChangelogVersion ??= entries.Any(c => c.Version == currentVersion) ? currentVersion : entries[0].Version;
-        var selected = entries.FirstOrDefault(c => c.Version == _selectedChangelogVersion) ?? entries[0];
+        var selected = entries.FirstOrDefault(c => c.Version == _selectedChangelogVersion);
 
-        DrawChangelogVersionList(entries, selected, currentVersion);
+        DrawInfoList(entries, selected, currentVersion);
 
         ImGui.SameLine();
-        using var detail = ImRaii.Child("##changelogDetail", Vector2.Zero);
-        if (detail.Success) {
+        using var detail = ImRaii.Child("##infoDetail", Vector2.Zero);
+        if (!detail.Success)
+            return;
+
+        if (selected is null) {
+            DrawHelp();
+        } else {
             DrawChangelogEntry(selected);
         }
     }
+    
+    private void DrawInfoList(List<ChangelogEntry> entries, ChangelogEntry? selected, Version currentVersion) {        
+        var guideHeading = loc["ListWnd_Info_Guide"];
+        var changelogHeading = loc["ListWnd_Info_Changelog"];
+        var helpLabel = loc["ListWnd_Info_Help"];                
 
-    private void DrawChangelogVersionList(List<ChangelogEntry> entries, ChangelogEntry selected, Version currentVersion) {
-        var style = ImGui.GetStyle();
-        var labelWidth = entries.Max(e => ImGui.CalcTextSize(e.Version.ToString()).X);
-        var listWidth = labelWidth + (style.FramePadding.X * 2) + style.ScrollbarSize;
-
-        using var list = ImRaii.ListBox("##changelogVersions", new Vector2(listWidth, -1));
+        using var list = ImRaii.ListBox("##infoEntries", new Vector2(100f, -1));
         if (!list.Success)
             return;
+
+        ImGui.TextDisabled(guideHeading);
+        ImGui.Separator();
+
+        if (ImGui.Selectable($"{helpLabel}##infoHelp", selected is null)) {
+            _selectedChangelogVersion = null;
+        }
+
+        if (entries.Count == 0)
+            return;
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
+        ImGui.TextDisabled(changelogHeading);
+        ImGui.Separator();
 
         foreach (var entry in entries) {
             var isCurrent = entry.Version == currentVersion;
@@ -207,6 +226,35 @@ public class ConfigWindow(
                 ImGui.Separator();
             }
         }
+    }
+
+    private void DrawHelp() {
+        ArrpGuiLayout.HeaderRow("##infoHelpHeader", () => ImGui.TextColored(ArrpGuiColors.ArrpYellow, loc["ListWnd_Info_Help_Title"]));
+        ImGui.TextWrapped(loc["ListWnd_Info_Help_Intro"]);
+
+        ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_QuickStart"]);
+        string[] quickStartSteps = [
+            "ListWnd_Info_Help_QuickStart_Create",
+            "ListWnd_Info_Help_QuickStart_Edit",
+            "ListWnd_Info_Help_QuickStart_Load",
+            "ListWnd_Info_Help_QuickStart_Command",
+        ];
+        foreach (var step in quickStartSteps) {
+            ImGui.Bullet();
+            ImGui.TextWrapped(loc[step]);
+        }
+
+        ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_Wiki"]);
+        ImGui.TextWrapped(loc["ListWnd_Info_Help_Wiki_Desc"]);
+    
+        if (pluginInterface.Manifest.RepoUrl is { Length: > 0 } repoUrl) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Book, loc["ListWnd_Info_Help_OpenWiki"])) {
+                Util.OpenLink($"{repoUrl.TrimEnd('/')}/wiki");
+            }
+        }
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
     }
 
     private static void DrawChangelogEntry(ChangelogEntry entry) {
@@ -284,7 +332,6 @@ public class ConfigWindow(
 
     private string _searchScenarioText = string.Empty;
     private bool _displayCurrentLocationOnly = true;
-    private Version? _selectedChangelogVersion;
     private void ScenarioTab() {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
@@ -317,7 +364,7 @@ public class ConfigWindow(
             ImGui.TableHeadersRow();
 
             ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
-                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Recycle)) {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Recycle)) {
                     _fileManager.ScanScenarioFiles();
                 }
                 if (ImGui.IsItemHovered())
@@ -335,7 +382,7 @@ public class ConfigWindow(
             ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
             ArrpGuiHelper.DrawCenteredHeaderCell(3, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
-                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus)) {
                         serviceProvider.GetService<ScenarioEditorWindow>()!.CreateScenario();
                     }
                 }
@@ -344,7 +391,7 @@ public class ConfigWindow(
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Add_Desc"]);
 
                 ImGui.SameLine(0, 5);
-                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen)) {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.FolderOpen)) {
                     var targetPath = _fileManager.ScenarioPath;
                     if (!Directory.Exists(targetPath))
                         Directory.CreateDirectory(targetPath);
@@ -385,7 +432,7 @@ public class ConfigWindow(
                 var zoneName = territoryData.PlaceNameZone.Value.Name.ToString();
                 var isInCorrectLocation = eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location);
 
-                if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.MapMarker)) {
+                if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", FontAwesomeIcon.MapMarker)) {
                     unsafe {
                         AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
                     }
@@ -410,7 +457,7 @@ public class ConfigWindow(
                 }
 
                 ImGui.TableNextColumn();
-                if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Wrench)) {
+                if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}", FontAwesomeIcon.Wrench)) {
                     serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
                 }
                 if (ImGui.IsItemHovered())
@@ -418,7 +465,7 @@ public class ConfigWindow(
 
                 ImGui.SameLine(0, 5);
                 var deletePopupId = $"{loc["ListWnd_Scenario_Popup_DeleteScenario_Title"]}##ConfirmDelete{scenarioIndex}";
-                if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Trash)) {
+                if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", FontAwesomeIcon.Trash)) {
                     ImGui.OpenPopup(deletePopupId);
                 }
                 if (ImGui.IsItemHovered())
