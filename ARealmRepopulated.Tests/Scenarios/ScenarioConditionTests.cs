@@ -46,8 +46,8 @@ public class ScenarioConditionTests {
     [InlineData(3600, 1)]
     [InlineData(23 * 3600, 23)]
     [InlineData(24 * 3600, 0)]
-    public void ToEorzeaHour_FoldsTheEorzeanClockIntoAnHourOfDay(long eorzeaTime, int expected)
-        => ScenarioConditionEvaluator.ToEorzeaHour(eorzeaTime).ShouldBe(expected);
+    public void ToHours_FoldsTheClockIntoAnHourOfDay(long timeInSeconds, int expected)
+        => ScenarioConditionEvaluator.ToHours(timeInSeconds).ShouldBe(expected);
 
     [Fact]
     public void AreConditionsMet_WithUnconfiguredWeatherCondition_IgnoresIt() {
