@@ -174,7 +174,7 @@ public class ConfigWindow(
         }
     }
 
-    private void InfoTab() {
+    private Version? _selectedChangelogVersion;    private void InfoTab() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         var entries = changelogService.Changelog.OrderByDescending(c => c.Version).ToList();
@@ -194,23 +194,13 @@ public class ConfigWindow(
             DrawChangelogEntry(selected);
         }
     }
-
-    // The help page is the null selection, so it is what the tab opens on.
-    private void DrawInfoList(List<ChangelogEntry> entries, ChangelogEntry? selected, Version currentVersion) {
-        var style = ImGui.GetStyle();
+    
+    private void DrawInfoList(List<ChangelogEntry> entries, ChangelogEntry? selected, Version currentVersion) {        
         var guideHeading = loc["ListWnd_Info_Guide"];
         var changelogHeading = loc["ListWnd_Info_Changelog"];
-        var helpLabel = loc["ListWnd_Info_Help"];
+        var helpLabel = loc["ListWnd_Info_Help"];                
 
-        var labelWidth = entries
-            .Select(e => ImGui.CalcTextSize(e.Version.ToString()).X)
-            .Append(ImGui.CalcTextSize(helpLabel).X)
-            .Append(ImGui.CalcTextSize(guideHeading).X)
-            .Append(ImGui.CalcTextSize(changelogHeading).X)
-            .Max();
-        var listWidth = labelWidth + (style.FramePadding.X * 2) + style.ScrollbarSize;
-
-        using var list = ImRaii.ListBox("##infoEntries", new Vector2(listWidth, -1));
+        using var list = ImRaii.ListBox("##infoEntries", new Vector2(100f, -1));
         if (!list.Success)
             return;
 
@@ -247,7 +237,13 @@ public class ConfigWindow(
         ImGui.TextWrapped(loc["ListWnd_Info_Help_Intro"]);
 
         ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_QuickStart"]);
-        foreach (var step in QuickStartSteps) {
+        string[] quickStartSteps = [
+            "ListWnd_Info_Help_QuickStart_Create",
+            "ListWnd_Info_Help_QuickStart_Edit",
+            "ListWnd_Info_Help_QuickStart_Load",
+            "ListWnd_Info_Help_QuickStart_Command",
+        ];
+        foreach (var step in quickStartSteps) {
             ImGui.Bullet();
             ImGui.TextWrapped(loc[step]);
         }
@@ -340,14 +336,6 @@ public class ConfigWindow(
 
     private string _searchScenarioText = string.Empty;
     private bool _displayCurrentLocationOnly = true;
-    private Version? _selectedChangelogVersion;
-
-    private static readonly string[] QuickStartSteps = [
-        "ListWnd_Info_Help_QuickStart_Create",
-        "ListWnd_Info_Help_QuickStart_Edit",
-        "ListWnd_Info_Help_QuickStart_Load",
-        "ListWnd_Info_Help_QuickStart_Command",
-    ];
     private void ScenarioTab() {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
@@ -380,7 +368,7 @@ public class ConfigWindow(
             ImGui.TableHeadersRow();
 
             ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
-                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Recycle)) {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.Recycle)) {
                     _fileManager.ScanScenarioFiles();
                 }
                 if (ImGui.IsItemHovered())
@@ -398,7 +386,7 @@ public class ConfigWindow(
             ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
             ArrpGuiHelper.DrawCenteredHeaderCell(3, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
-                    if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.Plus)) {
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus)) {
                         serviceProvider.GetService<ScenarioEditorWindow>()!.CreateScenario();
                     }
                 }
@@ -407,7 +395,7 @@ public class ConfigWindow(
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Add_Desc"]);
 
                 ImGui.SameLine(0, 5);
-                if (ImGuiComponents.IconButton(Dalamud.Interface.FontAwesomeIcon.FolderOpen)) {
+                if (ImGuiComponents.IconButton(FontAwesomeIcon.FolderOpen)) {
                     var targetPath = _fileManager.ScenarioPath;
                     if (!Directory.Exists(targetPath))
                         Directory.CreateDirectory(targetPath);
@@ -448,7 +436,7 @@ public class ConfigWindow(
                 var zoneName = territoryData.PlaceNameZone.Value.Name.ToString();
                 var isInCorrectLocation = eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location);
 
-                if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.MapMarker)) {
+                if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", FontAwesomeIcon.MapMarker)) {
                     unsafe {
                         AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
                     }
@@ -473,7 +461,7 @@ public class ConfigWindow(
                 }
 
                 ImGui.TableNextColumn();
-                if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Wrench)) {
+                if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}", FontAwesomeIcon.Wrench)) {
                     serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
                 }
                 if (ImGui.IsItemHovered())
@@ -481,7 +469,7 @@ public class ConfigWindow(
 
                 ImGui.SameLine(0, 5);
                 var deletePopupId = $"{loc["ListWnd_Scenario_Popup_DeleteScenario_Title"]}##ConfirmDelete{scenarioIndex}";
-                if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", Dalamud.Interface.FontAwesomeIcon.Trash)) {
+                if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", FontAwesomeIcon.Trash)) {
                     ImGui.OpenPopup(deletePopupId);
                 }
                 if (ImGui.IsItemHovered())
