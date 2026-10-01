@@ -8,10 +8,6 @@ public readonly record struct CustomConditionSnapshot(double ChanceRoll) {
 }
 
 public static class ScenarioConditionEvaluator {
-
-    public const int HoursPerDay = 24;
-    public const int EorzeaSecondsPerHour = 3600;
-
     public static bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot custom) {
         foreach (var condition in conditions) {
             if (!condition.IsConfigured)
@@ -32,7 +28,7 @@ public static class ScenarioConditionEvaluator {
         ScenarioChanceCondition chance => custom.ChanceRoll < chance.Percent,
         _ => true
     };
-    
+
     public static bool IsWithinHourWindow(int hour, int startHour, int endHour) {
         var current = WrapHour(hour);
         var start = WrapHour(startHour);
@@ -46,9 +42,11 @@ public static class ScenarioConditionEvaluator {
             : current >= start || current < end;
     }
 
-    public static int ToEorzeaHour(long eorzeaTime)
-        => WrapHour((int)(eorzeaTime / EorzeaSecondsPerHour));
-
+    // Eorzea time, like real time, consists of 24 hours with 3600 seconds per hour and is delivered as seconds ... so - nothing special. 
+    // The only difference to real time is that eorzea time runs approximately 20 times faster which does not matter for the calculations here.
+    public static int ToHours(long timeInSeconds)
+        => WrapHour((int)(timeInSeconds / 3600));
+    
     public static int WrapHour(int hour)
-        => ((hour % HoursPerDay) + HoursPerDay) % HoursPerDay;
+        => ((hour % 24) + 24) % 24;
 }
