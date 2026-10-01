@@ -13,7 +13,7 @@ public unsafe class ScenarioConditionService {
         var envManager = EnvManager.Instance();
 
         return new(
-            framework != null ? ScenarioConditionEvaluator.ToEorzeaHour(framework->ClientTime.EorzeaTime) : 0,
+            framework != null ? ScenarioConditionEvaluator.ToHours(framework->ClientTime.EorzeaTime) : 0,
             envManager != null ? envManager->ActiveWeather : (byte)0);
     }
 
