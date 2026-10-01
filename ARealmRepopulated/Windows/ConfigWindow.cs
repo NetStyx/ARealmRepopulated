@@ -8,10 +8,13 @@ using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +24,7 @@ namespace ARealmRepopulated.Windows;
 
 public class ConfigWindow(
     IServiceProvider serviceProvider,
+    IDalamudPluginInterface pluginInterface,
     IPluginLog log,
     IClientState state,
     IObjectTable objectTable,
@@ -33,6 +37,10 @@ public class ConfigWindow(
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
     ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
+
+    private readonly string? _wikiUrl = pluginInterface.Manifest.RepoUrl is { Length: > 0 } repoUrl
+        ? $"{repoUrl.TrimEnd('/')}/wiki"
+        : null;
 
     protected override void SetWindowOptions() {
         Size = new Vector2(750, 630);
@@ -59,11 +67,13 @@ public class ConfigWindow(
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        using var t = ImRaii.Table("##WindowControlTable", 3, ImGuiTableFlags.None);
+        using var t = ImRaii.Table("##WindowControlTable", 5, ImGuiTableFlags.None);
         if (!t.Success)
             return;
 
         ImGui.TableSetupColumn("##configWindowControlStrech", ImGuiTableColumnFlags.WidthStretch);
+        ImGui.TableSetupColumn("##configWindowControlHelp", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##configWindowControlGap", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.ButtonGroupSpacing);
         ImGui.TableSetupColumn("##configWindowControlClose", ImGuiTableColumnFlags.WidthFixed);
         ImGui.TableSetupColumn("##configWindowControlPaddingRight", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
 
@@ -72,6 +82,16 @@ public class ConfigWindow(
 
         DrawScenarioObjectConsumption();
 
+        ImGui.TableNextColumn();
+        if (_wikiUrl is not null) {
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.QuestionCircle, loc["ListWnd_Help"]))
+                Util.OpenLink(_wikiUrl);
+
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ListWnd_Help_Tooltip"]);
+        }
+
+        ImGui.TableNextColumn();
         ImGui.TableNextColumn();
         if (ImGui.Button(loc["ListWnd_Close"])) {
             this.IsOpen = false;

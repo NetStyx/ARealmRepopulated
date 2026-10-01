@@ -150,6 +150,12 @@
   <data name="ListWnd_Close" xml:space="preserve">
     <value>Close Configuration</value>
   </data>
+  <data name="ListWnd_Help" xml:space="preserve">
+    <value>Open Plugin Wiki</value>
+  </data>
+  <data name="ListWnd_Help_Tooltip" xml:space="preserve">
+    <value>Opens the wiki in your browser</value>
+  </data>
   <data name="ListWnd_Scenario_Search_Placeholder" xml:space="preserve">
     <value>Search ... </value>
   </data>

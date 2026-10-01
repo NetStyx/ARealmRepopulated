@@ -150,6 +150,12 @@
   <data name="ListWnd_Close" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ListWnd_Help" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Help_Tooltip" xml:space="preserve">
+    <value>a</value>
+  </data>
   <data name="ListWnd_Scenario_Search_Placeholder" xml:space="preserve">
     <value>a</value>
   </data>
