@@ -38,10 +38,6 @@ public class ConfigWindow(
     ArrpDtrControl dtrControl,
     ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
 
-    private readonly string? _wikiUrl = pluginInterface.Manifest.RepoUrl is { Length: > 0 } repoUrl
-        ? $"{repoUrl.TrimEnd('/')}/wiki"
-        : null;
-
     protected override void SetWindowOptions() {
         Size = new Vector2(750, 630);
         SizeCondition = ImGuiCond.FirstUseEver;
@@ -250,11 +246,11 @@ public class ConfigWindow(
 
         ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_Wiki"]);
         ImGui.TextWrapped(loc["ListWnd_Info_Help_Wiki_Desc"]);
-
-        if (_wikiUrl is not null) {
+    
+        if (pluginInterface.Manifest.RepoUrl is { Length: > 0 } repoUrl) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Book, loc["ListWnd_Info_Help_OpenWiki"])) {
-                Util.OpenLink(_wikiUrl);
+                Util.OpenLink($"{repoUrl.TrimEnd('/')}/wiki");
             }
         }
 
