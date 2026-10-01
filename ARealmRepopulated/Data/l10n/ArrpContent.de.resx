@@ -150,12 +150,6 @@
   <data name="ListWnd_Close" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ListWnd_Help" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ListWnd_Help_Tooltip" xml:space="preserve">
-    <value>a</value>
-  </data>
   <data name="ListWnd_Scenario_Search_Placeholder" xml:space="preserve">
     <value>a</value>
   </data>
@@ -774,7 +768,46 @@
   <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ListWnd_Changelog_Title" xml:space="preserve">
+  <data name="ListWnd_Info_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Guide" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Changelog" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_Intro" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_QuickStart" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_QuickStart_Create" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_QuickStart_Edit" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_QuickStart_Load" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_QuickStart_Command" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_Wiki" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_Wiki_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_OpenWiki" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_Outline_UntitledScenario" xml:space="preserve">

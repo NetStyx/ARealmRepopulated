@@ -67,13 +67,11 @@ public class ConfigWindow(
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        using var t = ImRaii.Table("##WindowControlTable", 5, ImGuiTableFlags.None);
+        using var t = ImRaii.Table("##WindowControlTable", 3, ImGuiTableFlags.None);
         if (!t.Success)
             return;
 
         ImGui.TableSetupColumn("##configWindowControlStrech", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("##configWindowControlHelp", ImGuiTableColumnFlags.WidthFixed);
-        ImGui.TableSetupColumn("##configWindowControlGap", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.ButtonGroupSpacing);
         ImGui.TableSetupColumn("##configWindowControlClose", ImGuiTableColumnFlags.WidthFixed);
         ImGui.TableSetupColumn("##configWindowControlPaddingRight", ImGuiTableColumnFlags.WidthFixed, ArrpGuiSpacing.WindowGripSpacing);
 
@@ -82,16 +80,6 @@ public class ConfigWindow(
 
         DrawScenarioObjectConsumption();
 
-        ImGui.TableNextColumn();
-        if (_wikiUrl is not null) {
-            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.QuestionCircle, loc["ListWnd_Help"]))
-                Util.OpenLink(_wikiUrl);
-
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip(loc["ListWnd_Help_Tooltip"]);
-        }
-
-        ImGui.TableNextColumn();
         ImGui.TableNextColumn();
         if (ImGui.Button(loc["ListWnd_Close"])) {
             this.IsOpen = false;
@@ -180,40 +168,65 @@ public class ConfigWindow(
             }
         }
 
-        using var changelogTab = ImRaii.TabItem(loc["ListWnd_Changelog_Title"], ImGuiTabItemFlags.NoTooltip);
-        if (changelogTab.Success) {
-            ChangelogTab();
+        using var infoTab = ImRaii.TabItem(loc["ListWnd_Info_Title"], ImGuiTabItemFlags.NoTooltip);
+        if (infoTab.Success) {
+            InfoTab();
         }
     }
 
-    private void ChangelogTab() {
+    private void InfoTab() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         var entries = changelogService.Changelog.OrderByDescending(c => c.Version).ToList();
-        if (entries.Count == 0)
-            return;
-
         var currentVersion = typeof(Plugin).Assembly.GetName().Version ?? new Version();
-        _selectedChangelogVersion ??= entries.Any(c => c.Version == currentVersion) ? currentVersion : entries[0].Version;
-        var selected = entries.FirstOrDefault(c => c.Version == _selectedChangelogVersion) ?? entries[0];
+        var selected = entries.FirstOrDefault(c => c.Version == _selectedChangelogVersion);
 
-        DrawChangelogVersionList(entries, selected, currentVersion);
+        DrawInfoList(entries, selected, currentVersion);
 
         ImGui.SameLine();
-        using var detail = ImRaii.Child("##changelogDetail", Vector2.Zero);
-        if (detail.Success) {
+        using var detail = ImRaii.Child("##infoDetail", Vector2.Zero);
+        if (!detail.Success)
+            return;
+
+        if (selected is null) {
+            DrawHelp();
+        } else {
             DrawChangelogEntry(selected);
         }
     }
 
-    private void DrawChangelogVersionList(List<ChangelogEntry> entries, ChangelogEntry selected, Version currentVersion) {
+    // The help page is the null selection, so it is what the tab opens on.
+    private void DrawInfoList(List<ChangelogEntry> entries, ChangelogEntry? selected, Version currentVersion) {
         var style = ImGui.GetStyle();
-        var labelWidth = entries.Max(e => ImGui.CalcTextSize(e.Version.ToString()).X);
+        var guideHeading = loc["ListWnd_Info_Guide"];
+        var changelogHeading = loc["ListWnd_Info_Changelog"];
+        var helpLabel = loc["ListWnd_Info_Help"];
+
+        var labelWidth = entries
+            .Select(e => ImGui.CalcTextSize(e.Version.ToString()).X)
+            .Append(ImGui.CalcTextSize(helpLabel).X)
+            .Append(ImGui.CalcTextSize(guideHeading).X)
+            .Append(ImGui.CalcTextSize(changelogHeading).X)
+            .Max();
         var listWidth = labelWidth + (style.FramePadding.X * 2) + style.ScrollbarSize;
 
-        using var list = ImRaii.ListBox("##changelogVersions", new Vector2(listWidth, -1));
+        using var list = ImRaii.ListBox("##infoEntries", new Vector2(listWidth, -1));
         if (!list.Success)
             return;
+
+        ImGui.TextDisabled(guideHeading);
+        ImGui.Separator();
+
+        if (ImGui.Selectable($"{helpLabel}##infoHelp", selected is null)) {
+            _selectedChangelogVersion = null;
+        }
+
+        if (entries.Count == 0)
+            return;
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
+        ImGui.TextDisabled(changelogHeading);
+        ImGui.Separator();
 
         foreach (var entry in entries) {
             var isCurrent = entry.Version == currentVersion;
@@ -227,6 +240,29 @@ public class ConfigWindow(
                 ImGui.Separator();
             }
         }
+    }
+
+    private void DrawHelp() {
+        ArrpGuiLayout.HeaderRow("##infoHelpHeader", () => ImGui.TextColored(ArrpGuiColors.ArrpYellow, loc["ListWnd_Info_Help_Title"]));
+        ImGui.TextWrapped(loc["ListWnd_Info_Help_Intro"]);
+
+        ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_QuickStart"]);
+        foreach (var step in QuickStartSteps) {
+            ImGui.Bullet();
+            ImGui.TextWrapped(loc[step]);
+        }
+
+        ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_Wiki"]);
+        ImGui.TextWrapped(loc["ListWnd_Info_Help_Wiki_Desc"]);
+
+        if (_wikiUrl is not null) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Book, loc["ListWnd_Info_Help_OpenWiki"])) {
+                Util.OpenLink(_wikiUrl);
+            }
+        }
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
     }
 
     private static void DrawChangelogEntry(ChangelogEntry entry) {
@@ -305,6 +341,13 @@ public class ConfigWindow(
     private string _searchScenarioText = string.Empty;
     private bool _displayCurrentLocationOnly = true;
     private Version? _selectedChangelogVersion;
+
+    private static readonly string[] QuickStartSteps = [
+        "ListWnd_Info_Help_QuickStart_Create",
+        "ListWnd_Info_Help_QuickStart_Edit",
+        "ListWnd_Info_Help_QuickStart_Load",
+        "ListWnd_Info_Help_QuickStart_Command",
+    ];
     private void ScenarioTab() {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
