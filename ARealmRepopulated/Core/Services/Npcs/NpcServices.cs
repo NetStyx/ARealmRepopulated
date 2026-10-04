@@ -1,15 +1,32 @@
 using ARealmRepopulated.Core.Native;
+using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
+/// <summary>
+/// Owns the lifetime of our actors: creation and destruction either by us or by the game.
+/// </summary>
+/// <remarks>
+/// As the repsonisbilities on who should do what got clouded more and more, the following rule is now in place:
+/// This service manages only the livetime of the actor, his properties are managed by the actor itself.
+/// <code>
+///   NpcSpawnOptions                   fixed values for one actor across its entire lifetime.
+///     NpcServices.TrySpawnNpc         creates the object via the games apis, calls NpcActor.Initialize, registers it within the service, raises OnActorCreated.
+///       NpcActor.Initialize           applies invariants, then the options. 
+///       NpcActor.Reset                restores the actor to the state it had after initialize.
+///       NpcActor.Set*()               runtime changes only: movement, rotation, emote handling, appearance changes, etc.
+///     NpcServices.DespawnNpc          removes the actor from the service, deletes the game object, raises OnActorDestroyed.
+/// </code>
+/// </remarks>
 public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, IGameInteropProvider interopProvider, ArrpDataCache dataCache) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
@@ -76,18 +93,8 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
             return false;
         }
 
-        battleCharacter->ObjectKind = options.Kind;
-        battleCharacter->BattleNpcSubKind = BattleNpcSubKind.Player;
-        battleCharacter->TargetableStatus &= ~ObjectTargetableFlags.IsTargetable;
-        ((GameObjectWorldFlags*)battleCharacter)->Flags |= GameObjectWorldFlags.InteractsWithWorld;
-
-        var player = (Character*)objectTable.LocalPlayer.Address;
-        battleCharacter->HomeWorld = player->HomeWorld;
-        battleCharacter->CurrentWorld = player->CurrentWorld;
-
-        var npcActor = serviceProvider.GetRequiredService<NpcActor>();        
+        var npcActor = serviceProvider.GetRequiredService<NpcActor>();
         npcActor.Initialize(battleCharacter, options);
-        npcActor.SetName(options.Name);
 
         Actors.Add(npcActor);
         OnActorCreated?.Invoke((Character*)battleCharacter);
@@ -259,12 +266,30 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
     }
 }
 
+/// <summary>
+/// Everything that is fixed for an actor over its lifetime. It is applied once on spawn, and the reset between loops returns to it.
+/// </summary>
 public class NpcSpawnOptions {
     public static NpcSpawnOptions Default => new();
 
+    /// <summary>
+    /// Default value for npcs
+    /// </summary>
+    public const ushort NoWorld = 0xFFFF;
+
     public ObjectKind Kind { get; set; } = ObjectKind.BattleNpc;
     public string Name { get; set; } = "";
+    public ushort HomeWorld { get; set; } = NoWorld;
+    public ushort CurrentWorld { get; set; } = NoWorld;
+
+    public Vector3 Position { get; set; }
+    public float Rotation { get; set; }
+    public Vector3 DrawOffset { get; set; }
+    public bool SnapToSurface { get; set; } = true;
+
+    public bool IsPublic { get; set; } = false;
     public AppearanceManagement AppearanceManagement { get; set; } = AppearanceManagement.Internal;
+    public NpcAppearanceData? Appearance { get; set; }
 }
 
 public enum AppearanceManagement {
