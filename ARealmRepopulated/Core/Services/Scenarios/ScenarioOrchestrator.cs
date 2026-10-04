@@ -1,5 +1,4 @@
 using ARealmRepopulated.Configuration;
-using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios.Conditions;
@@ -8,7 +7,6 @@ using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
@@ -156,30 +154,11 @@ public unsafe class ScenarioOrchestrator(
         var scenarioNpcIndex = 0;
         foreach (var scenarioNpc in data.Npcs) {
 
-            var spawnOptions = new NpcSpawnOptions();
-            if (scenarioNpc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
-                spawnOptions.Kind = ObjectKind.Pc;
-                spawnOptions.Name = actorName;
-                if (scenarioNpc.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal) {
-                    spawnOptions.AppearanceManagement = AppearanceManagement.External;
-                }
-            }
-
+            var spawnOptions = scenarioNpc.ToSpawnOptions((Character*)objectTable.LocalPlayer!.Address);
             if (!npcServices.TrySpawnNpc(spawnOptions, out var npc)) {
                 // the actors spawned up until now are orphaned
                 scenario.Npcs.ForEach(n => npcServices.DespawnNpc(n.Actor));
                 return null;
-            }
-
-            npc.SetPosition(scenarioNpc.Position, isDefault: true);
-            npc.SetRotation(scenarioNpc.Rotation, isDefault: true);
-            npc.SetDrawOffset(scenarioNpc.DrawOffset);
-            npc.SetSurfacePlacement(scenarioNpc.SnapToSurface);
-
-            if (scenarioNpc.Appearance != null) {
-                npc.SetAppearance(scenarioNpc.Appearance);
-            } else {
-                npc.SetDefaultAppearance();
             }
 
             var scenarioNpcObject = serviceProvider.GetRequiredService<ScenarioNpc>();

@@ -12,9 +12,15 @@ public enum LayoutTarget : byte {
     Bed = 1
 }
 
+/// <summary>
+/// Service to manage functionality which allows interaction with the games in-world layout system.
+/// </summary>
+/// <remarks>
+/// see /doc/research/layout-snapping.md
+/// </remarks>
 public unsafe class LayoutWorldService : IDisposable {
-
-    // decompiled values from FUN_140e10980 for snaping checks. Why those? Dont know. Do i care? Nope.
+    
+    // taken directly from the game
     private static readonly float[] SnapOffsets = [0.42f, 0.75f];
 
     public LayoutWorldService(IGameInteropProvider provider) {
@@ -153,40 +159,3 @@ public unsafe class LayoutWorldService : IDisposable {
         GC.SuppressFinalize(this);
     }
 }
-
-/*
-/// <summary>
-/// Client::Game::Control::EmoteManager.ExecuteEmote
-/// -> FUN_140e119e0(lVar2,&local_d8);
-/// -> FUN_140e11a40(lVar2,&local_d8)
-///   -> FUN_140e10980(0x40000000,param_2,1,1,1,0x40000000) // FUN_140e10980(character-pointer, in-out-struct-pointer,1,1,1, 2f)
-/// </summary>
-[Signature("40 55 53 57 41 54 48 8D AC 24")]
-private readonly delegate* unmanaged<Character*, SitTargetLocation*, byte, byte, byte, float, byte> _resolveSitTarget = null!;
-
-[StructLayout(LayoutKind.Explicit, Size = 0x78)]
-public unsafe struct SitTargetLocation {
-    [FieldOffset(0x00)] public float X;
-    [FieldOffset(0x04)] public float Y;
-    [FieldOffset(0x08)] public float Z;
-    [FieldOffset(0x0C)] public uint Unknown0C;
-
-    [FieldOffset(0x10)] public float Facing;
-    [FieldOffset(0x14)] public uint Unknown14;
-    [FieldOffset(0x18)] public uint Unknown18;
-    [FieldOffset(0x1C)] public uint Unknown1C;
-
-    [FieldOffset(0x20)] public float SnapX;
-    [FieldOffset(0x24)] public float SnapY;
-    [FieldOffset(0x28)] public float SnapZ;
-    [FieldOffset(0x2C)] public uint Unknown2C;
-
-    [FieldOffset(0x30)] public float SnapFacing;
-    [FieldOffset(0x34)] public uint Unknown34;
-
-    [FieldOffset(0x38)] public void* TargetObject;
-}
-
--.- Well that didnt work because it takes the players position into account when caluclating the nearest snap point.
-
-*/
