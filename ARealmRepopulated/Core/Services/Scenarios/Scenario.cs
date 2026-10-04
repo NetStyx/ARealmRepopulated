@@ -46,11 +46,7 @@ public unsafe class Scenario(IPluginLog log) {
         log.Info($"[{ScenarioInstance.AsHexString()}] Starting next scenario loop");
         _currentDelay = 0;
         _state.CurrentScenarioSegment = 0;
-        Npcs.ForEach(n => {
-            n.Actor.ResetPosition();
-            n.Actor.ResetRotation();
-            n.Actor.ResetDrawOffset();
-        });
+        Npcs.ForEach(n => n.Actor.Reset());
     }
 
     public void Advance(TimeSpan time) {

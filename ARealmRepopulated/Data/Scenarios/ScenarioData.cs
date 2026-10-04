@@ -48,6 +48,7 @@ public class ScenarioNpcData {
     public string Name { get; set; } = "";
     public NpcAppearanceData Appearance { get; set; } = NpcAppearanceData.Default;
     public Vector3 Position { get; set; }
+    public bool SnapToSurface { get; set; } = true;
     public float Rotation { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

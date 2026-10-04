@@ -720,7 +720,19 @@
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Placement_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Behavior_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
   <data name="ScenarioEditor_ActorData_Behavior_TrackPlayer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_SnapToSurface" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_SnapToSurface_Desc" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration" xml:space="preserve">

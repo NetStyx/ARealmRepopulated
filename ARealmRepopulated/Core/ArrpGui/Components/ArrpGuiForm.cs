@@ -68,5 +68,14 @@ public sealed class ArrpGuiForm {
         ImGui.SameLine();
         ImGuiComponents.HelpMarker(help);
     }
-    
+
+    public void LabeledCheckboxRow(string label, bool value, Action<bool> onChange, string? help = null) {
+        Row(label, () => {
+            var current = value;
+            if (ImGui.Checkbox("##value", ref current)) {
+                onChange(current);
+            }
+        }, help);
+    }
+
 }
