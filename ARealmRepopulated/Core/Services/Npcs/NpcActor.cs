@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.SpatialMath;
@@ -33,6 +34,7 @@ public unsafe class NpcActor(
 
     private Vector3 _emoteOffset = Vector3.Zero;
     private Vector3 _drawOffset = Vector3.Zero;
+    private bool _snapToSurface = true;
 
     public IntPtr Address { get => new(_actor); }
 
@@ -42,7 +44,7 @@ public unsafe class NpcActor(
 
         var localPlayer = (BattleChara*)objectTable.LocalPlayer!.Address;
         this.SetRotationFrom(localPlayer);
-        this.SetPositionFrom(localPlayer);
+        this.SetPositionFrom(localPlayer);        
     }
 
     public void Release()
@@ -94,6 +96,13 @@ public unsafe class NpcActor(
     public void ResetPosition()
         => SetPosition(_actor->DefaultPosition);
 
+    public void Reset() {
+        ResetPosition();
+        ResetRotation();
+        ResetDrawOffset();
+        RequestSurfacePlacement();
+    }
+
     public CharacterModes GetMode()
         => _actor->Mode;
 
@@ -119,6 +128,16 @@ public unsafe class NpcActor(
         }
     }
     
+    public void SetSurfacePlacement(bool snapToSurface) {
+        _snapToSurface = snapToSurface;
+        RequestSurfacePlacement();
+    }
+
+    // The game puts a character on the surface below it once after creation and then marks it done. Resetting the
+    // position brings back the stored, unplaced height, so every reset has to ask again (or keep suppressing it).
+    private void RequestSurfacePlacement()
+        => MoveControllerPlacementFlags.SetSurfacePlaced(&_actor->MoveController, !_snapToSurface);
+
     public void SetDrawOffset(Vector3 drawOffset) {
         _drawOffset = drawOffset;
         ResetDrawOffset();

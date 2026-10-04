@@ -94,7 +94,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
             return;
 
         if (file.HeightMultiplier is { } height && float.IsFinite(height) && height > 0)
-            ((CharacterBaseScale*)human)->ModelScale = height;
+            CharacterBaseScale.SetModelScale(&human->CharacterBase, height);
 
         var extended = file.ExtendedAppearance;
         if (extended == null || !extended.HasAnyValue)
@@ -233,7 +233,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         if (human == null)
             return;
 
-        file.HeightMultiplier = ((CharacterBaseScale*)human)->ModelScale;
+        file.HeightMultiplier = CharacterBaseScale.GetModelScale(&human->CharacterBase);
 
         var parameters = GetCustomizeParameters(human);
         if (parameters == null)

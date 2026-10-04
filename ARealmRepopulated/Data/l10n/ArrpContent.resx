@@ -724,8 +724,22 @@ Only one of the two can be moved at a time, since both markers would otherwise s
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot" xml:space="preserve">
     <value>Remove the timeline entry</value>
   </data>
+  <data name="ScenarioEditor_ActorData_Placement_Title" xml:space="preserve">
+    <value>Placement</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Behavior_Title" xml:space="preserve">
+    <value>Behavior</value>
+  </data>
   <data name="ScenarioEditor_ActorData_Behavior_TrackPlayer" xml:space="preserve">
     <value>Track player position</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_SnapToSurface" xml:space="preserve">
+    <value>Snap to surface</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_SnapToSurface_Desc" xml:space="preserve">
+    <value>Moves the actor onto the surface it stands on (ground, floors, furniture) whenever the scenario starts a run, searching from a little above its stored height, like the game does for every character it creates.
+
+Turn it off to keep the actor at exactly the stored height, for example on spots the game would not let it stand on.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration" xml:space="preserve">
     <value>Integration</value>

@@ -151,8 +151,15 @@ public partial class ScenarioEditorWindow {
     }
 
     private void DrawActorPlacementTab(ScenarioNpcData npc) {
-        DrawTabBody("##arrpActorTabPlacementBody", () => ArrpGuiForm.Draw("##arrpActorPlacementForm", form => {
+        DrawTabBody("##arrpActorTabPlacementBody", () => {
+            DrawActorNameForm(npc);
+            DrawActorPlacementSection(npc);
+            DrawActorBehaviorSection(npc);
+        });
+    }
 
+    private void DrawActorNameForm(ScenarioNpcData npc) {
+        ArrpGuiForm.Draw("##arrpActorNameForm", form => {
             form.Row(loc["ScenarioEditor_ActorData_General_Input_Name"], () => {
                 using (ImRaii.ItemWidth(-(ImGui.GetFrameHeight() + ImGui.GetTextLineHeight()))) {
                     var name = npc.Name;
@@ -168,7 +175,13 @@ public partial class ScenarioEditorWindow {
                 }
                 ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_General_Input_NameRandom"]);
             });
+        });
+    }
 
+    private void DrawActorPlacementSection(ScenarioNpcData npc) {
+        ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Placement_Title"]);
+
+        ArrpGuiForm.Draw("##arrpActorPlacementForm", form => {
             form.Row(loc["ScenarioEditor_ActorData_General_Input_Position"], () => {
                 var position = new Vector3(npc.Position.X, npc.Position.Y, npc.Position.Z);
                 if (ImGui.InputFloat3("##value", ref position)) {
@@ -183,6 +196,8 @@ public partial class ScenarioEditorWindow {
 
                 DrawGizmoTargetToggle("##gizmoPosition", ScenarioEditorGizmoTarget.Position);
             });
+
+            form.LabeledCheckboxRow(loc["ScenarioEditor_ActorData_General_Input_SnapToSurface"], npc.SnapToSurface, value => npc.SnapToSurface = value, loc["ScenarioEditor_ActorData_General_Input_SnapToSurface_Desc"]);
 
             form.Row(loc["ScenarioEditor_ActorData_General_Input_Rotation"], () => {
                 var rotation = npc.Rotation;
@@ -211,9 +226,15 @@ public partial class ScenarioEditorWindow {
 
                 DrawGizmoTargetToggle("##gizmoDrawOffset", ScenarioEditorGizmoTarget.DrawOffset);
             }, loc["ScenarioEditor_ActorData_General_Input_DrawOffset_Desc"]);
-            
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Behavior_TrackPlayer"], npc.Behavior.TrackPlayer, value => npc.Behavior.TrackPlayer = value);
-        }));
+        });
+    }
+
+    private void DrawActorBehaviorSection(ScenarioNpcData npc) {
+        ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Behavior_Title"]);
+
+        ArrpGuiForm.Draw("##arrpActorBehaviorForm", form => {
+            form.LabeledCheckboxRow(loc["ScenarioEditor_ActorData_Behavior_TrackPlayer"], npc.Behavior.TrackPlayer, value => npc.Behavior.TrackPlayer = value);
+        });
     }
 
     private void DrawGizmoTargetToggle(string id, ScenarioEditorGizmoTarget target) {
