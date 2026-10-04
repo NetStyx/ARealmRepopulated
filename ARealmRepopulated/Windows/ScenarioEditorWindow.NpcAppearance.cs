@@ -177,15 +177,6 @@ public partial class ScenarioEditorWindow {
                         appearance.Scale = Math.Clamp(scale, NpcAppearanceData.ScaleMin, NpcAppearanceData.ScaleMax);
                     }
                 }, loc["ScenarioEditor_ActorData_Appearance_CScale_Desc"]);
-
-                form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_CHeightMultiplier"], () => {
-                    var heightMultiplier = appearance.HeightMultiplier ?? NpcAppearanceData.HeightMultiplierDefault;
-                    if (ImGui.SliderFloat("##npcAppearanceEditorSetupHeightMultiplier", ref heightMultiplier,
-                            NpcAppearanceData.HeightMultiplierMin, NpcAppearanceData.HeightMultiplierMax, "%.2f")) {
-                        appearance.HeightMultiplier = Math.Clamp(heightMultiplier,
-                            NpcAppearanceData.HeightMultiplierMin, NpcAppearanceData.HeightMultiplierMax);
-                    }
-                }, loc["ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc"]);
             }
 
             // other plugins do not seem to handle voices ... so we still have that responsibility

@@ -53,7 +53,21 @@ public static class JsonExtensions {
         }
 
         throw new ArgumentException($"Unable to parse JSON node as enum {typeof(T).Name}");
-    }    
+    }
+
+    /// <param name="defaultWhenMissing">Returns the enums default instead of null when the node is missing. An unreadable value stays null either way.</param>
+    public static T? GetEnumOrNull<T>(this JsonNode? node, bool defaultWhenMissing = false) where T : struct, Enum {
+        if (node == null && defaultWhenMissing)
+            return default(T);
+
+        if (node is not JsonValue jsonValue)
+            return null;
+
+        if (jsonValue.TryGetValue<string>(out var stringValue))
+            return Enum.TryParse<T>(stringValue, ignoreCase: true, out var result) ? result : null;
+
+        return node.GetIntOrNull() is { } intValue ? (T)Enum.ToObject(typeof(T), intValue) : null;
+    }
 
     public static byte? GetByteOrNull(this JsonNode? node) {
         var value = node.GetDoubleOrNull();

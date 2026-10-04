@@ -36,6 +36,8 @@ public enum CustomizeIndex : int {
     FacePaintColor = 0x19
 }
 
+// NpcRace, NpcSex, NpcTribe and NpcBodyType are used during serialization.
+// Names (and bytes) should be kept in sync with the game.
 public enum NpcRace : byte {
     Unknown = 0,
     Hyur = 1,
@@ -90,11 +92,7 @@ public class NpcAppearanceData {
     public const float ScaleDefault = 1.0f;
     public const float ScaleSoftMin = 0.10f;
     public const float ScaleSoftMax = 5.00f;
-    
-    public const float HeightMultiplierMin = 0.10f;
-    public const float HeightMultiplierMax = 2.00f;
-    public const float HeightMultiplierDefault = 1.00f;
-    
+
     public static readonly JsonSerializerOptions SerializerOptions = new() {
         Converters = { new Vector3Converter(), new Vector4Converter() }
     };
@@ -154,7 +152,6 @@ public class NpcAppearanceData {
     public float? Transparency { get; set; }
     
     public float? Scale { get; set; } = ScaleDefault;
-    public float? HeightMultiplier { get; set; } = HeightMultiplierDefault;
 
     public bool HideWeapons { get; set; } = true;
     public bool HideHeadgear { get; set; } = true;

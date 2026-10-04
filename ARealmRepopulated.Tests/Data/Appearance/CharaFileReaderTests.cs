@@ -14,8 +14,13 @@ public class CharaFileReaderTests {
         { "Race": "Hyur", "Tribe": "Midlander", "Gender": "Feminine" }
         """;
 
+    private const float GameModelScale = 0.5f;
+
+    private static NpcAppearanceData Read(string rawData, float? gameModelScale = GameModelScale)
+        => CharaFileReader.Read(rawData, _ => gameModelScale);
+
     private static NpcAppearanceData ReadFixture()
-        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"));
+        => Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"));
 
     [Fact]
     public void Read_WithCompleteFile_ReadsCustomizeValues() {
@@ -46,21 +51,37 @@ public class CharaFileReaderTests {
     }
 
     [Fact]
-    public void Read_WithHeightMultiplier_ReadsTheModelScale() {
+    public void Read_WithHeightMultiplier_FoldsItIntoTheScale() {
         // separate from the Height customize value, which the fixture sets to 42
         var appearance = ReadFixture();
 
         appearance.Height.ShouldBe((byte)42);
-        appearance.HeightMultiplier.ShouldBe(1.02f);
+        appearance.Scale.ShouldBe(2.04f);
+    }
+
+    [Fact]
+    public void Read_WithHeightMultiplierOnNonHumanModel_KeepsTheScale() {
+        var appearance = Read("""
+            { "Race": "Hyur", "Tribe": "Midlander", "Gender": "Feminine", "HeightMultiplier": 1.15 }
+            """, gameModelScale: null);
+
+        appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
+    }
+
+    [Fact]
+    public void Read_WithoutHeightMultiplier_KeepsTheScale() {
+        var appearance = Read(MinimalChara);
+
+        appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
     }
 
     [Fact]
     public void Read_WithOnlyHeightMultiplier_LeavesTheColourBlockUnset() {
-        var appearance = CharaFileReader.Read("""
+        var appearance = Read("""
             { "Race": "Hyur", "Tribe": "Midlander", "Gender": "Feminine", "HeightMultiplier": 1.15 }
             """);
 
-        appearance.HeightMultiplier.ShouldBe(1.15f);
+        appearance.Scale.ShouldBe(2.3f);
         appearance.ExtendedAppearance.ShouldBeNull();
     }
 
@@ -75,7 +96,7 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithoutExtendedAppearance_LeavesTheBlockUnset() {
-        var appearance = CharaFileReader.Read(MinimalChara);
+        var appearance = Read(MinimalChara);
 
         appearance.ExtendedAppearance.ShouldBeNull();
     }
@@ -98,14 +119,14 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithoutGlasses_LeavesGlassesUnset() {
-        var appearance = CharaFileReader.Read(MinimalChara);
+        var appearance = Read(MinimalChara);
 
         appearance.Glasses.ShouldBeNull();
     }
 
     [Fact]
     public void Read_WithVoice_ReadsTheVoiceId() {
-        var appearance = CharaFileReader.Read("""
+        var appearance = Read("""
             { "Race": "Miqote", "Tribe": "KeeperOfTheMoon", "Gender": "Feminine", "Voice": 75 }
             """);
 
@@ -114,7 +135,7 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithoutVoice_LeavesVoiceUnset() {
-        var appearance = CharaFileReader.Read(MinimalChara);
+        var appearance = Read(MinimalChara);
 
         appearance.Voice.ShouldBeNull();
     }
@@ -122,7 +143,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithMissingOptionalEntries_ReadsWhatIsThere() {
         // one absent entry used to fail the whole file instead of just going unset
-        var appearance = CharaFileReader.Read("""
+        var appearance = Read("""
             { "Race": "AuRa", "Tribe": "Xaela", "Gender": "Masculine", "Head": 7 }
             """);
 
@@ -137,7 +158,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithMissingRace_ThrowsNamingTheEntry() {
         var ex = Should.Throw<InvalidDataException>(()
-            => CharaFileReader.Read("""{ "Tribe": "Midlander", "Gender": "Feminine" }"""));
+            => Read("""{ "Tribe": "Midlander", "Gender": "Feminine" }"""));
 
         ex.Message.ShouldContain("Race");
     }
@@ -145,14 +166,14 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithUnknownGender_ThrowsNamingTheEntry() {
         var ex = Should.Throw<InvalidDataException>(()
-            => CharaFileReader.Read("""{ "Race": "Hyur", "Tribe": "Midlander", "Gender": "Ambiguous" }"""));
+            => Read("""{ "Race": "Hyur", "Tribe": "Midlander", "Gender": "Ambiguous" }"""));
 
         ex.Message.ShouldContain("Gender");
     }
 
     [Fact]
     public void Read_WithUnreadableJson_ThrowsInvalidData() {
-        Should.Throw<InvalidDataException>(() => CharaFileReader.Read("not json at all"));
+        Should.Throw<InvalidDataException>(() => Read("not json at all"));
     }
 
     [Fact]
