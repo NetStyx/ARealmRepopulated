@@ -1,4 +1,3 @@
-using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Numbers;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Infrastructure;
@@ -92,9 +91,6 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         var human = GetHumanDrawObject(chara);
         if (human == null)
             return;
-
-        if (file.HeightMultiplier is { } height && float.IsFinite(height) && height > 0)
-            CharacterBaseScale.SetModelScale(&human->CharacterBase, height);
 
         var extended = file.ExtendedAppearance;
         if (extended == null || !extended.HasAnyValue)
@@ -232,8 +228,6 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         var human = GetHumanDrawObject(chara);
         if (human == null)
             return;
-
-        file.HeightMultiplier = CharacterBaseScale.GetModelScale(&human->CharacterBase);
 
         var parameters = GetCustomizeParameters(human);
         if (parameters == null)

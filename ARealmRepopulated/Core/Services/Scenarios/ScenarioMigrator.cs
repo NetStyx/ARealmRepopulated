@@ -7,9 +7,9 @@ using System.Text.Json.Nodes;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public class ScenarioMigrator(IPluginLog log) {
+public class ScenarioMigrator(IServiceProvider serviceProvider, IPluginLog log) {
 
-    public static int CurrentScenarioVersion { get; } = 4;
+    public static int CurrentScenarioVersion { get; } = 5;
 
     private readonly SortedDictionary<int, IScenarioMigration> _migrationDictionary = [];
 
@@ -21,7 +21,7 @@ public class ScenarioMigrator(IPluginLog log) {
         var migrationTypes = currentAssembly.GetTypes().Where(t => t.IsAssignableTo(migrationInterface) && t != migrationInterface);
         foreach (var migrationType in migrationTypes) {
             if (Attribute.GetCustomAttribute(migrationType, typeof(ScenarioMigrationAttribute)) is ScenarioMigrationAttribute migrationAttribute &&
-                Activator.CreateInstance(migrationType) is IScenarioMigration migrationInstance) {
+                ActivatorUtilities.CreateInstance(serviceProvider, migrationType) is IScenarioMigration migrationInstance) {
                 log.Debug($"Found {migrationInstance.GetType().Name} for version {migrationAttribute.Version}");
                 _migrationDictionary.Add(migrationAttribute.Version, migrationInstance);
             }

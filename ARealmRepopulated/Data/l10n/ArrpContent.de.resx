@@ -771,12 +771,6 @@
   <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc" xml:space="preserve">
-    <value>a</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
     <value>a</value>
   </data>

@@ -775,16 +775,10 @@ Turn it off to keep the actor at exactly the stored height, for example on spots
     <value>https://github.com/Critical-Impact/LuminaSupplemental</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
-    <value>Base Scale</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier" xml:space="preserve">
     <value>Actor scale</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHeightMultiplier_Desc" xml:space="preserve">
-    <value>The second size multiplier. Mostly used when importing characters via the file import option. For all intents and purposes, you can choose either one for making the actor larger or smaller.</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
-    <value>Size multiplier of the actor. Used by the game itself and is responsible for the larger and smaller versions of an NPC. The two scales are multiplied with each other. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
+    <value>Size multiplier of the actor, on top of the height from its appearance. Used by the game itself and is responsible for the larger and smaller versions of an NPC. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
   </data>
   <data name="ListWnd_Info_Title" xml:space="preserve">
     <value>Info</value>

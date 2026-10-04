@@ -68,9 +68,6 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
         if (!MoveControllerPlacementFlags.FlagsOffset.IsAvailable) {
             log.Warning("MoveController.Flags438 not found in ClientStructs, the snap to surface setting has no effect");
         }
-        if (!CharacterBaseScale.ModelScaleOffset.IsAvailable) {
-            log.Warning("CharacterBase.ModelScale not found in ClientStructs, the height multiplier has no effect");
-        }
     }
 
     public unsafe bool TrySpawnNpc(NpcSpawnOptions options, [NotNullWhen(true)] out NpcActor? character) {

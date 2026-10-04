@@ -1,4 +1,5 @@
 using ARealmRepopulated.Core.Json;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using System.IO;
 using System.Text;
@@ -11,7 +12,7 @@ namespace ARealmRepopulated.Data.Appearance.Parser;
 /// These are usually generated from brio and anamnesis as far as i can tell and share the same format ... to an extent.
 /// </summary>
 [AppearanceParser(Priority = 1, Extension = ".chara")]
-public class CharaFileParser(IPluginLog log) : IAppearanceFileParser {
+public class CharaFileParser(IPluginLog log, ArrpDataCache dataCache) : IAppearanceFileParser {
 
     public NpcAppearanceData? TryParse(byte[] data) {
 
@@ -29,7 +30,7 @@ public class CharaFileParser(IPluginLog log) : IAppearanceFileParser {
         }
 
         try {
-            var appearance = CharaFileReader.Read(rawData);
+            var appearance = CharaFileReader.Read(rawData, dataCache.GetModelScale);
             if (appearance.ModelCharaId != 0) {                
                 log.Warning("The character file uses model {Model}, so its customize data may not apply as stored", [appearance.ModelCharaId]);
             }
@@ -52,7 +53,7 @@ public static class CharaFileReader {
         AllowTrailingCommas = true,
     };
 
-    public static NpcAppearanceData Read(string rawData) {
+    public static NpcAppearanceData Read(string rawData, Func<NpcAppearanceData, float?> gameModelScale) {
 
         JsonObject? json;
         try {
@@ -61,10 +62,10 @@ public static class CharaFileReader {
             throw new InvalidDataException("the file does not contain readable JSON", ex);
         }
 
-        return Read(json ?? throw new InvalidDataException("the file does not contain a JSON object"));
+        return Read(json ?? throw new InvalidDataException("the file does not contain a JSON object"), gameModelScale);
     }
 
-    public static NpcAppearanceData Read(JsonObject json) {
+    public static NpcAppearanceData Read(JsonObject json, Func<NpcAppearanceData, float?> gameModelScale) {
 
         var data = new NpcAppearanceData {
             ModelCharaId = json["ModelType"].GetIntOrNull() ?? 0,
@@ -124,7 +125,14 @@ public static class CharaFileReader {
         data.LeftRing = ReadEquipment(json["LeftRing"] as JsonObject);
         data.RightRing = ReadEquipment(json["RightRing"] as JsonObject);
 
-        data.HeightMultiplier = json["HeightMultiplier"].GetFloatOrNull();
+        // Depending on the tool which creates the .chara file, it will contain a height multiplier that was applied to the games model scale.
+        // We, however, leave the model scale to the game. That works out because both end up multiplied into the same skeleton, so the ratio moves into the actor scale and the size is kept.        
+        if (json["HeightMultiplier"].GetFloatOrNull() is { } heightMultiplier 
+            && float.IsFinite(heightMultiplier) 
+            && heightMultiplier > 0
+            && gameModelScale(data) is { } gameScale) {
+            data.Scale = (data.Scale ?? NpcAppearanceData.ScaleDefault) * heightMultiplier / gameScale;
+        }
 
         var extendedAppearance = new NpcExtendedAppearance {
             SkinColor = json["SkinColor"].GetVector3OrNull(),
