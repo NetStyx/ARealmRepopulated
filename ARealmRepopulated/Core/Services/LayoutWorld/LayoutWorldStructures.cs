@@ -47,14 +47,10 @@ internal readonly record struct SnapSideChoice(
     float DistanceSquared = 0f
 );
 
-// FUN_140e10980:
+// doc/research/layout-snapping.md
 [StructLayout(LayoutKind.Explicit)]
 public unsafe struct SnapLayoutInstance {
     [FieldOffset(0x00)] public ILayoutInstance Base;
-
-    // bVar1 = *(byte *)(candidate + 0x70)
     [FieldOffset(0x70)] public SnapSideMask AllowedSideMask;
-
-    // *(char *)(candidate + 0x74) == candidateType
     [FieldOffset(0x74)] public byte Type;
 }
