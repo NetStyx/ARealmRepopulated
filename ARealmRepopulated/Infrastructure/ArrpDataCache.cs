@@ -196,7 +196,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
         // same customize values NpcAppearanceService.Apply writes
         => GetModelScale(appearance.ModelCharaId, appearance.Tribe, appearance.Sex, appearance.BodyType, appearance.Height ?? 0);
 
-    public float? GetModelScale(int modelCharaId, NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte height) {
+    public virtual float? GetModelScale(int modelCharaId, NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte height) {
         if (!IsHumanModel(modelCharaId))
             return null;
 

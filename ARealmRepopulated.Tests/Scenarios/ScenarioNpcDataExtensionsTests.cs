@@ -63,8 +63,8 @@ public class ScenarioNpcDataExtensionsTests {
     public void ToSpawnOptions_WithoutActorName_KeepsTheNpcWorld() {
         var options = ToSpawnOptions(BuildNpc());
 
-        options.HomeWorld.ShouldBe(NpcSpawnOptions.NoWorld);
-        options.CurrentWorld.ShouldBe(NpcSpawnOptions.NoWorld);
+        options.HomeWorld.ShouldBe(NpcSpawnOptions.DefaultWorld);
+        options.CurrentWorld.ShouldBe(NpcSpawnOptions.DefaultWorld);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class ScenarioNpcDataExtensionsTests {
 
         options.IsPublic.ShouldBeFalse();
         options.Kind.ShouldBe(ObjectKind.BattleNpc);
-        options.HomeWorld.ShouldBe(NpcSpawnOptions.NoWorld);
+        options.HomeWorld.ShouldBe(NpcSpawnOptions.DefaultWorld);
         options.AppearanceManagement.ShouldBe(AppearanceManagement.Internal);
     }
 }

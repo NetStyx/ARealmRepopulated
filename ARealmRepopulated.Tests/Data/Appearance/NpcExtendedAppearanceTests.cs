@@ -1,6 +1,7 @@
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Appearance.Parser;
+using ARealmRepopulated.Tests.Infrastructure;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using Shouldly;
 using System.Text.Json;
@@ -71,7 +72,7 @@ public class NpcExtendedAppearanceTests {
     public void RoundTrip_FromACharacterFile_KeepsTheColoursAndTheFoldedScale(string optionsName) {
         // the whole path a design travels: character file -> appearance -> scenario file -> appearance
         var options = OptionsNamed(optionsName);
-        var imported = CharaFileReader.Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"), _ => 0.5f);
+        var imported = CharaFileReader.Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"), new FixedModelScaleCache(0.5f));
 
         var back = JsonSerializer.Deserialize<NpcAppearanceData>(JsonSerializer.Serialize(imported, options), options);
 

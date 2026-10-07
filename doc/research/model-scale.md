@@ -1,8 +1,8 @@
 # Model scale and the customize Height
 
-Our actors used to carry two size sliders: the actor scale and a "height multiplier". The multiplier came from .chara files, which store the draw objects model scale. To my shame, i did not verify if the value is the output or the input for the calculation, so i wrote it straight into `CharacterBase.ModelScale`, and that turned out to replace a value the game computes itself. As a side effect, the Height setting of an actors appearance did nothing at all.
+Our actors used to carry two size sliders: the actor scale and a "height multiplier". The multiplier came from .chara files, which store the draw objects model scale. I assumed at that time that this would be an variable in the calculation and not the result, so i wrote it straight into `CharacterBase.ModelScale`, and that turned out to replace a value the game computes itself. As a side effect, the Height setting of an actors appearance did nothing at all.
 
-## Where the model scale comes from
+## Human heights
 
 A human draw object gets its model scale in two places, `Human.SetupFromCharacterData` when it is created and `Human.UpdateDrawData` when its customize data changes. Both look it up from the customize data:
 
@@ -12,7 +12,7 @@ this->CharacterBase.ModelScale =
     <GetHumanModelScale>(CharacterUtility.Instance, Customize.Tribe, Customize.Sex, Customize.BodyType, Customize.Height);
 ```
 
-Every other model type keeps 1f. The lookup reads `chara/xls/charaMake/human.cmp`, which holds a size range for each race, body type and clan, with one min/max pair for males and one for females:
+Every other model type keeps 1f. The lookup reads `chara/xls/charaMake/human.cmp`, which contains a size range for each race, body type and clan, with one min/max pair for males and one for females:
 
 ```c
 float <GetHumanModelScale>(CharacterUtility* this, byte tribe, byte sex, byte bodyType, byte height) {
@@ -29,15 +29,15 @@ float <GetHumanModelScale>(CharacterUtility* this, byte tribe, byte sex, byte bo
 }
 ```
 
-8 races × 10 entries × 0x38 bytes from `0x2C800`. Putting in example values give the expected resuts: Highlanders are taller than Midlanders, and young Miqote and AuRa are much smaller.
+8 races × 10 entries × 0x38 bytes from `0x2C800`
 
-## Why folding into the actor scale is exact
+## Calculate the scaling
 
-`GameObject.UpdateVisualScale` copies `GameObject.Scale` into the draw object's `Object.Scale`, and the skeleton scale multiplies them:
+`GameObject.UpdateVisualScale` copies `GameObject.Scale` into the draw objects `Object.Scale`, and the skeleton scale multiplies them:
 
 ```c
 // CharacterBase vf98
 skeletonScale = Object.Scale * ModelScale * <a third factor i did not bother to check>;
 ```
 
-A factor in `GameObject.Scale` therefore looks exactly like the same factor in `ModelScale`. To fix it correctly, we no longer write `ModelScale` directly and the game puts the Height-derived value back. Anything that wants to replace it, like an old scenario's height multiplier or a .chara file `HeightMultiplier`, is folded into the actor scale as `Scale * multiplier / gameValue`. `HumanHeightTable` reproduces the lookup in managed code from the same file. That is static game data, so it needs no memory read and no hook, but will most likely break with the additons of Evercold. But everything else breaks anyway so - whatever.
+So the goal is to migrate the existing height modifier to the model scale and on import we extract the correct value by reverse calculating from the given .chara value and the human.cmp table by reproducing the lookup in managed code. Thats static game data and will most likely break with the additons of Evercold. But everything else breaks anyway so - whatever.

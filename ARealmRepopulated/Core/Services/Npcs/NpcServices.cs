@@ -264,20 +264,17 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
 }
 
 /// <summary>
-/// Everything that is fixed for an actor over its lifetime. It is applied once on spawn, and the reset between loops returns to it.
+/// Everything that is fixed for an actor over its lifetime. Applied on spawn and then reset after the loop ends.
 /// </summary>
 public class NpcSpawnOptions {
     public static NpcSpawnOptions Default => new();
-
-    /// <summary>
-    /// Default value for npcs
-    /// </summary>
-    public const ushort NoWorld = 0xFFFF;
+    
+    public const ushort DefaultWorld = 0xFFFF;
 
     public ObjectKind Kind { get; set; } = ObjectKind.BattleNpc;
     public string Name { get; set; } = "";
-    public ushort HomeWorld { get; set; } = NoWorld;
-    public ushort CurrentWorld { get; set; } = NoWorld;
+    public ushort HomeWorld { get; set; } = DefaultWorld;
+    public ushort CurrentWorld { get; set; } = DefaultWorld;
 
     public Vector3 Position { get; set; }
     public float Rotation { get; set; }

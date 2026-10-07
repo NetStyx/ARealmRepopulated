@@ -1,5 +1,6 @@
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Appearance.Parser;
+using ARealmRepopulated.Tests.Infrastructure;
 using Shouldly;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System.Globalization;
@@ -10,21 +11,20 @@ namespace ARealmRepopulated.Tests.Data.Appearance;
 
 public class CharaFileReaderTests {
 
-    private const string MinimalChara = """
-        { "Race": "Hyur", "Tribe": "Midlander", "Gender": "Feminine" }
-        """;
+    private const string ExtendedAppearanceFile = "extended-appearance.chara";
+    private const string MinimalFile = "minimal.chara";
+    private const string NonHumanFile = "non-human.chara";
+    private const string HeightMultiplierOnlyFile = "height-multiplier-only.chara";
+    private const string MissingRaceFile = "missing-race.chara";
+    private const string UnknownGenderFile = "unknown-gender.chara";
+    private const string NotJsonFile = "not-json.chara";
 
-    private const float GameModelScale = 0.5f;
-
-    private static NpcAppearanceData Read(string rawData, float? gameModelScale = GameModelScale)
-        => CharaFileReader.Read(rawData, _ => gameModelScale);
-
-    private static NpcAppearanceData ReadFixture()
-        => Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"));
+    private static NpcAppearanceData Read(string fileName)
+        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), new FixedModelScaleCache(0.5f));
 
     [Fact]
     public void Read_WithCompleteFile_ReadsCustomizeValues() {
-        var appearance = ReadFixture();
+        var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Race.ShouldBe(NpcRace.Miqote);
         appearance.Tribe.ShouldBe(NpcTribe.KeeperOfTheMoon);
@@ -38,7 +38,7 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithExtendedAppearance_ReadsTheShaderColours() {
-        var extended = ReadFixture().ExtendedAppearance;
+        var extended = Read(ExtendedAppearanceFile).ExtendedAppearance;
 
         extended.ShouldNotBeNull();
         extended.SkinColor.ShouldBe(new Vector3(0.25f, 0.5f, 0.75f));
@@ -53,7 +53,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithHeightMultiplier_FoldsItIntoTheScale() {
         // separate from the Height customize value, which the fixture sets to 42
-        var appearance = ReadFixture();
+        var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Height.ShouldBe((byte)42);
         appearance.Scale.ShouldBe(2.04f);
@@ -61,25 +61,21 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithHeightMultiplierOnNonHumanModel_KeepsTheScale() {
-        var appearance = Read("""
-            { "Race": "Hyur", "Tribe": "Midlander", "Gender": "Feminine", "HeightMultiplier": 1.15 }
-            """, gameModelScale: null);
+        var appearance = Read(NonHumanFile);
 
         appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
     }
 
     [Fact]
     public void Read_WithoutHeightMultiplier_KeepsTheScale() {
-        var appearance = Read(MinimalChara);
+        var appearance = Read(MinimalFile);
 
         appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
     }
 
     [Fact]
     public void Read_WithOnlyHeightMultiplier_LeavesTheColourBlockUnset() {
-        var appearance = Read("""
-            { "Race": "Hyur", "Tribe": "Midlander", "Gender": "Feminine", "HeightMultiplier": 1.15 }
-            """);
+        var appearance = Read(HeightMultiplierOnlyFile);
 
         appearance.Scale.ShouldBe(2.3f);
         appearance.ExtendedAppearance.ShouldBeNull();
@@ -88,7 +84,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithShaderColourAboveOne_KeepsItUnclamped() {
         // these are raw shader values, not a 0-1 colour picker - glowing eyes legitimately exceed 1
-        var extended = ReadFixture().ExtendedAppearance;
+        var extended = Read(ExtendedAppearanceFile).ExtendedAppearance;
 
         extended.ShouldNotBeNull();
         extended.LeftEyeColor.ShouldBe(new Vector3(2.5f, 3.5f, 4.5f));
@@ -96,7 +92,7 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithoutExtendedAppearance_LeavesTheBlockUnset() {
-        var appearance = Read(MinimalChara);
+        var appearance = Read(MinimalFile);
 
         appearance.ExtendedAppearance.ShouldBeNull();
     }
@@ -104,7 +100,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithFractionalTransparency_ReadsTheWholeFile() {
         // reading this as an integer used to throw and cost the entire import
-        var appearance = ReadFixture();
+        var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Transparency.ShouldBe(0.5f);
         appearance.Race.ShouldBe(NpcRace.Miqote);
@@ -112,30 +108,28 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithGlassesId_ReadsTheNestedId() {
-        var appearance = ReadFixture();
+        var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Glasses.ShouldBe((ushort)3);
     }
 
     [Fact]
     public void Read_WithoutGlasses_LeavesGlassesUnset() {
-        var appearance = Read(MinimalChara);
+        var appearance = Read(MinimalFile);
 
         appearance.Glasses.ShouldBeNull();
     }
 
     [Fact]
     public void Read_WithVoice_ReadsTheVoiceId() {
-        var appearance = Read("""
-            { "Race": "Miqote", "Tribe": "KeeperOfTheMoon", "Gender": "Feminine", "Voice": 75 }
-            """);
+        var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Voice.ShouldBe((byte)75);
     }
 
     [Fact]
     public void Read_WithoutVoice_LeavesVoiceUnset() {
-        var appearance = Read(MinimalChara);
+        var appearance = Read(MinimalFile);
 
         appearance.Voice.ShouldBeNull();
     }
@@ -143,9 +137,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithMissingOptionalEntries_ReadsWhatIsThere() {
         // one absent entry used to fail the whole file instead of just going unset
-        var appearance = Read("""
-            { "Race": "AuRa", "Tribe": "Xaela", "Gender": "Masculine", "Head": 7 }
-            """);
+        var appearance = Read(MinimalFile);
 
         appearance.Race.ShouldBe(NpcRace.AuRa);
         appearance.Sex.ShouldBe(NpcSex.Male);
@@ -158,7 +150,7 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithMissingRace_ThrowsNamingTheEntry() {
         var ex = Should.Throw<InvalidDataException>(()
-            => Read("""{ "Tribe": "Midlander", "Gender": "Feminine" }"""));
+            => Read(MissingRaceFile));
 
         ex.Message.ShouldContain("Race");
     }
@@ -166,19 +158,19 @@ public class CharaFileReaderTests {
     [Fact]
     public void Read_WithUnknownGender_ThrowsNamingTheEntry() {
         var ex = Should.Throw<InvalidDataException>(()
-            => Read("""{ "Race": "Hyur", "Tribe": "Midlander", "Gender": "Ambiguous" }"""));
+            => Read(UnknownGenderFile));
 
         ex.Message.ShouldContain("Gender");
     }
 
     [Fact]
     public void Read_WithUnreadableJson_ThrowsInvalidData() {
-        Should.Throw<InvalidDataException>(() => Read("not json at all"));
+        Should.Throw<InvalidDataException>(() => Read(NotJsonFile));
     }
 
     [Fact]
     public void Read_WithFacialFeatures_SetsTheBitmask() {
-        var appearance = ReadFixture();
+        var appearance = Read(ExtendedAppearanceFile);
 
         // First | Third | LegacyTattoo
         appearance.FacialFeatures.ShouldBe((byte)(1 | 4 | 128));
@@ -192,7 +184,7 @@ public class CharaFileReaderTests {
         try {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("de-DE");
 
-            var extended = ReadFixture().ExtendedAppearance;
+            var extended = Read(ExtendedAppearanceFile).ExtendedAppearance;
 
             extended.ShouldNotBeNull();
             extended.SkinColor.ShouldBe(new Vector3(0.25f, 0.5f, 0.75f));
@@ -204,7 +196,7 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithEquipment_ReadsModelAndDye() {
-        var appearance = ReadFixture();
+        var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Body.ShouldNotBeNull();
         appearance.Body.ModelId.ShouldBe((ushort)200);

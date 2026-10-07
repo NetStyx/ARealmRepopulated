@@ -30,7 +30,7 @@ public class CharaFileParser(IPluginLog log, ArrpDataCache dataCache) : IAppeara
         }
 
         try {
-            var appearance = CharaFileReader.Read(rawData, dataCache.GetModelScale);
+            var appearance = CharaFileReader.Read(rawData, dataCache);
             if (appearance.ModelCharaId != 0) {                
                 log.Warning("The character file uses model {Model}, so its customize data may not apply as stored", [appearance.ModelCharaId]);
             }
@@ -53,7 +53,7 @@ public static class CharaFileReader {
         AllowTrailingCommas = true,
     };
 
-    public static NpcAppearanceData Read(string rawData, Func<NpcAppearanceData, float?> gameModelScale) {
+    public static NpcAppearanceData Read(string rawData, ArrpDataCache dataCache) {
 
         JsonObject? json;
         try {
@@ -62,10 +62,10 @@ public static class CharaFileReader {
             throw new InvalidDataException("the file does not contain readable JSON", ex);
         }
 
-        return Read(json ?? throw new InvalidDataException("the file does not contain a JSON object"), gameModelScale);
+        return Read(json ?? throw new InvalidDataException("the file does not contain a JSON object"), dataCache);
     }
 
-    public static NpcAppearanceData Read(JsonObject json, Func<NpcAppearanceData, float?> gameModelScale) {
+    public static NpcAppearanceData Read(JsonObject json, ArrpDataCache dataCache) {
 
         var data = new NpcAppearanceData {
             ModelCharaId = json["ModelType"].GetIntOrNull() ?? 0,
@@ -130,7 +130,7 @@ public static class CharaFileReader {
         if (json["HeightMultiplier"].GetFloatOrNull() is { } heightMultiplier 
             && float.IsFinite(heightMultiplier) 
             && heightMultiplier > 0
-            && gameModelScale(data) is { } gameScale) {
+            && dataCache.GetModelScale(data) is { } gameScale) {
             data.Scale = (data.Scale ?? NpcAppearanceData.ScaleDefault) * heightMultiplier / gameScale;
         }
 

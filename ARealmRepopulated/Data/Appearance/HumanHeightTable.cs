@@ -4,12 +4,12 @@ using System.IO;
 namespace ARealmRepopulated.Data.Appearance;
 
 /// <summary>
-/// The size ranges from chara/xls/charaMake/human.cmp, looked up the way the game does when it sets up a human draw object.
+/// The size ranges from human.cmp with the logic copied from the games 'GetHumanModelScale' (which is unfortunately not defined in cs)
 /// See /doc/research/model-scale.md.
 /// </summary>
 /// <remarks>
-/// One entry per race, body type and clan, each holding a min/max pair for males and one for females.
-/// The customize Height (0-100) picks a point in between, 255 means a plain 1.0 and anything else above 100 the minimum.
+/// The whole implementation is currently only needed because the .chara files gives me the computed value instead of the 1 - 100 range.
+/// Maybe if i ever get around to implementing a proper character editor this will be more useful.
 /// </remarks>
 public class HumanHeightTable {
 
@@ -18,7 +18,7 @@ public class HumanHeightTable {
     private const int TableStart = 0x2C800;
     private const int EntrySize = 0x38;
     private const int RaceCount = 8;
-    private const int EntriesPerRace = 10; // 5 body types, 2 clans each
+    private const int EntriesPerRace = 10;
 
     private readonly byte[] _data;
 
@@ -33,7 +33,6 @@ public class HumanHeightTable {
         if (height == byte.MaxValue)
             return 1f;
 
-        // the game derives race and clan from the tribe alone and falls back to the first race and body type for anything out of range
         var tribeIndex = (uint)tribe - 1;
         var race = tribeIndex >> 1;
         if (race >= RaceCount)
