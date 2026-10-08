@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace ARealmRepopulated.Tests.Infrastructure;
 
 /// <summary>
-/// Returns a fixed model scale for human models and none for any other.
+/// Returns a fixed model scale for human models.
 /// </summary>
 internal class FixedModelScaleCache(float modelScale) : ArrpDataCache(null!, null!) {
 

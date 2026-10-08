@@ -9,8 +9,7 @@ namespace ARealmRepopulated.Core.Services.Scenarios;
 public static class ScenarioNpcDataExtensions {
 
     /// <summary>
-    /// The options a scenario actor is spawned with. The local player is only read for integration actors, which take over its worlds;
-    /// every other actor keeps the npc world.
+    /// The definition a scenario actor is spawned with. See <see cref="NpcSpawnOptions"/> for details.
     /// </summary>
     public static unsafe NpcSpawnOptions ToSpawnOptions(this ScenarioNpcData npc, Character* localPlayer) {
         var options = new NpcSpawnOptions {
@@ -20,8 +19,7 @@ public static class ScenarioNpcDataExtensions {
             SnapToSurface = npc.SnapToSurface,
             Appearance = npc.Appearance
         };
-
-        // an integration actor name makes the actor a Pc, so other plugins can find it by that name
+        
         if (npc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {
             options.IsPublic = true;
             options.Kind = ObjectKind.Pc;

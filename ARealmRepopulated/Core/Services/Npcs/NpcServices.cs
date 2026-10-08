@@ -16,14 +16,14 @@ namespace ARealmRepopulated.Core.Services.Npcs;
 /// Owns the lifetime of our actors: creation and destruction either by us or by the game.
 /// </summary>
 /// <remarks>
-/// As the repsonisbilities on who should do what got clouded more and more, the following rule is now in place:
+/// The repsonisbilities on what part of the actor initialization does what got clouded more and more. So here is a short overview of the flow:
 /// This service manages only the livetime of the actor, his properties are managed by the actor itself.
 /// <code>
 ///   NpcSpawnOptions                   fixed values for one actor across its entire lifetime.
 ///     NpcServices.TrySpawnNpc         creates the object via the games apis, calls NpcActor.Initialize, registers it within the service, raises OnActorCreated.
 ///       NpcActor.Initialize           applies invariants, then the options. 
-///       NpcActor.Reset                restores the actor to the state it had after initialize.
 ///       NpcActor.Set*()               runtime changes only: movement, rotation, emote handling, appearance changes, etc.
+///       NpcActor.Reset                restores the actor to the state it had after initialize.
 ///     NpcServices.DespawnNpc          removes the actor from the service, deletes the game object, raises OnActorDestroyed.
 /// </code>
 /// </remarks>

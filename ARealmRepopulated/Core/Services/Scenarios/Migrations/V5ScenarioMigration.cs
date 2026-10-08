@@ -6,9 +6,8 @@ using System.Text.Json.Nodes;
 namespace ARealmRepopulated.Core.Services.Scenarios.Migrations;
 
 /// <summary>
-/// In the previous versions the actors size is defined by two scales. 
-/// It was an mistake to give users two different ways to scale the same thing just because the game does the calculation that way. 
-/// Now i have to resoncile the two somehow. 
+/// In the previous versions the actors size is defined by two scales which was a huge mistake as it gave the users two ways to scale the same thing 
+/// just because the game does the calculation that way. Now i have to resoncile this somehow. 
 /// </summary>
 [ScenarioMigration(Version = 5, Description = "Merge height multiplier into actor scale")]
 public class V5ScenarioMigration(ArrpDataCache dataCache) : IScenarioMigration {
