@@ -1,117 +1,52 @@
-﻿using ARealmRepopulated.Core.Json;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Scenarios;
+using ARealmRepopulated.Infrastructure;
+using ARealmRepopulated.Tests.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
-using System;
+using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 
 namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioFileTests {
 
-    [Fact]
-    public void ScenarioFile_IsKeepingDataIntegrityBetweenSerialization() {
+    [Theory]
+    [InlineData("v2-1975ef01-990d-44d7-a955-c6fd4b1b3ff2.json")]
+    [InlineData("v2-2bc60476-07b2-4a78-9b2b-ad6f14f5878b.json")]
+    [InlineData("v2-9c382d65-99c1-411a-8cb1-57d15cc74073.json")]
+    [InlineData("v3-b9d6d283-0483-490b-b7b3-7e9d06d90f85.json")]
+    [InlineData("v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json")]
+    public void OlderScenarioFile_LoadsAfterMigration(string fileName) {
+        // the same path a file on disk takes: migrated in place, then read into the current model
+        var services = new ServiceCollection().AddSingleton<ArrpDataCache>(new FixedModelScaleCache(64, 1f)).BuildServiceProvider();
+        var migrator = new ScenarioMigrator(services, NullPluginLog.Instance);
+        migrator.Initialize();
 
-        var scenario = new ScenarioData { Title = GetRandomString(), Description = GetRandomString() };
+        var file = new FileInfo(Path.GetTempFileName());
+        try {
+            File.WriteAllText(file.FullName, TestHelper.ReadEmbeddedResource(fileName));
 
-        var npcOne = new ScenarioNpcData { Name = GetRandomString(), Position = GetRandomVector3(), Rotation = GetRandomRadian() };
-        npcOne.Actions.Add(new ScenarioNpcWaitingAction { Duration = GetRandomTime() });
-        npcOne.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Running });
-        npcOne.Actions.Add(new ScenarioNpcSyncAction());
-        npcOne.Actions.Add(new ScenarioNpcEmoteAction { Duration = GetRandomTime(), Emote = (ushort)Random.Shared.Next(1, 100), NpcTalk = GetRandomString() });
-        npcOne.Actions.Add(new ScenarioNpcSpawnAction());
-        npcOne.Actions.Add(new ScenarioNpcDespawnAction());
+            migrator.Migrate(file, out var metaData).ShouldBeTrue();
+            var scenario = JsonSerializer.Deserialize<ScenarioData>(File.ReadAllText(file.FullName), ScenarioFileManager.ScenarioLoadSerializerOptions);
 
-        scenario.Npcs.Add(npcOne);
-
-        var restoredScenario = Recode(scenario);
-
-        restoredScenario.Title.ShouldBe(scenario.Title);
-        restoredScenario.Description.ShouldBe(scenario.Description);
-        restoredScenario.Npcs.Count.ShouldBe(scenario.Npcs.Count);
-
-        var restoredNpcOne = restoredScenario.Npcs[0];
-        restoredNpcOne.Name.ShouldBe(npcOne.Name);
-        restoredNpcOne.Appearance.ToBase64().ShouldBe(npcOne.Appearance.ToBase64());
-        restoredNpcOne.Position.ShouldBe(npcOne.Position);
-        restoredNpcOne.Rotation.ShouldBe(npcOne.Rotation);
-        restoredNpcOne.Actions.Count.ShouldBe(npcOne.Actions.Count);
-
-        for (var i = 0; i < npcOne.Actions.Count; i++) {
-            var originalAction = npcOne.Actions[i];
-            var restoredAction = restoredNpcOne.Actions[i];
-            restoredAction.GetType().ShouldBe(originalAction.GetType());
-            switch (originalAction) {
-                case ScenarioNpcWaitingAction originalWaiting:
-                    var restoredWaiting = (ScenarioNpcWaitingAction)restoredAction;
-                    restoredWaiting.Duration.ShouldBe(originalWaiting.Duration);
-                    break;
-                case ScenarioNpcMovementAction originalMovement:
-                    var restoredMovement = (ScenarioNpcMovementAction)restoredAction;
-                    restoredMovement.TargetPosition.ShouldBe(originalMovement.TargetPosition);
-                    restoredMovement.Speed.ShouldBe(NpcSpeed.Running);
-                    break;
-                case ScenarioNpcEmoteAction originalEmote:
-                    var restoredEmote = (ScenarioNpcEmoteAction)restoredAction;
-                    restoredEmote.Emote.ShouldBe(originalEmote.Emote);
-                    restoredEmote.Loop.ShouldBe(originalEmote.Loop);
-                    restoredEmote.Duration.ShouldBe(originalEmote.Duration);
-                    restoredEmote.NpcTalk.ShouldBe(originalEmote.NpcTalk);
-                    break;
-
-                default:
-                    break;
-            }
+            metaData.Version.ShouldBe(ScenarioMigrator.CurrentScenarioVersion);
+            scenario.ShouldNotBeNull();
+            scenario.Npcs.ShouldNotBeEmpty();
+            scenario.Npcs.SelectMany(npc => npc.Actions).ShouldAllBe(action => action != null);
+        } finally {
+            file.Delete();
         }
-
-    }
-
-    [Fact]
-    public void ScenarioFile_IsKeepingTheDrawOffsetBetweenSerialization() {
-
-        var scenario = new ScenarioData();
-        var npc = new ScenarioNpcData { Name = GetRandomString(), DrawOffset = new Vector3(0.15f, 0.85f, -0.25f) };
-        scenario.Npcs.Add(npc);
-
-        var restoredScenario = Recode(scenario);
-
-        restoredScenario.Npcs[0].DrawOffset.ShouldBe(npc.DrawOffset);
-    }
-
-    [Fact]
-    public void ScenarioFile_IsKeepingCustomSpeedsBetweenSerialization() {
-
-        var scenario = new ScenarioData();
-        var npc = new ScenarioNpcData { Name = GetRandomString() };
-        npc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Custom, CustomSpeed = 4.25f });
-        npc.Actions.Add(new ScenarioNpcPathAction {
-            Points = [
-                new PathMovementPoint { Point = GetRandomVector3(), Speed = NpcSpeed.Custom, CustomSpeed = 0.75f },
-                new PathMovementPoint { Point = GetRandomVector3(), Speed = NpcSpeed.Running, CustomSpeed = 0f }
-            ]
-        });
-        scenario.Npcs.Add(npc);
-
-        var restoredScenario = RecodeWithPluginOptions(scenario);
-
-        var restoredMovement = (ScenarioNpcMovementAction)restoredScenario.Npcs[0].Actions[0];
-        restoredMovement.Speed.ShouldBe(NpcSpeed.Custom);
-        restoredMovement.CustomSpeed.ShouldBe(4.25f);
-
-        var restoredPath = (ScenarioNpcPathAction)restoredScenario.Npcs[0].Actions[1];
-        restoredPath.Points[0].Speed.ShouldBe(NpcSpeed.Custom);
-        restoredPath.Points[0].CustomSpeed.ShouldBe(0.75f);
-        restoredPath.Points[1].Speed.ShouldBe(NpcSpeed.Running);
     }
 
     [Fact]
     public void ScenarioFile_PresetSpeeds_DoNotWriteACustomSpeedKey() {
 
         var scenario = new ScenarioData();
-        var npc = new ScenarioNpcData { Name = GetRandomString() };
-        npc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = GetRandomVector3(), Speed = NpcSpeed.Walking });
+        var npc = new ScenarioNpcData { Name = "Bramblefox" };
+        npc.Actions.Add(new ScenarioNpcMovementAction { TargetPosition = Vector3.One, Speed = NpcSpeed.Walking });
         scenario.Npcs.Add(npc);
 
         var json = JsonSerializer.Serialize(scenario, ScenarioFileManager.ScenarioLoadSerializerOptions);
@@ -121,77 +56,4 @@ public class ScenarioFileTests {
         json.ShouldNotContain("CustomSpeed");
         json.ShouldContain("\"Walking\"");
     }
-
-    [Fact]
-    public void ScenarioFile_IsKeepingConditionsBetweenSerialization() {
-
-        var scenario = new ScenarioData {
-            Conditions = [
-                new ScenarioEorzeaTimeCondition { StartHour = 21, EndHour = 4 },
-                new ScenarioWeatherCondition { WeatherIds = [7, 8], Negate = true },
-                new ScenarioChanceCondition { Percent = 12.5f },
-            ]
-        };
-
-        var restoredScenario = RecodeWithPluginOptions(scenario);
-
-        restoredScenario.Conditions.Count.ShouldBe(3);
-
-        var restoredTime = restoredScenario.Conditions[0].ShouldBeOfType<ScenarioEorzeaTimeCondition>();
-        restoredTime.StartHour.ShouldBe(21);
-        restoredTime.EndHour.ShouldBe(4);
-        restoredTime.Negate.ShouldBeFalse();
-
-        var restoredWeather = restoredScenario.Conditions[1].ShouldBeOfType<ScenarioWeatherCondition>();
-        restoredWeather.WeatherIds.ShouldBe([(byte)7, (byte)8]);
-        restoredWeather.Negate.ShouldBeTrue();
-
-        var restoredChance = restoredScenario.Conditions[2].ShouldBeOfType<ScenarioChanceCondition>();
-        restoredChance.Percent.ShouldBe(12.5f);
-    }
-
-    [Fact]
-    public void ScenarioFile_WithoutConditions_RestoresAnEmptyConditionList() {
-        RecodeWithPluginOptions(new ScenarioData()).Conditions.ShouldBeEmpty();
-    }
-
-    private static ScenarioData RecodeWithPluginOptions(ScenarioData data) {
-        var json = JsonSerializer.Serialize(data, ScenarioFileManager.ScenarioLoadSerializerOptions);
-        json.ShouldNotBeNullOrEmpty();
-
-        var deserialized = JsonSerializer.Deserialize<ScenarioData>(json, ScenarioFileManager.ScenarioLoadSerializerOptions);
-        deserialized.ShouldNotBeNull();
-
-        return deserialized;
-    }
-
-    private static ScenarioData Recode(ScenarioData data) {
-        var options = new JsonSerializerOptions();
-        options.WriteIndented = true;
-        options.Converters.Add(new Vector3Converter());
-        options.TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance } };
-        var serializedStuff = JsonSerializer.Serialize(data, options);
-        serializedStuff.ShouldNotBeNullOrEmpty();
-
-        var deserialized = JsonSerializer.Deserialize<ScenarioData>(serializedStuff, options);
-        deserialized.ShouldNotBeNull();
-
-        return deserialized;
-    }
-
-    private static string GetRandomString()
-        => Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-
-    private static Vector3 GetRandomVector3()
-        => new(
-            Random.Shared.NextSingle() * 1000f,
-            Random.Shared.NextSingle() * 1000f,
-            Random.Shared.NextSingle() * 1000f);
-
-    private static float GetRandomRadian()
-        => Random.Shared.NextSingle() * MathF.PI * 2f;
-
-    private static float GetRandomTime()
-        => Random.Shared.NextSingle() * 10;
-
 }

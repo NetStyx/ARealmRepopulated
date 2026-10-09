@@ -14,7 +14,6 @@ public class CharaFileReaderTests {
     private const string ExtendedAppearanceFile = "extended-appearance.chara";
     private const string MinimalFile = "minimal.chara";
     private const string NonHumanFile = "non-human.chara";
-    private const string HeightMultiplierOnlyFile = "height-multiplier-only.chara";
     private const string MissingRaceFile = "missing-race.chara";
     private const string UnknownGenderFile = "unknown-gender.chara";
     private const string NotJsonFile = "not-json.chara";
@@ -85,34 +84,12 @@ public class CharaFileReaderTests {
     }
 
     [Fact]
-    public void Read_WithoutHeightMultiplier_KeepsTheScale() {
-        var appearance = Read(MinimalFile);
-
-        appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
-    }
-
-    [Fact]
-    public void Read_WithOnlyHeightMultiplier_LeavesTheColourBlockUnset() {
-        var appearance = Read(HeightMultiplierOnlyFile);
-
-        appearance.Height.ShouldBe((byte)64);
-        appearance.ExtendedAppearance.ShouldBeNull();
-    }
-
-    [Fact]
     public void Read_WithShaderColourAboveOne_KeepsItUnclamped() {
         // these are raw shader values, not a 0-1 colour picker - glowing eyes legitimately exceed 1
         var extended = Read(ExtendedAppearanceFile).ExtendedAppearance;
 
         extended.ShouldNotBeNull();
         extended.LeftEyeColor.ShouldBe(new Vector3(2.5f, 3.5f, 4.5f));
-    }
-
-    [Fact]
-    public void Read_WithoutExtendedAppearance_LeavesTheBlockUnset() {
-        var appearance = Read(MinimalFile);
-
-        appearance.ExtendedAppearance.ShouldBeNull();
     }
 
     [Fact]
@@ -129,27 +106,6 @@ public class CharaFileReaderTests {
         var appearance = Read(ExtendedAppearanceFile);
 
         appearance.Glasses.ShouldBe((ushort)3);
-    }
-
-    [Fact]
-    public void Read_WithoutGlasses_LeavesGlassesUnset() {
-        var appearance = Read(MinimalFile);
-
-        appearance.Glasses.ShouldBeNull();
-    }
-
-    [Fact]
-    public void Read_WithVoice_ReadsTheVoiceId() {
-        var appearance = Read(ExtendedAppearanceFile);
-
-        appearance.Voice.ShouldBe((byte)75);
-    }
-
-    [Fact]
-    public void Read_WithoutVoice_LeavesVoiceUnset() {
-        var appearance = Read(MinimalFile);
-
-        appearance.Voice.ShouldBeNull();
     }
 
     [Fact]

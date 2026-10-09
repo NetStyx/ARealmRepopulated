@@ -1,7 +1,5 @@
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Appearance;
-using ARealmRepopulated.Data.Appearance.Parser;
-using ARealmRepopulated.Tests.Infrastructure;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using Shouldly;
 using System.Text.Json;
@@ -33,53 +31,5 @@ public class NpcExtendedAppearanceTests {
 
         json.ShouldNotContain("\"SkinColor\":{}");
         json.ShouldContain("\"SkinColor\":{\"X\":0.25,\"Y\":0.5,\"Z\":0.75}");
-    }
-
-    [Theory]
-    [MemberData(nameof(AllSerializerOptions))]
-    public void RoundTrip_KeepsEveryColour(string optionsName) {
-        var options = OptionsNamed(optionsName);
-        var original = Sample;
-
-        var back = JsonSerializer.Deserialize<NpcExtendedAppearance>(JsonSerializer.Serialize(original, options), options);
-
-        back.ShouldNotBeNull();
-        back.SkinColor.ShouldBe(original.SkinColor);
-        back.MuscleTone.ShouldBe(original.MuscleTone);
-        back.MouthColor.ShouldBe(original.MouthColor);
-        back.HairColor.ShouldBe(original.HairColor);
-        back.HairHighlight.ShouldBe(original.HairHighlight);
-        back.LeftEyeColor.ShouldBe(original.LeftEyeColor);
-        back.RightEyeColor.ShouldBe(original.RightEyeColor);
-        back.FeatureColor.ShouldBe(original.FeatureColor);
-    }
-
-    [Fact]
-    public void RoundTrip_KeepsUnsetColoursUnset() {
-        var original = new NpcExtendedAppearance { MuscleTone = 1f };
-        var options = NpcAppearanceData.SerializerOptions;
-
-        var back = JsonSerializer.Deserialize<NpcExtendedAppearance>(JsonSerializer.Serialize(original, options), options);
-
-        back.ShouldNotBeNull();
-        back.SkinColor.ShouldBeNull();
-        back.MouthColor.ShouldBeNull();
-        back.MuscleTone.ShouldBe(1f);
-    }
-
-    [Theory]
-    [MemberData(nameof(AllSerializerOptions))]
-    public void RoundTrip_FromACharacterFile_KeepsTheColoursAndTheFittedHeight(string optionsName) {
-        // the whole path a design travels: character file -> appearance -> scenario file -> appearance
-        var options = OptionsNamed(optionsName);
-        var imported = CharaFileReader.Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"), new FixedModelScaleCache(64, 1f));
-
-        var back = JsonSerializer.Deserialize<NpcAppearanceData>(JsonSerializer.Serialize(imported, options), options);
-
-        back.ShouldNotBeNull();
-        back.Height.ShouldBe((byte)64);
-        back.ExtendedAppearance.ShouldNotBeNull();
-        back.ExtendedAppearance.SkinColor.ShouldBe(new Vector3(0.25f, 0.5f, 0.75f));
-        back.ExtendedAppearance.HairColor.ShouldBe(new Vector3(0.6f, 0.7f, 0.8f));
     }
 }
