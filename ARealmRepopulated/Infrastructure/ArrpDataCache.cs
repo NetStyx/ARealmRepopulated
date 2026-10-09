@@ -44,7 +44,7 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
             var humanCmpFile = dataManager.GetFile(HumanHeightTable.GamePath)?.Data ?? [];
             _humanHeightTable = new HumanHeightTable(humanCmpFile);
         } catch (InvalidDataException ex) {
-            log.Error(ex, "Could not read the size table, imported and migrated actor sizes may be off");
+            log.Error(ex, "Could not read the size table, imported and migrated actors lose their height multiplier");
         }
     }
 
@@ -188,19 +188,11 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     public bool IsHumanModel(int modelCharaId)        
         => modelCharaId == 0 || _modelCharaSheet.GetRowOrDefault((uint)modelCharaId)?.Type == 1;
     
-    /// <summary>
-    /// The model scale the game gives an actor from its customize data. See /doc/research/model-scale.md.
-    /// </summary>
-    /// <returns>The model scale, or null when the appearance does not use a human model, which keeps the game's 1.0.</returns>
-    public float? GetModelScale(NpcAppearanceData appearance)
-        // same customize values NpcAppearanceService.Apply writes
-        => GetModelScale(appearance.ModelCharaId, appearance.Tribe, appearance.Sex, appearance.BodyType, appearance.Height ?? 0);
-
-    public float? GetModelScale(int modelCharaId, NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte height) {
+    public virtual ModelScaleComponents? ReverseModelScale(int modelCharaId, NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, float modelScale) {
         if (!IsHumanModel(modelCharaId))
             return null;
 
-        return _humanHeightTable?.GetModelScale(tribe, sex, bodyType, height) ?? 1f;
+        return _humanHeightTable?.ReverseModelScale(tribe, sex, bodyType, modelScale);
     }
 
     public ushort GetModelSoundPack(int modelCharaId)

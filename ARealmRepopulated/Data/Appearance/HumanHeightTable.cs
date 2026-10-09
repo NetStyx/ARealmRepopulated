@@ -3,13 +3,16 @@ using System.IO;
 
 namespace ARealmRepopulated.Data.Appearance;
 
+public readonly record struct ModelScaleComponents(byte Height, float ScaleFactor);
+
 /// <summary>
-/// The size ranges from chara/xls/charaMake/human.cmp, looked up the way the game does when it sets up a human draw object.
+/// The size ranges from human.cmp with the logic copied from the games 'GetHumanModelScale' (which is unfortunately not defined in cs)
 /// See /doc/research/model-scale.md.
 /// </summary>
 /// <remarks>
-/// One entry per race, body type and clan, each holding a min/max pair for males and one for females.
-/// The customize Height (0-100) picks a point in between, 255 means a plain 1.0 and anything else above 100 the minimum.
+/// The whole implementation is currently only needed because the .chara files might give me the a computed value as HeightMultiplier instead of 
+/// the 0 - 100 height range, so it has to be turned back into a height. Maybe if i ever get around to implementing a proper character editor 
+/// this will be more useful.
 /// </remarks>
 public class HumanHeightTable {
 
@@ -18,7 +21,7 @@ public class HumanHeightTable {
     private const int TableStart = 0x2C800;
     private const int EntrySize = 0x38;
     private const int RaceCount = 8;
-    private const int EntriesPerRace = 10; // 5 body types, 2 clans each
+    private const int EntriesPerRace = 10;
 
     private readonly byte[] _data;
 
@@ -29,11 +32,7 @@ public class HumanHeightTable {
         _data = cmpData;
     }
 
-    public float GetModelScale(NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte height) {
-        if (height == byte.MaxValue)
-            return 1f;
-
-        // the game derives race and clan from the tribe alone and falls back to the first race and body type for anything out of range
+    public ModelScaleComponents ReverseModelScale(NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, float modelScale) {
         var tribeIndex = (uint)tribe - 1;
         var race = tribeIndex >> 1;
         if (race >= RaceCount)
@@ -48,8 +47,13 @@ public class HumanHeightTable {
 
         var min = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset));
         var max = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset + 4));
-        var position = height <= 100 ? height / 100f : 0f;
+        var step = (max - min) / 100f;
+        var position = step > 0 ? (modelScale - min) / step : (modelScale > max ? 100f : 0f);
 
-        return ((max - min) * position) + min;
+        var height = (byte)Math.Clamp(MathF.Round(position), 0f, 100f);
+        var fitted = ((max - min) * (height / 100f)) + min;
+        var scaleFactor = MathF.Abs(modelScale - fitted) <= step / 2 ? 1f : modelScale / fitted;
+
+        return new ModelScaleComponents(height, scaleFactor);
     }
 }

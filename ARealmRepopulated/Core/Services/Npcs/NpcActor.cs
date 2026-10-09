@@ -149,9 +149,8 @@ public unsafe class NpcActor(
 
     public bool CanTrack()
         => _actor->LookAt.Controller.ParamCount > 0;
-
-    // Writes the field, not Character.SetSoftTargetId: the setter can sync the TargetSystem during duty recorder playback.
-    // Safe only while our actors stay non-targetable. Research: /doc/research/look-at-soft-target.md
+    
+    // Safe only while our actors stay non-targetable. Do NOT use the setter. Research: /doc/research/look-at-soft-target.md
     public void LookAt(BattleChara* target) {
         var targetId = target->GetGameObjectId();
         if (_actor->SoftTargetId != targetId) {

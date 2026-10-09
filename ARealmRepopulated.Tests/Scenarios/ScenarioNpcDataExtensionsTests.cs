@@ -12,8 +12,8 @@ namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioNpcDataExtensionsTests {
 
-    private const ushort PlayerHomeWorld = 33;
-    private const ushort PlayerCurrentWorld = 44;
+    private const ushort TestHomeWorld = 33;
+    private const ushort TestCurrentWorld = 44;
 
     private static ScenarioNpcData BuildNpc(params (string Key, string Value)[] additionalData) {
         var npc = new ScenarioNpcData();
@@ -23,9 +23,8 @@ public class ScenarioNpcDataExtensionsTests {
         return npc;
     }
 
-    // a zeroed character with only the worlds set stands in for the local player
     private static unsafe NpcSpawnOptions ToSpawnOptions(ScenarioNpcData npc) {
-        var player = new Character { HomeWorld = PlayerHomeWorld, CurrentWorld = PlayerCurrentWorld };
+        var player = new Character { HomeWorld = TestHomeWorld, CurrentWorld = TestCurrentWorld };
         return npc.ToSpawnOptions(&player);
     }
 
@@ -63,8 +62,8 @@ public class ScenarioNpcDataExtensionsTests {
     public void ToSpawnOptions_WithoutActorName_KeepsTheNpcWorld() {
         var options = ToSpawnOptions(BuildNpc());
 
-        options.HomeWorld.ShouldBe(NpcSpawnOptions.NoWorld);
-        options.CurrentWorld.ShouldBe(NpcSpawnOptions.NoWorld);
+        options.HomeWorld.ShouldBe(NpcSpawnOptions.DefaultWorld);
+        options.CurrentWorld.ShouldBe(NpcSpawnOptions.DefaultWorld);
     }
 
     [Fact]
@@ -81,8 +80,8 @@ public class ScenarioNpcDataExtensionsTests {
     public void ToSpawnOptions_WithActorName_TakesThePlayersWorlds() {
         var options = ToSpawnOptions(BuildNpc((IntegrationProvider.ActorNameConfigKey, "Arrp Bramblefox")));
 
-        options.HomeWorld.ShouldBe(PlayerHomeWorld);
-        options.CurrentWorld.ShouldBe(PlayerCurrentWorld);
+        options.HomeWorld.ShouldBe(TestHomeWorld);
+        options.CurrentWorld.ShouldBe(TestCurrentWorld);
     }
 
     [Fact]
@@ -112,7 +111,7 @@ public class ScenarioNpcDataExtensionsTests {
 
         options.IsPublic.ShouldBeFalse();
         options.Kind.ShouldBe(ObjectKind.BattleNpc);
-        options.HomeWorld.ShouldBe(NpcSpawnOptions.NoWorld);
+        options.HomeWorld.ShouldBe(NpcSpawnOptions.DefaultWorld);
         options.AppearanceManagement.ShouldBe(AppearanceManagement.Internal);
     }
 }

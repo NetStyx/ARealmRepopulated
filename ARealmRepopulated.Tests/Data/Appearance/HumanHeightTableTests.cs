@@ -22,52 +22,68 @@ public class HumanHeightTableTests {
         return data;
     }
 
-    [Fact]
-    public void GetModelScale_WithHeightInRange_InterpolatesBetweenMinAndMax() {
-        // Highlander is the second clan of the first race: entry 1
+    [Theory]
+    [InlineData(1.0f, 0)]
+    [InlineData(1.1f, 50)]
+    [InlineData(1.2f, 100)]
+    [InlineData(1.1013f, 51)]
+    public void ReverseModelScale_InsideTheRange_FindsTheHeightAndKeepsTheScale(float modelScale, byte height) {
         var table = new HumanHeightTable(BuildCmp(1, 0.5f, 0.6f, 1.0f, 1.2f));
 
-        table.GetModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, 0).ShouldBe(1.0f);
-        table.GetModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, 50).ShouldBe(1.1f, 0.0001f);
-        table.GetModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, 100).ShouldBe(1.2f, 0.0001f);
+        var components = table.ReverseModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, modelScale);
+
+        components.Height.ShouldBe(height);
+        components.ScaleFactor.ShouldBe(1f);
     }
 
     [Fact]
-    public void GetModelScale_ForMale_ReadsTheMalePair() {
+    public void ReverseModelScale_ForMale_ReadsTheMalePair() {
         var table = new HumanHeightTable(BuildCmp(1, 0.5f, 0.6f, 1.0f, 1.2f));
 
-        table.GetModelScale(NpcTribe.Highlander, NpcSex.Male, NpcBodyType.Normal, 100).ShouldBe(0.6f, 0.0001f);
+        table.ReverseModelScale(NpcTribe.Highlander, NpcSex.Male, NpcBodyType.Normal, 0.55f).Height.ShouldBe((byte)50);
     }
 
     [Fact]
-    public void GetModelScale_WithMaxHeight_IsOne() {
-        var table = new HumanHeightTable(BuildCmp(1, 0.5f, 0.6f, 1.0f, 1.2f));
+    public void ReverseModelScale_TakesRaceAndClanFromTheTribe() {
+        // Xaela: sixth race, second clan, young body type -> 5 * 10 + (4 - 1) * 2 + 1
+        var table = new HumanHeightTable(BuildCmp(57, 0.5f, 0.6f, 0.7f, 0.9f));
 
-        table.GetModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, 255).ShouldBe(1f);
+        var components = table.ReverseModelScale(NpcTribe.Xaela, NpcSex.Female, NpcBodyType.Young, 0.8f);
+
+        components.Height.ShouldBe((byte)50);
+        components.ScaleFactor.ShouldBe(1f);
+    }
+
+    [Fact]
+    public void ReverseModelScale_WithUnknownBodyType_UsesNormal() {
+        var table = new HumanHeightTable(BuildCmp(0, 0.9f, 1.1f, 0.8f, 1.0f));
+
+        var components = table.ReverseModelScale(NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Unknown, 0.9f);
+
+        components.Height.ShouldBe((byte)50);
+        components.ScaleFactor.ShouldBe(1f);
     }
 
     [Theory]
-    [InlineData(101)]
-    [InlineData(254)]
-    public void GetModelScale_WithHeightAboveHundred_IsTheMinimum(byte height) {
+    [InlineData(0.5f, 0, 0.5f)]
+    [InlineData(1.8f, 100, 1.5f)]
+    public void ReverseModelScale_BeyondTheRange_ClampsAndLeavesTheRestForTheScale(float modelScale, byte height, float scaleFactor) {
         var table = new HumanHeightTable(BuildCmp(1, 0.5f, 0.6f, 1.0f, 1.2f));
 
-        table.GetModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, height).ShouldBe(1.0f);
+        var components = table.ReverseModelScale(NpcTribe.Highlander, NpcSex.Female, NpcBodyType.Normal, modelScale);
+
+        components.Height.ShouldBe(height);
+        components.ScaleFactor.ShouldBe(scaleFactor, 0.0001f);
     }
 
     [Fact]
-    public void GetModelScale_TakesRaceAndClanFromTheTribe() {
-        // Xaela: sixth race, second clan, young body type -> 5 * 10 + (4 - 1) * 2 + 1
-        var table = new HumanHeightTable(BuildCmp(57, 0.5f, 0.5f, 0.7f, 0.7f));
-
-        table.GetModelScale(NpcTribe.Xaela, NpcSex.Female, NpcBodyType.Young, 50).ShouldBe(0.7f);
-    }
-
-    [Fact]
-    public void GetModelScale_WithUnknownBodyType_UsesNormal() {
+    public void ReverseModelScale_WithoutRange_LeavesTheDifferenceForTheScale() {
         var table = new HumanHeightTable(BuildCmp(0, 0.9f, 0.9f, 0.8f, 0.8f));
 
-        table.GetModelScale(NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Unknown, 50).ShouldBe(0.8f);
+        var components = table.ReverseModelScale(NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Normal, 1.6f);
+
+        components.Height.ShouldBe((byte)100);
+        components.ScaleFactor.ShouldBe(2f, 0.0001f);
     }
 
     [Fact]

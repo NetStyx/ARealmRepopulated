@@ -1,18 +1,15 @@
-# Look-at and the soft target
+# LookAtContainer and the soft target
 
-NPCs are given the ability to track the players position. The way that it is done now is by setting `Character->SoftTargetId`. The earlier solution was to modify the `LookAtContainer` directely and prevent the game from resetting those values.
+NPCs are given the ability to track the players position. The way i want to do it is by setting `Character->SoftTargetId` because this replaces the manual hooks i used before which modified the `LookAtContainer` directely and then hooking the reset method to stop it from invalidating the target. Hooks .. Hooks everywhere.
 
-## The problem
+## Why this text?
 
-After observing some concerning discussions about the soft target and how the game uses it, I did a short investigation of the system.
+After observing some concerning discussions about the soft target and how the game uses it in the dalamud discord, I did a short investigation of the system for my use case.
 
-The path for actors on the client object table (index > 200) appears to be safe. As a precaution I am using the field directly, which is enough to let the look-at container do its thing.
+The path for actors on the client object table appears to be safe. If i am using the field directly (not the setter), then there should be no sideeffects at all and it is enough to let the look-at container do its thing.
+The setter would be safe too because the checks in the chain (at its core!) require the actor to be targetable. The setter could take an additional path during duty recorder playback because it also syncs the `TargetSystem` for the replay's perspective character (`TargetSystem+0xA0`; ClientStructs names it `IdleCamTarget`?), and that sync ends in the `TargetSystem` change notification ... which sends the target to the server. If that package is actually send (which would make no sense because its a replay) is unknown to me.
 
-The setter would store the same field, but during duty recorder playback it also syncs the `TargetSystem` for the replay's perspective character (`TargetSystem+0xA0`; ClientStructs names it `IdleCamTarget`?), and that sync ends in the `TargetSystem`'s change notification, which sends the target to the server. I did not verify whether that packet actually goes out during playback.
-
-Anyway: our actors will never be the local character, but to be safe we avoid calling the setter at all by using the field.
-
-The game reads the field back in a few places. `LookAt` reads it for other characters too. The one network adjacent reader is the `TargetSystem`'s duty recorder perspective switch below, and that one needs the player to select the character first.
+Anyway: our actors will never be the local character and never be targetable. But why risk it when we just can set the field and be done with it.
 
 ## The setter
 
@@ -35,7 +32,7 @@ void Character::SetSoftTargetId(Character *this, GameObjectId id) {
 
 ### Character.GetSoftTargetId
 
-Only the local player answers from `TargetSystem`, anyone else returns the field. `<IsLocalPlayer>` compares against `Control.LocalPlayer` ... and our actors are never the local player.
+Only the local player answers from `TargetSystem`, anyone else returns the field. `<IsLocalPlayer>` compares against `Control.LocalPlayer` .. lucky us.
 
 ```c
 GameObjectId Character::GetSoftTargetId(Character *this) {
@@ -47,7 +44,7 @@ GameObjectId Character::GetSoftTargetId(Character *this) {
 
 ### LookAtContainer.UpdateLookAt
 
-Run each frame from `GameObjectManager.UpdateLookAt`. Its target lookup only asks `TargetSystem` for the local player; NPCs of type PC (1) and BattleNpc (2) use the character's own ids, and everything else falls through to the behaviour container, which our actors never fill.
+Run each frame from `GameObjectManager.UpdateLookAt`. Its target lookup only asks `TargetSystem` for the local player; NPCs of type PC (1) and BattleNpc (2) use the characters own ids, and everything else falls through to the behaviour container, which our actors never fill.
 
 ```c
 GameObjectId <LookAtContainer_ResolveTarget>(LookAtContainer *this) {
@@ -58,8 +55,7 @@ GameObjectId <LookAtContainer_ResolveTarget>(LookAtContainer *this) {
         if (id != 0xe0000000) return id;
         return Character::GetTargetId(this->Owner);
       }
-    } else if (this->Owner->GetObjectKind() == 2) {
-      /* minion owned by the local player: look at the owner */
+    } else if (this->Owner->GetObjectKind() == 2) {      
       id = Character::GetSoftTargetId(this->Owner);
       if (id != 0xe0000000) return id;
       id = Character::GetTargetId(this->Owner);
@@ -93,8 +89,8 @@ softTarget = Character::GetSoftTargetId(player);
 
 ### TargetSystem
 
-Only in duty recorder mode (target mode 5), selecting a character makes it the replay's perspective character, and the game takes over that character's `TargetId` and `SoftTargetId` as the
-`TargetSystem`'s hard and soft target. Normal targeting never reads a character's `SoftTargetId`. Both setters can end in the target change notification that sends the target to the server, so this is the only reader that is somewhat network adjacent.
+Only in duty recorder mode (target mode 5), selecting a character makes it the replays perspective character, and the game takes over that character's `TargetId` and `SoftTargetId` as the
+`TargetSystem` hard and soft target. Normal targeting never reads a characters `SoftTargetId`. Both setters can end in the target change notification that sends the target to the server, so this is the only reader that is somewhat network adjacent.
 
 ```c
 if (<CurrentTargetMode>(this) == 5 /* ContentsReplay */) {
@@ -108,7 +104,6 @@ if (<CurrentTargetMode>(this) == 5 /* ContentsReplay */) {
 }
 ```
 
-It is the only writer of `TargetSystem+0xA0`, and it needs the player to be able to select our actor in the first place. Our actors are non-targetable, so this path never runs for them, and the
-`SetSoftTargetId` sync above can't either. Making them targetable would open both, which is one more reason never to.
+It is the only writer of `TargetSystem+0xA0` - that is also the part that would require targetable characters to switch perspektive and execute the 'dangerous' path.
 
 Ah, and honorable mention to `CharacterSetupContainer.CopyFromCharacter`, which probably also copies the targets.
