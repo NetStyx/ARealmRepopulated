@@ -41,3 +41,5 @@ skeletonScale = Object.Scale * ModelScale * <a third factor i did not bother to 
 ```
 
 So the goal is to migrate the existing height modifier to the model scale and on import we extract the correct value by reverse calculating from the given .chara value and the human.cmp table by reproducing the lookup in managed code. Thats static game data and will most likely break with the additons of Evercold. But everything else breaks anyway so - whatever.
+
+The first take kept the stored Height and folded `multiplier / model scale` into the actor scale. The size seemed right, but i stored the height with zero and an .. "odd" actor scale, both of them beyond use. Since the lookup is a plain lerp, it can be reversed (`(multiplier - min) / (max - min) * 100`), rounded and clamped between 0 and 100. Happy values, happy game. It can then calculate as it is used to and we can scale the actor with the scaling slider.

@@ -50,28 +50,40 @@ public class ScenarioMigrationTests {
     }
 
     [Fact]
-    public void ScenarioMigration_FoldsTheHeightMultiplierIntoTheScale() {
+    public void ScenarioMigration_TurnsTheHeightMultiplierIntoTheHeight() {
         var jsonObject = ReadScenario(V4ScenarioFile);
 
-        var dataCache = new FixedModelScaleCache(0.5f);
+        var dataCache = new FixedModelScaleCache(64, 1f);
         new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
 
         var appearances = AppearancesOf(jsonObject);
         appearances.ShouldAllBe(a => !a.ContainsKey("HeightMultiplier"));
-        appearances.Select(a => a["Scale"]!.GetValue<float>()).ShouldBe([1f, 8f, 1f]);
+        appearances.Select(a => a["Height"]!.GetValue<byte>()).ShouldBe([(byte)100, (byte)64, (byte)100]);
+        appearances.Select(a => a["Scale"]!.GetValue<float>()).ShouldBe([1f, 2f, 1f]);
 
-        dataCache.Lookups.ShouldBe([(0, NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Normal, 100)]);
+        dataCache.Lookups.ShouldBe([(0, NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Normal, 2f)]);
+    }
+
+    [Fact]
+    public void ScenarioMigration_BeyondTheHeightRange_FoldsTheRestIntoTheScale() {
+        var jsonObject = ReadScenario(V4ScenarioFile);
+
+        new V5ScenarioMigration(new FixedModelScaleCache(100, 4f)).Upgrade(jsonObject);
+
+        var appearance = AppearanceOf(NpcNamed(jsonObject, "Sagarcio"));
+        appearance["Height"]!.GetValue<byte>().ShouldBe((byte)100);
+        appearance["Scale"]!.GetValue<float>().ShouldBe(8f);
     }
 
     [Fact]
     public void ScenarioMigration_WithNumericCustomize_ReadsTheIds() {
         var jsonObject = ReadScenario(V4HeightMultipliersFile);
 
-        var dataCache = new FixedModelScaleCache(0.5f);
+        var dataCache = new FixedModelScaleCache(64, 1f);
         new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
 
-        dataCache.Lookups.ShouldContain((0, NpcTribe.Xaela, NpcSex.Male, NpcBodyType.Young, (byte)30));
-        AppearanceOf(NpcNamed(jsonObject, "NumericCustomize"))["Scale"]!.GetValue<float>().ShouldBe(4f);
+        dataCache.Lookups.ShouldContain((0, NpcTribe.Xaela, NpcSex.Male, NpcBodyType.Young, 2f));
+        AppearanceOf(NpcNamed(jsonObject, "NumericCustomize"))["Height"]!.GetValue<byte>().ShouldBe((byte)64);
     }
 
     [Theory]
@@ -79,11 +91,13 @@ public class ScenarioMigrationTests {
     [InlineData("NonHuman")]
     public void ScenarioMigration_WithoutModelScale_DropsTheHeightMultiplierOnly(string npcName) {
         var jsonObject = ReadScenario(V4HeightMultipliersFile);
+        var heightBefore = AppearanceOf(NpcNamed(jsonObject, npcName))["Height"]?.ToJsonString();
 
-        new V5ScenarioMigration(new FixedModelScaleCache(0.5f)).Upgrade(jsonObject);
+        new V5ScenarioMigration(new FixedModelScaleCache(64, 1f)).Upgrade(jsonObject);
 
         var appearance = AppearanceOf(NpcNamed(jsonObject, npcName));
         appearance.ContainsKey("HeightMultiplier").ShouldBeFalse();
+        appearance["Height"]?.ToJsonString().ShouldBe(heightBefore);
         appearance["Scale"]!.GetValue<float>().ShouldBe(1.5f);
     }
 
@@ -94,7 +108,7 @@ public class ScenarioMigrationTests {
         new V4ScenarioMigration().Upgrade(jsonObject);
         var before = AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ToArray();
 
-        var dataCache = new FixedModelScaleCache(0.5f);
+        var dataCache = new FixedModelScaleCache(64, 1f);
         new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
 
         AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ShouldBe(before);

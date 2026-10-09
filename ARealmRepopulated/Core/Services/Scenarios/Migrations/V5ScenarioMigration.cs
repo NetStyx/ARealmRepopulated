@@ -9,7 +9,7 @@ namespace ARealmRepopulated.Core.Services.Scenarios.Migrations;
 /// In the previous versions the actors size is defined by two scales which was a huge mistake as it gave the users two ways to scale the same thing 
 /// just because the game does the calculation that way. Now i have to resoncile this somehow. 
 /// </summary>
-[ScenarioMigration(Version = 5, Description = "Merge height multiplier into actor scale")]
+[ScenarioMigration(Version = 5, Description = "Turn the height multiplier back into the Height")]
 public class V5ScenarioMigration(ArrpDataCache dataCache) : IScenarioMigration {
 
     private const string HeightMultiplierKey = "HeightMultiplier";
@@ -30,10 +30,11 @@ public class V5ScenarioMigration(ArrpDataCache dataCache) : IScenarioMigration {
                 || appearance["BodyType"].GetEnumOrNull<NpcBodyType>(defaultWhenMissing: true) is not { } bodyType)
                 continue;
             
-            if (dataCache.GetModelScale(appearance["ModelCharaId"].GetIntOrNull() ?? 0, tribe, sex, bodyType, appearance["Height"].GetByteOrNull() ?? 0) is not { } gameScale)
+            if (dataCache.ReverseModelScale(appearance["ModelCharaId"].GetIntOrNull() ?? 0, tribe, sex, bodyType, multiplier) is not { } components)
                 continue;
-
-            appearance["Scale"] = (appearance["Scale"].GetFloatOrNull() ?? 1f) * multiplier / gameScale;
+            
+            appearance["Height"] = components.Height;
+            appearance["Scale"] = (appearance["Scale"].GetFloatOrNull() ?? 1f) * components.ScaleFactor;
         }
     }
 }

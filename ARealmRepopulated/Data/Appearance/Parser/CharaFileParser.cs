@@ -125,14 +125,18 @@ public static class CharaFileReader {
         data.LeftRing = ReadEquipment(json["LeftRing"] as JsonObject);
         data.RightRing = ReadEquipment(json["RightRing"] as JsonObject);
 
-        // Depending on the tool which creates the .chara file, it will contain a height multiplier that was applied to the games model scale.
-        // We, however, leave the model scale to the game. That works out because both end up multiplied into the same skeleton, so the ratio moves into the actor scale and the size is kept.        
+        // Depending on the tool which creates the .chara file, it will contain the model scale the game computed, possibly with a multiplier on top.
+        // So we are going to reverse calculate the heigth .. and the fraction thats left over will be shoved into the scale.
         if (json["HeightMultiplier"].GetFloatOrNull() is { } heightMultiplier 
             && float.IsFinite(heightMultiplier) 
             && heightMultiplier > 0
-            && dataCache.GetModelScale(data) is { } gameScale) {
-            data.Scale = (data.Scale ?? NpcAppearanceData.ScaleDefault) * heightMultiplier / gameScale;
+            && dataCache.ReverseModelScale(data.ModelCharaId, data.Tribe, data.Sex, data.BodyType, heightMultiplier) is { } components) {
+            data.Height = components.Height;
+            data.Scale = (data.Scale ?? NpcAppearanceData.ScaleDefault) * components.ScaleFactor;
         }
+
+        // without either the game would show the clans smallest size, the middle of the range is the better guess
+        data.Height ??= 50;
 
         var extendedAppearance = new NpcExtendedAppearance {
             SkinColor = json["SkinColor"].GetVector3OrNull(),

@@ -69,15 +69,15 @@ public class NpcExtendedAppearanceTests {
 
     [Theory]
     [MemberData(nameof(AllSerializerOptions))]
-    public void RoundTrip_FromACharacterFile_KeepsTheColoursAndTheFoldedScale(string optionsName) {
+    public void RoundTrip_FromACharacterFile_KeepsTheColoursAndTheFittedHeight(string optionsName) {
         // the whole path a design travels: character file -> appearance -> scenario file -> appearance
         var options = OptionsNamed(optionsName);
-        var imported = CharaFileReader.Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"), new FixedModelScaleCache(0.5f));
+        var imported = CharaFileReader.Read(TestHelper.ReadEmbeddedResource("extended-appearance.chara"), new FixedModelScaleCache(64, 1f));
 
         var back = JsonSerializer.Deserialize<NpcAppearanceData>(JsonSerializer.Serialize(imported, options), options);
 
         back.ShouldNotBeNull();
-        back.Scale.ShouldBe(2.04f);
+        back.Height.ShouldBe((byte)64);
         back.ExtendedAppearance.ShouldNotBeNull();
         back.ExtendedAppearance.SkinColor.ShouldBe(new Vector3(0.25f, 0.5f, 0.75f));
         back.ExtendedAppearance.HairColor.ShouldBe(new Vector3(0.6f, 0.7f, 0.8f));

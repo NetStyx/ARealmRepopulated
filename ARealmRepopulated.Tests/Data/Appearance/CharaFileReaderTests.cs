@@ -19,8 +19,8 @@ public class CharaFileReaderTests {
     private const string UnknownGenderFile = "unknown-gender.chara";
     private const string NotJsonFile = "not-json.chara";
 
-    private static NpcAppearanceData Read(string fileName)
-        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), new FixedModelScaleCache(0.5f));
+    private static NpcAppearanceData Read(string fileName, FixedModelScaleCache? dataCache = null)
+        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), dataCache ?? new FixedModelScaleCache(64, 1f));
 
     [Fact]
     public void Read_WithCompleteFile_ReadsCustomizeValues() {
@@ -51,18 +51,36 @@ public class CharaFileReaderTests {
     }
 
     [Fact]
-    public void Read_WithHeightMultiplier_FoldsItIntoTheScale() {
-        // separate from the Height customize value, which the fixture sets to 42
-        var appearance = Read(ExtendedAppearanceFile);
+    public void Read_WithHeightMultiplier_TurnsItIntoTheHeight() {
+        // the fixture stores Height 42 next to it, but the multiplier is the size the character was shown at
+        var dataCache = new FixedModelScaleCache(64, 1f);
+        var appearance = Read(ExtendedAppearanceFile, dataCache);
 
-        appearance.Height.ShouldBe((byte)42);
-        appearance.Scale.ShouldBe(2.04f);
+        appearance.Height.ShouldBe((byte)64);
+        appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
+        dataCache.Lookups.ShouldBe([(0, NpcTribe.KeeperOfTheMoon, NpcSex.Female, NpcBodyType.Normal, 1.02f)]);
+    }
+
+    [Fact]
+    public void Read_WithHeightMultiplierBeyondTheHeightRange_FoldsTheRestIntoTheScale() {
+        var appearance = Read(ExtendedAppearanceFile, new FixedModelScaleCache(100, 1.5f));
+
+        appearance.Height.ShouldBe((byte)100);
+        appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault * 1.5f);
     }
 
     [Fact]
     public void Read_WithHeightMultiplierOnNonHumanModel_KeepsTheScale() {
         var appearance = Read(NonHumanFile);
 
+        appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
+    }
+
+    [Fact]
+    public void Read_WithoutHeightAndHeightMultiplier_UsesTheMiddleHeight() {
+        var appearance = Read(MinimalFile);
+
+        appearance.Height.ShouldBe((byte)50);
         appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
     }
 
@@ -77,7 +95,7 @@ public class CharaFileReaderTests {
     public void Read_WithOnlyHeightMultiplier_LeavesTheColourBlockUnset() {
         var appearance = Read(HeightMultiplierOnlyFile);
 
-        appearance.Scale.ShouldBe(2.3f);
+        appearance.Height.ShouldBe((byte)64);
         appearance.ExtendedAppearance.ShouldBeNull();
     }
 

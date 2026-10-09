@@ -3,13 +3,16 @@ using System.IO;
 
 namespace ARealmRepopulated.Data.Appearance;
 
+public readonly record struct ModelScaleComponents(byte Height, float ScaleFactor);
+
 /// <summary>
 /// The size ranges from human.cmp with the logic copied from the games 'GetHumanModelScale' (which is unfortunately not defined in cs)
 /// See /doc/research/model-scale.md.
 /// </summary>
 /// <remarks>
-/// The whole implementation is currently only needed because the .chara files gives me the computed value instead of the 1 - 100 range.
-/// Maybe if i ever get around to implementing a proper character editor this will be more useful.
+/// The whole implementation is currently only needed because the .chara files might give me the a computed value as HeightMultiplier instead of 
+/// the 0 - 100 height range, so it has to be turned back into a height. Maybe if i ever get around to implementing a proper character editor 
+/// this will be more useful.
 /// </remarks>
 public class HumanHeightTable {
 
@@ -29,10 +32,7 @@ public class HumanHeightTable {
         _data = cmpData;
     }
 
-    public float GetModelScale(NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte height) {
-        if (height == byte.MaxValue)
-            return 1f;
-
+    public ModelScaleComponents ReverseModelScale(NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, float modelScale) {
         var tribeIndex = (uint)tribe - 1;
         var race = tribeIndex >> 1;
         if (race >= RaceCount)
@@ -47,8 +47,13 @@ public class HumanHeightTable {
 
         var min = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset));
         var max = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset + 4));
-        var position = height <= 100 ? height / 100f : 0f;
+        var step = (max - min) / 100f;
+        var position = step > 0 ? (modelScale - min) / step : (modelScale > max ? 100f : 0f);
 
-        return ((max - min) * position) + min;
+        var height = (byte)Math.Clamp(MathF.Round(position), 0f, 100f);
+        var fitted = ((max - min) * (height / 100f)) + min;
+        var scaleFactor = MathF.Abs(modelScale - fitted) <= step / 2 ? 1f : modelScale / fitted;
+
+        return new ModelScaleComponents(height, scaleFactor);
     }
 }
