@@ -12,7 +12,6 @@
       <EmbeddedResource Include="Resources\ScenarioFiles\v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json" />
       <EmbeddedResource Include="Resources\ScenarioFiles\v4-06e8c312-6d3f-4b2b-9fc5-850ed4bc9ffa.json" />
       <EmbeddedResource Include="Resources\CharaFiles\extended-appearance.chara" />
-      <EmbeddedResource Include="Resources\CharaFiles\height-multiplier-only.chara" />
       <EmbeddedResource Include="Resources\CharaFiles\minimal.chara" />
       <EmbeddedResource Include="Resources\CharaFiles\missing-race.chara" />
       <EmbeddedResource Include="Resources\CharaFiles\non-human.chara" />

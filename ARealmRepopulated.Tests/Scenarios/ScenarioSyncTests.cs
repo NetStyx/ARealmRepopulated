@@ -1,6 +1,6 @@
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Scenarios;
-using Dalamud.Plugin.Services;
+using ARealmRepopulated.Tests.Infrastructure;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -23,13 +23,13 @@ public class ScenarioSyncTests {
         => new ScenarioNpcSyncAction { Enabled = enabled };
 
     private static ScenarioNpc Actor(params ScenarioNpcAction[] actions) {
-        var npc = new ScenarioNpc(NullLog.Instance);
+        var npc = new ScenarioNpc(NullPluginLog.Instance);
         npc.SetActions([.. actions]);
         return npc;
     }
 
     private static Scenario CreateScenario(params ScenarioNpc[] actors) {
-        var scenario = new Scenario(NullLog.Instance);
+        var scenario = new Scenario(NullPluginLog.Instance);
         scenario.Npcs.AddRange(actors);
         return scenario;
     }
@@ -100,14 +100,5 @@ public class ScenarioSyncTests {
 
         actor.CurrentAction.Action.ShouldBeOfType<ScenarioNpcWaitingAction>();
         RunUntilFinished(scenario)!.Value.ShouldBe(2, 0.1);
-    }
-
-    private class NullLog : DispatchProxy {
-        public static readonly IPluginLog Instance = Create<IPluginLog, NullLog>();
-
-        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
-            => targetMethod!.ReturnType.IsValueType && targetMethod.ReturnType != typeof(void)
-                ? Activator.CreateInstance(targetMethod.ReturnType)
-                : null;
     }
 }
