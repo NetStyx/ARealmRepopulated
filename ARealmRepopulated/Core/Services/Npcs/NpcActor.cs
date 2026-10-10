@@ -7,6 +7,7 @@ using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using static ARealmRepopulated.Core.Services.Npcs.NpcAppearanceService;
 
@@ -180,7 +181,7 @@ public unsafe class NpcActor(
 
             if (envService.CheckSnapableLayout((Character*)_actor, 2f, layoutInteraction.LayoutObjectTarget, out var snapResult)) {
 
-                if (layoutInteraction.LayoutObjectTarget == LayoutTarget.Chair) {
+                if (layoutInteraction.LayoutObjectTarget == ChairMarkerObjectType.Chair) {
                     _emoteOffset = new Vector3(snapResult.SnapPosition.X, _actor->Position.Y, snapResult.SnapPosition.Z);
                 }
 
