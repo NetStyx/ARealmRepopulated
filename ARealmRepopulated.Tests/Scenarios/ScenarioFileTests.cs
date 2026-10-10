@@ -19,9 +19,8 @@ public class ScenarioFileTests {
     [InlineData("v2-9c382d65-99c1-411a-8cb1-57d15cc74073.json")]
     [InlineData("v3-b9d6d283-0483-490b-b7b3-7e9d06d90f85.json")]
     [InlineData("v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json")]
-    public void OlderScenarioFile_LoadsAfterMigration(string fileName) {
-        // the same path a file on disk takes: migrated in place, then read into the current model
-        var services = new ServiceCollection().AddSingleton<ArrpDataCache>(new FixedModelScaleCache(64, 1f)).BuildServiceProvider();
+    public void OlderScenarioFile_LoadsAfterMigration(string fileName) {        
+        var services = new ServiceCollection().AddSingleton<ArrpDataCache>(new TestArrpDataCache(64, 1f)).BuildServiceProvider();
         var migrator = new ScenarioMigrator(services, NullPluginLog.Instance);
         migrator.Initialize();
 

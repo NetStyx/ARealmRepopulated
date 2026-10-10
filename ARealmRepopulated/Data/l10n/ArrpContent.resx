@@ -737,9 +737,9 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Snap to surface</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_SnapToSurface_Desc" xml:space="preserve">
-    <value>Moves the actor onto the surface it stands on (ground, floors, furniture) whenever the scenario starts a run, searching from a little above its stored height, like the game does for every character it creates.
+    <value>Tries to place the actor onto the nearest surface below it whenever the scenario starts a run, searching from a little above its stored height.
 
-Turn it off to keep the actor at exactly the stored height, for example on spots the game would not let it stand on.</value>
+Turn it off to keep the actor at exactly the position you set for it. This would allow you to place it on spots the game would not let it stand on usually.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Integration" xml:space="preserve">
     <value>Integration</value>
@@ -778,7 +778,7 @@ Turn it off to keep the actor at exactly the stored height, for example on spots
     <value>Actor scale</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale_Desc" xml:space="preserve">
-    <value>Size multiplier of the actor, on top of the height from its appearance. Used by the game itself and is responsible for the larger and smaller versions of an NPC. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
+    <value>Multiplies the height of the actor by this value. The slider covers the common range of 0.10 to 5.00. Ctrl+click the slider to type an exact value, which may be anywhere between 0.01 and 50.00.</value>
   </data>
   <data name="ListWnd_Info_Title" xml:space="preserve">
     <value>Info</value>

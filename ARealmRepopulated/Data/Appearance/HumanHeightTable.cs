@@ -6,7 +6,7 @@ namespace ARealmRepopulated.Data.Appearance;
 public readonly record struct ModelScaleComponents(byte Height, float ScaleFactor);
 
 /// <summary>
-/// The size ranges from human.cmp with the logic copied from the games 'GetHumanModelScale' (which is unfortunately not defined in cs)
+/// human.cmp stores the size ranges of each race. The logic here is copied from the games 'GetHumanModelScale' (which is unfortunately not defined in cs)
 /// See /doc/research/model-scale.md.
 /// </summary>
 /// <remarks>

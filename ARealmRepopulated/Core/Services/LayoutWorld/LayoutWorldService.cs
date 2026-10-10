@@ -20,7 +20,6 @@ public enum LayoutTarget : byte {
 /// </remarks>
 public unsafe class LayoutWorldService : IDisposable {
     
-    // taken directly from the game
     private static readonly float[] SnapOffsets = [0.42f, 0.75f];
 
     public LayoutWorldService(IGameInteropProvider provider) {
