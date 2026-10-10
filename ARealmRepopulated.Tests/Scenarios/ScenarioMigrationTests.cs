@@ -70,7 +70,7 @@ public class ScenarioMigrationTests {
 
         new V5ScenarioMigration(new TestArrpDataCache(100, 4f)).Upgrade(jsonObject);
 
-        var appearance = AppearanceOf(NpcNamed(jsonObject, "Sagarcio"));
+        var appearance = AppearanceOf(NpcNamed(jsonObject, "Trick"));
         appearance["Height"]!.GetValue<byte>().ShouldBe((byte)100);
         appearance["Scale"]!.GetValue<float>().ShouldBe(8f);
     }
