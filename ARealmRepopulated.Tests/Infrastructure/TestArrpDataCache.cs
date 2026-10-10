@@ -5,9 +5,9 @@ using System.Collections.Generic;
 namespace ARealmRepopulated.Tests.Infrastructure;
 
 /// <summary>
-/// Fits every human model scale to the same Height and scale factor.
+/// Test implementation of <see cref="ArrpDataCache"/>.
 /// </summary>
-internal class FixedModelScaleCache(byte height, float scaleFactor) : ArrpDataCache(null!, null!) {
+internal class TestArrpDataCache(byte height, float scaleFactor) : ArrpDataCache(null!, null!) {
 
     public List<(int ModelCharaId, NpcTribe Tribe, NpcSex Sex, NpcBodyType BodyType, float ModelScale)> Lookups { get; } = [];
 

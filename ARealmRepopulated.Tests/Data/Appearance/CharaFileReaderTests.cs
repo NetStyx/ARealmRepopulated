@@ -18,8 +18,8 @@ public class CharaFileReaderTests {
     private const string UnknownGenderFile = "unknown-gender.chara";
     private const string NotJsonFile = "not-json.chara";
 
-    private static NpcAppearanceData Read(string fileName, FixedModelScaleCache? dataCache = null)
-        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), dataCache ?? new FixedModelScaleCache(64, 1f));
+    private static NpcAppearanceData Read(string fileName, TestArrpDataCache? dataCache = null)
+        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), dataCache ?? new TestArrpDataCache(64, 1f));
 
     [Fact]
     public void Read_WithCompleteFile_ReadsCustomizeValues() {
@@ -50,9 +50,8 @@ public class CharaFileReaderTests {
     }
 
     [Fact]
-    public void Read_WithHeightMultiplier_TurnsItIntoTheHeight() {
-        // the fixture stores Height 42 next to it, but the multiplier is the size the character was shown at
-        var dataCache = new FixedModelScaleCache(64, 1f);
+    public void Read_WithHeightMultiplier_TurnsItIntoTheHeight() {        
+        var dataCache = new TestArrpDataCache(64, 1f);
         var appearance = Read(ExtendedAppearanceFile, dataCache);
 
         appearance.Height.ShouldBe((byte)64);
@@ -62,7 +61,7 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithHeightMultiplierBeyondTheHeightRange_FoldsTheRestIntoTheScale() {
-        var appearance = Read(ExtendedAppearanceFile, new FixedModelScaleCache(100, 1.5f));
+        var appearance = Read(ExtendedAppearanceFile, new TestArrpDataCache(100, 1.5f));
 
         appearance.Height.ShouldBe((byte)100);
         appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault * 1.5f);

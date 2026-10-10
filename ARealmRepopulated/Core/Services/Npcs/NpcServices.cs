@@ -13,7 +13,7 @@ using System.Threading;
 namespace ARealmRepopulated.Core.Services.Npcs;
 
 /// <summary>
-/// Owns the lifetime of our actors: creation and destruction either by us or by the game.
+/// Owns the lifetime of our actors.
 /// </summary>
 /// <remarks>
 /// The repsonisbilities on what part of the actor initialization does what got clouded more and more. So here is a short overview of the flow:
@@ -264,7 +264,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
 }
 
 /// <summary>
-/// Everything that is fixed for an actor over its lifetime. Applied on spawn and then reset after the loop ends.
+/// Actor defaults which are applied on spawn and then reset after the loop ends.
 /// </summary>
 public class NpcSpawnOptions {
     public static NpcSpawnOptions Default => new();

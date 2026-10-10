@@ -44,8 +44,7 @@ public class HumanHeightTableTests {
     }
 
     [Fact]
-    public void ReverseModelScale_TakesRaceAndClanFromTheTribe() {
-        // Xaela: sixth race, second clan, young body type -> 5 * 10 + (4 - 1) * 2 + 1
+    public void ReverseModelScale_TakesRaceAndClanFromTheTribe() {        
         var table = new HumanHeightTable(BuildCmp(57, 0.5f, 0.6f, 0.7f, 0.9f));
 
         var components = table.ReverseModelScale(NpcTribe.Xaela, NpcSex.Female, NpcBodyType.Young, 0.8f);

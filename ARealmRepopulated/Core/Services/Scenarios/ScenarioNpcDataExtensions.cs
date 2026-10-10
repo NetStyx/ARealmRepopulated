@@ -7,10 +7,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
 public static class ScenarioNpcDataExtensions {
-
-    /// <summary>
-    /// The definition a scenario actor is spawned with. See <see cref="NpcSpawnOptions"/> for details.
-    /// </summary>
+    
     public static unsafe NpcSpawnOptions ToSpawnOptions(this ScenarioNpcData npc, Character* localPlayer) {
         var options = new NpcSpawnOptions {
             Position = npc.Position,

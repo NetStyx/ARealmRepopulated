@@ -53,7 +53,7 @@ public class ScenarioMigrationTests {
     public void ScenarioMigration_TurnsTheHeightMultiplierIntoTheHeight() {
         var jsonObject = ReadScenario(V4ScenarioFile);
 
-        var dataCache = new FixedModelScaleCache(64, 1f);
+        var dataCache = new TestArrpDataCache(64, 1f);
         new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
 
         var appearances = AppearancesOf(jsonObject);
@@ -68,7 +68,7 @@ public class ScenarioMigrationTests {
     public void ScenarioMigration_BeyondTheHeightRange_FoldsTheRestIntoTheScale() {
         var jsonObject = ReadScenario(V4ScenarioFile);
 
-        new V5ScenarioMigration(new FixedModelScaleCache(100, 4f)).Upgrade(jsonObject);
+        new V5ScenarioMigration(new TestArrpDataCache(100, 4f)).Upgrade(jsonObject);
 
         var appearance = AppearanceOf(NpcNamed(jsonObject, "Sagarcio"));
         appearance["Height"]!.GetValue<byte>().ShouldBe((byte)100);
@@ -79,7 +79,7 @@ public class ScenarioMigrationTests {
     public void ScenarioMigration_WithNumericCustomize_ReadsTheIds() {
         var jsonObject = ReadScenario(V4HeightMultipliersFile);
 
-        var dataCache = new FixedModelScaleCache(64, 1f);
+        var dataCache = new TestArrpDataCache(64, 1f);
         new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
 
         dataCache.Lookups.ShouldContain((0, NpcTribe.Xaela, NpcSex.Male, NpcBodyType.Young, 2f));
@@ -93,7 +93,7 @@ public class ScenarioMigrationTests {
         var jsonObject = ReadScenario(V4HeightMultipliersFile);
         var heightBefore = AppearanceOf(NpcNamed(jsonObject, npcName))["Height"]?.ToJsonString();
 
-        new V5ScenarioMigration(new FixedModelScaleCache(64, 1f)).Upgrade(jsonObject);
+        new V5ScenarioMigration(new TestArrpDataCache(64, 1f)).Upgrade(jsonObject);
 
         var appearance = AppearanceOf(NpcNamed(jsonObject, npcName));
         appearance.ContainsKey("HeightMultiplier").ShouldBeFalse();
@@ -108,7 +108,7 @@ public class ScenarioMigrationTests {
         new V4ScenarioMigration().Upgrade(jsonObject);
         var before = AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ToArray();
 
-        var dataCache = new FixedModelScaleCache(64, 1f);
+        var dataCache = new TestArrpDataCache(64, 1f);
         new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
 
         AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ShouldBe(before);

@@ -36,8 +36,7 @@ public enum CustomizeIndex : int {
     FacePaintColor = 0x19
 }
 
-// NpcRace, NpcSex, NpcTribe and NpcBodyType are used during serialization.
-// Names (and bytes) should be kept in sync with the game.
+// Remember: enum names are used are used during serialization.
 public enum NpcRace : byte {
     Unknown = 0,
     Hyur = 1,
