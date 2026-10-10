@@ -22,4 +22,7 @@ public unsafe class ScenarioConditionService {
 
     public bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
         => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, TakeCustomSnapshot());
+
+    public bool AreDeterministicConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
+        => ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, ingame);
 }

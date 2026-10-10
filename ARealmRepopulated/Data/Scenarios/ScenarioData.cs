@@ -75,8 +75,6 @@ public class ScenarioNpcBehaviorData {
 [JsonDerivedType(typeof(ScenarioNpcSyncAction), typeDiscriminator: "Sync")]
 [JsonDerivedType(typeof(ScenarioNpcTimelineAction), typeDiscriminator: "Timeline")]
 public abstract class ScenarioNpcAction {
-    internal int ScenarioKey { get; set; } = 0;
-
     [DefaultValue(true)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool Enabled { get; set; } = true;
@@ -89,15 +87,11 @@ public abstract class ScenarioNpcAction {
     public float Duration { get; set; } = 0f;
 
     [JsonIgnore]
-    public bool CanHaveTalk { get; set; } = true;
+    public virtual bool CanHaveTalk => true;
     [JsonIgnore]
-    public bool CanHaveDuration { get; set; } = true;
-
-    public ScenarioNpcAction() { }
-    public ScenarioNpcAction(bool canHaveTalk, bool canHaveDuration) {
-        CanHaveTalk = canHaveTalk;
-        CanHaveDuration = canHaveDuration;
-    }
+    public virtual bool CanHaveDuration => true;
+    [JsonIgnore]
+    public virtual bool RequiresReadyActor => false;
 }
 
 public enum NpcSpeed {
@@ -117,13 +111,21 @@ public class ScenarioNpcWaitingAction : ScenarioNpcAction {
     public override string ToString() => $"Waiting [Duration: {Duration}]";
 }
 
-public class ScenarioNpcSpawnAction() : ScenarioNpcAction(false, false) {
-    // do nothing
+public class ScenarioNpcSpawnAction : ScenarioNpcAction {
+    [JsonIgnore]
+    public override bool CanHaveTalk => false;
+    [JsonIgnore]
+    public override bool CanHaveDuration => false;
+
     public override string ToString() => "Spawn";
 }
 
-public class ScenarioNpcDespawnAction() : ScenarioNpcAction(false, false) {
-    // do nothing
+public class ScenarioNpcDespawnAction : ScenarioNpcAction {
+    [JsonIgnore]
+    public override bool CanHaveTalk => false;
+    [JsonIgnore]
+    public override bool CanHaveDuration => false;
+
     public override string ToString() => "Despawn";
 }
 
@@ -171,13 +173,21 @@ public class ScenarioNpcEmoteAction : ScenarioNpcAction {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public byte PoseState { get; set; } = 0;
 
+    [JsonIgnore]
+    public override bool RequiresReadyActor => true;
+
     public override string ToString() => $"Emote [ID: {Emote}; Duration: {Duration}; Loop: {Loop}; StayInEmotePose: {StayInEmotePose}; PoseState: {PoseState}]";
 }
 
-public class ScenarioNpcIdleAction() : ScenarioNpcAction(false, true) {
+public class ScenarioNpcIdleAction : ScenarioNpcAction {
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public byte PoseState { get; set; } = 0;
+
+    [JsonIgnore]
+    public override bool CanHaveTalk => false;    
+    [JsonIgnore]
+    public override bool RequiresReadyActor => PoseState > 0;
 
     public override string ToString() => $"Idle [Duration: {Duration}; PoseState: {PoseState}]";
 }
@@ -192,13 +202,23 @@ public class TimelineActionSlot {
     public ushort TimelineId { get; set; } = 0;
 }
 
-public class ScenarioNpcSyncAction() : ScenarioNpcAction(false, false) {
+public class ScenarioNpcSyncAction : ScenarioNpcAction {
+    [JsonIgnore]
+    public override bool CanHaveTalk => false;
+    [JsonIgnore]
+    public override bool CanHaveDuration => false;
+
     public override string ToString() => $"Sync";
 }
 
-public class ScenarioNpcEmptyAction() : ScenarioNpcAction(false, false) {
+public class ScenarioNpcEmptyAction : ScenarioNpcAction {
     // Used when no further action could be determined
-    public static ScenarioNpcEmptyAction Default { get; set; } = new ScenarioNpcEmptyAction();
+    public static ScenarioNpcEmptyAction Default { get; } = new ScenarioNpcEmptyAction();
+
+    [JsonIgnore]
+    public override bool CanHaveTalk => false;
+    [JsonIgnore]
+    public override bool CanHaveDuration => false;
 
     public override string ToString() => $"Empty";
 }

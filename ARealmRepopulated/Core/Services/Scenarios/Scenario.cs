@@ -19,19 +19,31 @@ public unsafe class Scenario(IPluginLog log) {
 
     private readonly ScenarioState _state = new();
     private double _currentDelay = 0;
+    private bool _isWaitingForNextRun = false;
+    
+    public bool HasStarted
+        => _state.CurrentScenarioSegment != 0;
 
     public bool IsFinished
-        => _state.CurrentScenarioSegment != 0 && Npcs.All(n => n.CurrentAction.IsEmpty);
+        => HasStarted && Npcs.All(n => n.CurrentAction.IsEmpty);
 
     public bool IsSyncing
         => Npcs.All(n => n.CurrentAction.IsSync || n.CurrentAction.IsEmpty);
+    
+    public bool IsWaitingEndlessly
+        => Npcs.Any(n => n.IsWaitingEndlessly);
 
-    public bool IsFirstRun
-        => _state.CurrentScenarioSegment == 0;
+    public bool IsEnding { get; set; }
+    
+    public bool FadeOut() {
+        Npcs.ForEach(n => n.Actor.Fade(-0.10f));
+        return Npcs.All(n => n.Actor.IsFadedOut());
+    }
 
     public void WaitForNextRun(TimeSpan time) {
 
-        if (_currentDelay == 0) {
+        if (!_isWaitingForNextRun) {
+            _isWaitingForNextRun = true;
             log.Info($"[{ScenarioInstance.AsHexString()}] Scenario loop finished.");
             if (DelayBetweenRuns.TotalMilliseconds > 0) {
                 log.Debug($"[{ScenarioInstance.AsHexString()}] Waiting {DelayBetweenRuns.TotalSeconds} seconds before next run.");
@@ -44,13 +56,14 @@ public unsafe class Scenario(IPluginLog log) {
         }
 
         log.Info($"[{ScenarioInstance.AsHexString()}] Starting next scenario loop");
+        _isWaitingForNextRun = false;
         _currentDelay = 0;
         _state.CurrentScenarioSegment = 0;
         Npcs.ForEach(n => n.Actor.Reset());
     }
 
     public void Advance(TimeSpan time) {
-        if (IsSyncing || IsFirstRun) {
+        if (IsSyncing) {
             log.Debug($"[{ScenarioInstance.AsHexString()}] [{_state.CurrentScenarioSegment}] Advancing to segment {_state.CurrentScenarioSegment + 1}");
             _state.CurrentScenarioSegment++;
         }
@@ -76,11 +89,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     public ScenarioNpcBehaviorData Behavior { get; set; } = new();
     public NpcActor Actor { get; set; } = null!;
 
-    private List<ScenarioNpcAction> _actions { get; set; } = [];
+    private readonly List<ScenarioNpcAction> _actions = [];
 
     private readonly Queue<ScenarioNpcAction> _scenarioActions = new();
 
     public ScenarioNpcActionExecution CurrentAction { get; private set; } = ScenarioNpcActionExecution.Default;
+    
+    public bool IsWaitingEndlessly => CurrentAction.Action switch {
+        ScenarioNpcWaitingAction => CurrentAction.IsEndless,
+        ScenarioNpcEmoteAction emote => CurrentAction.IsEndless && (emote.Loop || Actor.IsLoopingEmote(emote.Emote)),
+        ScenarioNpcIdleAction idle => CurrentAction.IsEndless && idle.PoseState > 0,
+        _ => false,
+    };
 
     private readonly TimeSpan _proximityTimeout = TimeSpan.FromSeconds(15);
     private readonly float _proximityChatDistance = 10f;
@@ -88,28 +108,18 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
     public void SetActions(List<ScenarioNpcAction> actions) {
         var npcActions = actions.Where(a => a.Enabled).ToList();
-        if (actions.Count == 0) {
-            // if no actions are defined, add a default wait action to prevent the scenario from immediately looping.
+        if (npcActions.Count == 0) {
+            // an actor without actions waits endlessly, which also holds the other actors at their first sync.
             npcActions.Add(new ScenarioNpcWaitingAction());
         }
 
-        // attach a sync node at the end to make sure the scenario actually finishes.        
+        // attach a sync node at the end to make sure the scenario actually finishes.
         if (npcActions.LastOrDefault() is not ScenarioNpcSyncAction) {
             npcActions.Add(new ScenarioNpcSyncAction());
         }
 
         _actions.Clear();
-        AddAction([.. npcActions]);
-    }
-
-    public void AddAction(params ScenarioNpcAction[] actions) {        
-        var scenarioKey = _actions.Count(a => a is ScenarioNpcSyncAction) + 1;
-        foreach (var action in actions) {
-            action.ScenarioKey = scenarioKey;
-            if (action is ScenarioNpcSyncAction)
-                scenarioKey++;
-            _actions.Add(action);
-        }
+        _actions.AddRange(npcActions);
     }
 
     public void Advance(ScenarioState state, TimeSpan time) {
@@ -118,8 +128,12 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             CurrentAction = SetupNextAction();
             log.Debug($"[{ScenarioInstance.AsHexString()}] [{CurrentScenarioSegment}] [{Id}:{Name}] Starting action '{CurrentAction.Action}'");
         }
+        
+        if (CurrentAction.IsSync || CurrentAction.IsEmpty)
+            return;
 
-        if (CurrentAction.IsInfinite || CurrentAction.IsEmpty)
+        // after spawning it takes a few frames until the actor settled into a stable animation state
+        if (CurrentAction.Action.RequiresReadyActor && !Actor.IsReady())
             return;
 
         switch (CurrentAction.Action) {
@@ -147,10 +161,6 @@ public unsafe class ScenarioNpc(IPluginLog log) {
                 AdvanceTimeline(timeline, time);
                 break;
 
-            case ScenarioNpcSyncAction sync:
-                AdvanceSync(state, sync, time);
-                break;
-
             case ScenarioNpcSpawnAction spawn:
                 AdvanceSpawn(spawn);
                 break;
@@ -164,6 +174,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
                 break;
         }
 
+        CurrentAction.IsStarted = true;
     }
 
     public void Proximity(BattleChara* player) {
@@ -191,7 +202,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
             return;
         }
 
-        if (CurrentAction.TargetDuration == 0) {
+        if (CurrentAction.IsEndless) {
             if (DateTime.Now - CurrentAction.LastProximityAction < _proximityTimeout) {
                 return;
             }
@@ -229,11 +240,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     }
 
     private void AdvanceEmote(ScenarioNpcEmoteAction action, TimeSpan delta) {
-        // after spawning it takes a few frames until the actor is in a stable animation state. so lets wait here.
-        if (!Actor.IsReady())
-            return;
-
-        if ((action.Loop && !Actor.IsPlayingEmote(action.Emote, action.PoseState)) || CurrentAction.CurrentDuration == 0f) {
+        if (!CurrentAction.IsStarted || (action.Loop && !Actor.IsPlayingEmote(action.Emote, action.PoseState))) {
             Actor.PlayEmote(action.Emote, action.InteractWithLayout);
         }
 
@@ -244,14 +251,14 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         var isLoopingEmote = Actor.IsLoopingEmote(action.Emote);
 
         if (!action.Loop) {
-            if (!Actor.IsPlayingEmote(action.Emote, action.PoseState) || (isLoopingEmote && CurrentAction.IsDurationExeeded)) {
+            if (!Actor.IsPlayingEmote(action.Emote, action.PoseState) || (isLoopingEmote && CurrentAction.IsDurationExceeded)) {
                 CurrentAction.IsFinished = true;
                 if (isLoopingEmote && !action.StayInEmotePose) {
                     Actor.ResetMode();
                 }
             }
         } else {
-            if (CurrentAction.IsDurationExeeded) {
+            if (CurrentAction.IsDurationExceeded) {
                 CurrentAction.IsFinished = true;
                 if (isLoopingEmote && !action.StayInEmotePose) {
                     Actor.ResetMode();
@@ -261,24 +268,20 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     }
 
     private void AdvanceIdle(ScenarioNpcIdleAction action, TimeSpan delta) {
-        // a pose only sticks once the actor settled into its idle animation after spawning
-        if (action.PoseState > 0 && !Actor.IsReady())
-            return;
-
-        if (CurrentAction.CurrentDuration == 0f) {
+        if (!CurrentAction.IsStarted) {
             Actor.ResetMode();
             Actor.SetPose(PoseType.Idle, action.PoseState);
         }
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
         
-        if ((action.PoseState == 0 && CurrentAction.IsEndless) || CurrentAction.IsDurationExeeded) {
+        if ((action.PoseState == 0 && CurrentAction.IsEndless) || CurrentAction.IsDurationExceeded) {
             CurrentAction.IsFinished = true;            
         }
     }
 
     private void AdvanceTimeline(ScenarioNpcTimelineAction action, TimeSpan delta) {
-        if (CurrentAction.CurrentDuration == 0f) {
+        if (!CurrentAction.IsStarted) {
             Actor.SetMode(CharacterModes.None, 0);
             foreach (var timeline in action.ActionSlots) {
                 Actor.PlayTimeline(timeline.TimelineId);
@@ -289,7 +292,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         if (CurrentAction.IsEndless) {            
             CurrentAction.IsFinished = !action.ActionSlots.Any(t => Actor.IsPlayingTimeline(t.TimelineId));
-        } else if (CurrentAction.IsDurationExeeded) {
+        } else if (CurrentAction.IsDurationExceeded) {
             CurrentAction.IsFinished = true;
         }
 
@@ -337,9 +340,6 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     private void AdvanceSimpleMovement(ScenarioNpcMovementAction action, TimeSpan delta) {
         var travelSpeed = PathMovementRuntime.ResolveSpeed(action);
 
-        if (CurrentAction.CurrentDuration == 0f)
-            CurrentAction.CurrentDuration = 0.1f;
-
         Actor.SetMovementMotion(travelSpeed);
 
         var currentRotation = Actor.GetRotation();
@@ -370,11 +370,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     }
 
     private void AdvanceRotation(ScenarioNpcRotationAction action, TimeSpan delta) {
-        if (CurrentAction == null)
-            return;
-
-        if (CurrentAction.CurrentDuration == 0f) {
-            CurrentAction.CurrentDuration = 0.1f;
+        if (!CurrentAction.IsStarted) {
             Actor.SetMovementAnimation(NpcAppearanceService.Animations.Walking);
         }
 
@@ -391,20 +387,12 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         }
     }
 
-    private void AdvanceSync(ScenarioState state, ScenarioNpcSyncAction _, TimeSpan __) {
-        if (CurrentAction == null)
-            return;
-
-        if (state.CurrentScenarioSegment == CurrentScenarioSegment)
-            CurrentAction.IsFinished = true;
-    }
-
     private void AdvanceTime(TimeSpan delta) {
-        if (CurrentAction == null || CurrentAction.IsEndless)
+        if (CurrentAction.IsEndless)
             return;
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
-        if (CurrentAction.IsDurationExeeded)
+        if (CurrentAction.IsDurationExceeded)
             CurrentAction.IsFinished = true;
     }
 
@@ -417,37 +405,27 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         switch (execution.Action) {
             case ScenarioNpcPathAction pathAction:
-                execution.IsInfinite = false;
                 execution.Pathfinder.Reset();
 
                 var firstPoint = pathAction.Points.FirstOrDefault();
                 if (firstPoint != null) {
-                    // add the current actor position to the point iteration to not "warp" around                    
+                    // add the current actor position to the point iteration to not "warp" around
                     var pathPoints = pathAction.Points.Select(s => new PathSegmentPoint { Point = s.Point, Speed = PathMovementRuntime.ResolveSpeed(s) }).ToList();
                     pathPoints.Insert(0, new PathSegmentPoint { Point = Actor.GetPosition(), Speed = PathMovementRuntime.ResolveSpeed(firstPoint) });
 
                     execution.IsFinished = !execution.Pathfinder.Compile(pathPoints, pathAction.Tension, PathMovementIntegrationMode.CrossSingleBoundary);
                 } else {
-                    execution.Action.NpcTalk = "\uE040 Tell the scenario writer that there is a problem with my path \uE041";
+                    log.Warning($"[{ScenarioInstance.AsHexString()}] [{CurrentScenarioSegment}] [{Id}:{Name}] Skipping path action without points");
+                    execution.IsFinished = true;
                 }
 
                 break;
 
-            case var t when t is ScenarioNpcTimelineAction || t is ScenarioNpcEmoteAction || t is ScenarioNpcIdleAction:
-                execution.IsInfinite = false;
-                execution.TargetDuration = t.Duration;
-                break;
-
-            case ScenarioNpcMovementAction:
-            case ScenarioNpcRotationAction:
-            case ScenarioNpcSpawnAction:
-            case ScenarioNpcDespawnAction:
-                execution.IsInfinite = false;
-                break;
-
-            case { Duration: > 0 } t:
-                execution.IsInfinite = false;
-                execution.TargetDuration = t.Duration;
+            case ScenarioNpcWaitingAction 
+                or ScenarioNpcTimelineAction 
+                or ScenarioNpcEmoteAction 
+                or ScenarioNpcIdleAction:
+                execution.TargetDuration = execution.Action.Duration;
                 break;
         }
 
@@ -455,10 +433,14 @@ public unsafe class ScenarioNpc(IPluginLog log) {
     }
     private ScenarioNpcAction GetNextAction() {
         if (_scenarioActions.Count == 0) {
-            _actions
-                .Where(a => a.ScenarioKey == CurrentScenarioSegment)
-                .ToList()
-                .ForEach(_scenarioActions.Enqueue);
+            // each sync closes a segment, so the segment of an action is the number of syncs before it plus one
+            var segment = 1;
+            foreach (var candidate in _actions) {
+                if (segment == CurrentScenarioSegment)
+                    _scenarioActions.Enqueue(candidate);
+                if (candidate is ScenarioNpcSyncAction)
+                    segment++;
+            }
         }
 
         if (_scenarioActions.TryDequeue(out var action)) {
@@ -483,18 +465,17 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 }
 
 public class ScenarioNpcActionExecution {
-    public static ScenarioNpcActionExecution Default => new() { Action = new ScenarioNpcEmptyAction() };
+    public static ScenarioNpcActionExecution Default => new() { Action = ScenarioNpcEmptyAction.Default };
 
     public float TargetDuration { get; set; }
     public float CurrentDuration { get; set; }
 
-    public bool IsDurationExeeded
-        => TargetDuration > 0 && CurrentDuration > 0 && CurrentDuration > TargetDuration;
+    public bool IsDurationExceeded
+        => TargetDuration > 0 && CurrentDuration > TargetDuration;
     public bool IsEndless
         => TargetDuration == 0;
 
-    //TODO: Remove and just check if IsEndless equals true
-    public bool IsInfinite { get; set; } = true;
+    public bool IsStarted { get; set; } = false;
     public bool IsFinished { get; set; } = false;
 
     public bool IsSync { get => Action is ScenarioNpcSyncAction; }

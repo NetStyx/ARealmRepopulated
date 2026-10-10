@@ -239,6 +239,7 @@ public unsafe class ScenarioOrchestrator(
 
             if (ingameSnapshot is { } snapshot) {
                 orchestration.AreConditionsMet = conditionService.AreConditionsMet(orchestration.Data.Conditions, snapshot);
+                orchestration.AreDeterministicConditionsMet = conditionService.AreDeterministicConditionsMet(orchestration.Data.Conditions, snapshot);
                 if (!orchestration.IsActive && orchestration.AreConditionsMet && TryActivate(orchestration))
                     stateChanged = true;
             }
@@ -250,6 +251,20 @@ public unsafe class ScenarioOrchestrator(
             // Npc-less scenarios can happen if all NPCs were removed due to character destruction.
             if (scenario.Npcs.Count == 0) {
                 removableList.Add(orchestration);
+                continue;
+            }
+
+            // an endless run never finishes, so it never reaches the condition check below. Chance is left out, it re-rolls every sweep.
+            if (scenario.IsEnding || (!orchestration.AreDeterministicConditionsMet && scenario.IsWaitingEndlessly)) {
+                if (!scenario.IsEnding) {
+                    pluginLog.Debug("Conditions no longer met during an endless run. Fading out actors of orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
+                    scenario.IsEnding = true;
+                }
+
+                if (scenario.FadeOut()) {
+                    Deactivate(orchestration);
+                    stateChanged = true;
+                }
                 continue;
             }
 
@@ -340,6 +355,8 @@ public class Orchestration {
     public bool IsActive => Scenario != null;
     
     public bool AreConditionsMet { get; set; }
+
+    public bool AreDeterministicConditionsMet { get; set; }
 }
 
 public static unsafe class ScenarioManagerExtensions {
