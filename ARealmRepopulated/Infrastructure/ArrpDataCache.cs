@@ -1,8 +1,8 @@
-using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Supplementals;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
@@ -257,9 +257,9 @@ public static class EmoteExtensions {
     /// 0x32 (Sit -> If a sitable position is near, you sit on it)
     /// </summary>  
     private static readonly Dictionary<uint, EmoteLayoutInteraction> LayoutInteractionOverrides = new() {
-        { 0xD, new EmoteLayoutInteraction(0xD, 0x58, LayoutTarget.Bed) },
-        { 0x58, new EmoteLayoutInteraction(0x58, 0x58, LayoutTarget.Bed) },
-        { 0x32, new EmoteLayoutInteraction(0x32, 0x32, LayoutTarget.Chair) }
+        { 0xD, new EmoteLayoutInteraction(0xD, 0x58, ChairMarkerObjectType.Bed) },
+        { 0x58, new EmoteLayoutInteraction(0x58, 0x58, ChairMarkerObjectType.Bed) },
+        { 0x32, new EmoteLayoutInteraction(0x32, 0x32, ChairMarkerObjectType.Chair) }
     };
 
     /// <summary>
@@ -304,7 +304,7 @@ public static class EmoteExtensions {
         return false;
     }
 
-    public record EmoteLayoutInteraction(uint OriginalEmoteId, uint LayoutInteractionEmoteId, LayoutTarget LayoutObjectTarget);
+    public record EmoteLayoutInteraction(uint OriginalEmoteId, uint LayoutInteractionEmoteId, ChairMarkerObjectType LayoutObjectTarget);
 }
 
 public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager dataManager) {

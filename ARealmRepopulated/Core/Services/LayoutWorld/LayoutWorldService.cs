@@ -2,15 +2,11 @@ using ARealmRepopulated.Core.SpatialMath;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ARealmRepopulated.Core.Services.LayoutWorld;
-
-public enum LayoutTarget : byte {
-    Chair = 0,
-    Bed = 1
-}
 
 /// <summary>
 /// Service to manage functionality which allows interaction with the games in-world layout system.
@@ -29,7 +25,7 @@ public unsafe class LayoutWorldService : IDisposable {
     /// <summary>
     /// Checks for an layout instance of the specified type within the search range of the character and calculates the nearest snap position.
     /// </summary>
-    public bool CheckSnapableLayout(Character* character, float searchRange, LayoutTarget targetType, [NotNullWhen(true)] out SnapSearchResult? result) {
+    public bool CheckSnapableLayout(Character* character, float searchRange, ChairMarkerObjectType targetType,[NotNullWhen(true)] out SnapSearchResult? result) {
         result = null;
 
         var layoutWorld = FFXIVClientStructs.FFXIV.Client.LayoutEngine.LayoutWorld.Instance();
@@ -101,20 +97,20 @@ public unsafe class LayoutWorldService : IDisposable {
         if (!searchQuery.ReferencePosition.IsInCylinderRange(position, searchQuery.SearchRadius))
             return false;
 
-        var snap = (SnapLayoutInstance*)instance;
-        if (snap->Type != (byte)searchQuery.TargetType)
+        var chairMarker = (ChairMarkerLayoutInstance*)instance;
+        if (chairMarker->ObjectType != searchQuery.TargetType)
             return false;
 
-        candidate = new SnapPosition((nint)instance, position, facing, default, 0f, SnapSideMask.None, float.MaxValue, snap->AllowedSideMask, snap->Type);
+        candidate = new SnapPosition((nint)instance, position, facing, default, 0f, default, float.MaxValue, chairMarker->EnableFlags, chairMarker->ObjectType);
         return true;
     }
 
     private static bool TryCalculateSnapPosition(SnapPosition candidate, Vector3 npcPosition, out SnapPosition result) {
-        ReadOnlySpan<SnapSideMask> sides = [SnapSideMask.Base, SnapSideMask.Right, SnapSideMask.Opposite, SnapSideMask.Left];
+        ReadOnlySpan<ChairMarkerEnableFlags> sides = [ChairMarkerEnableFlags.Front, ChairMarkerEnableFlags.Right, ChairMarkerEnableFlags.Back, ChairMarkerEnableFlags.Left];
 
         var best = new SnapSideChoice(DistanceSquared: float.MaxValue);
         foreach (var side in sides) {
-            if ((candidate.AllowedSideMask & side) == 0)
+            if ((candidate.EnabledSides & side) == 0)
                 continue;
 
             var snapFacing = FacingForSide(candidate.ObjectFacing, side);
@@ -127,7 +123,7 @@ public unsafe class LayoutWorldService : IDisposable {
             best = new SnapSideChoice(side, snapPosition, snapFacing, distanceSq);
         }
 
-        if (best.Side == SnapSideMask.None) {
+        if (best.Side == default) {
             result = default;
             return false;
         }
@@ -141,13 +137,13 @@ public unsafe class LayoutWorldService : IDisposable {
         return true;
     }
 
-    private static float FacingForSide(float objectFacing, SnapSideMask side) {
+    private static float FacingForSide(float objectFacing, ChairMarkerEnableFlags side) {
         var facing = objectFacing;
 
         facing += side switch {
-            SnapSideMask.Right => MathF.PI / 2f,
-            SnapSideMask.Opposite => MathF.PI,
-            SnapSideMask.Left => -MathF.PI / 2f,
+            ChairMarkerEnableFlags.Right => MathF.PI / 2f,
+            ChairMarkerEnableFlags.Back => MathF.PI,
+            ChairMarkerEnableFlags.Left => -MathF.PI / 2f,
             _ => 0f,
         };
 

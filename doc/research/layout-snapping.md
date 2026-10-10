@@ -17,6 +17,11 @@ public unsafe struct SnapLayoutInstance {
 
 The same function uses the snap distances `0.42` and `0.75` (`LayoutWorldService.SnapOffsets`). I am unsure what exactly these are, beside them beeing used for resolving distances in relation to the sitting position. For now, we place the actor `0.42` in front of the chosen side, and `NpcActor.PlayEmote` steps back by the same `0.42` when the actor stands up again.
 
+## 0.1.11.0 Update:
+Clientstrcts now has the `ChairMarkerLayoutInstance` which equals to the `SnapLayoutInstance` above.
+
+Also, after reinvestigation, the `0.42` and `0.75` are just different spacings to check which determine where a actor can stand. 0.42 is checked first and if it is blocked 0.75 is applied.
+
 ## The first draft: calling the games sit target resolution
 
 The first attempt called the games own resolution instead of rebuilding it. The call chain starts at `EmoteManager.ExecuteEmote`:
