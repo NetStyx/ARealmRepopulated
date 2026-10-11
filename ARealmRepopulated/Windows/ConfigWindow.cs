@@ -6,6 +6,7 @@ using ARealmRepopulated.Core.Services.Changelog;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Location;
+using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
@@ -351,24 +352,28 @@ public class ConfigWindow(
         }
 
         using var cellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, new Vector2(10, 5));
-        using (var t = ImRaii.Table("##AvailableScenarioTable", 4, ImGuiTableFlags.Borders | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollY)) {
-            if (!t.Success)
+        using (var scenarioTable = ImRaii.Table("##AvailableScenarioTable", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.ScrollY)) {
+            if (!scenarioTable.Success)
                 return;
 
-            ImGui.TableSetupColumn("##scenarioRefreshHeader", ImGuiTableColumnFlags.WidthFixed, 25);
-            ImGui.TableSetupColumn("##scenarioLocationHeader", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("##scenarioTitleHeader", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##scenarioLocationHeader", ImGuiTableColumnFlags.WidthFixed, 150);
             ImGui.TableSetupColumn("##scenarioToolbarHeader", ImGuiTableColumnFlags.WidthFixed);
 
-            ImGui.TableSetupScrollFreeze(0, 1);
-            ImGui.TableHeadersRow();
+            ImGui.TableSetupScrollFreeze(0, 1);            
+            ImGui.TableNextRow();
+            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(ImGuiCol.TableHeaderBg));
 
-            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {                
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetTreeNodeToLabelSpacing());
                 if (ImGuiComponents.IconButton(FontAwesomeIcon.Recycle)) {
                     _fileManager.ScanScenarioFiles();
                 }
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Scan_Desc"]);
+
+                ImGui.SameLine();
+                ImGui.Text(loc["ListWnd_Scenario_Header_Title"]);
             });
             ArrpGuiHelper.DrawCenteredHeaderCell(1, () => {
                 ImGui.Checkbox("##scenarioLocationHeaderScoped", ref _displayCurrentLocationOnly);
@@ -379,8 +384,7 @@ public class ConfigWindow(
                 ImGui.SameLine();
                 ImGui.Text(loc["ListWnd_Scenario_Header_Location"]);
             });
-            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text(loc["ListWnd_Scenario_Header_Title"]));
-            ArrpGuiHelper.DrawCenteredHeaderCell(3, () => {
+            ArrpGuiHelper.DrawCenteredHeaderCell(2, () => {
                 using (ImRaii.PushColor(ImGuiCol.Button, ArrpGuiColors.ArrpGreen)) {
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus)) {
                         serviceProvider.GetService<ScenarioEditorWindow>()!.CreateScenario();
@@ -405,94 +409,180 @@ public class ConfigWindow(
 
             var scenarioFiles = _fileManager.GetScenarioFiles()
                 .Where(s => !_displayCurrentLocationOnly || eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))
-                .Where(s => s.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
                 .OrderBy(s => s.MetaData.Location.Territory == state.TerritoryType ? 0 : 1)
                 .ThenBy(s => s.MetaData.Location.Territory)
                 .ThenBy(s => s.MetaData.Title)
+                .Select(s => new GroupedScenarioFile(s, s.MetaData.GroupSegments()))
+                .Where(f => f.File.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase)
+                    || string.Join('/', f.Segments).Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
 
-            for (var scenarioIndex = 0; scenarioIndex < scenarioFiles.Count; scenarioIndex++) {
-                var s = scenarioFiles[scenarioIndex];
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                var scenarioEnabled = s.MetaData.Enabled;
-                if (ImGui.Checkbox($"##scenarioEnableButton{scenarioIndex}", ref scenarioEnabled)) {
-                    var file = _fileManager.LoadScenarioFile(s.FilePath);
-                    if (file != null) {
-                        file.Enabled = scenarioEnabled;
-                        _fileManager.StoreScenarioFile(file, s.FilePath);
-                    }
-                }
-
-                ImGui.TableNextColumn();
-
-                var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.Location.Territory);
-                var placeName = territoryData.PlaceName.Value.Name.ToString();
-                var zoneName = territoryData.PlaceNameZone.Value.Name.ToString();
-                var isInCorrectLocation = eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location);
-
-                if (ImGuiComponents.IconButton($"##scenarioMapButton{scenarioIndex}", FontAwesomeIcon.MapMarker)) {
-                    unsafe {
-                        AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
-                    }
-                }
-                ImGui.SameLine(0, 10);
-                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, isInCorrectLocation)) {
-                    ImGui.Text(placeName);
-                }
-                ImGui.TableNextColumn();
-
-                var conditionState = ScenarioConditionState(s);
-                if (conditionState.HasValue) {
-                    DrawScenarioConditionBadge(conditionState.Value);
-                }
-
-                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.NoteColor, conditionState == false)) {
-                    ImGui.Text(s.MetaData.Title);
-                }
-
-                if (!string.IsNullOrWhiteSpace(s.MetaData.Description)) {
-                    ImGuiComponents.HelpMarker(s.MetaData.Description);
-                }
-
-                ImGui.TableNextColumn();
-                if (ImGuiComponents.IconButton($"##scenarioEditButton{scenarioIndex}", FontAwesomeIcon.Wrench)) {
-                    serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
-                }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_EditScenario_Desc"]);
-
-                ImGui.SameLine(0, 5);
-                var deletePopupId = $"{loc["ListWnd_Scenario_Popup_DeleteScenario_Title"]}##ConfirmDelete{scenarioIndex}";
-                if (ImGuiComponents.IconButton($"##scenarioDeleteButton{scenarioIndex}", FontAwesomeIcon.Trash)) {
-                    ImGui.OpenPopup(deletePopupId);
-                }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_DeleteScenario_Desc"]);
-
-                ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
-
-                using var modal = ImRaii.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings);
-                if (modal.Success) {
-                    ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-                    ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", s.MetaData.Title]);
-                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-                    ImGui.Separator();
-                    ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-
-                    if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Accept"], new Vector2(120, 0))) {
-                        _fileManager.RemoveScenarioFile(s.FilePath);
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.SetItemDefaultFocus();
-                    ImGui.SameLine();
-                    if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Decline"], new Vector2(120, 0))) {
-                        ImGui.CloseCurrentPopup();
-                    }
-                }
-            }
-
+            DrawScenarioGroupLevel(scenarioFiles, 0);
         }
     }
+
+    private void DrawScenarioGroupLevel(List<GroupedScenarioFile> files, int depth) {
+        var groups = files
+            .Where(f => f.Segments.Length > depth)
+            .GroupBy(f => f.Segments[depth], StringComparer.InvariantCultureIgnoreCase)
+            .OrderBy(g => g.Key, StringComparer.InvariantCultureIgnoreCase);
+
+        foreach (var group in groups) {
+            var groupFiles = group.ToList();
+            using var id = ImRaii.PushId(group.Key);
+            if (!DrawGroupRow(group.Key, groupFiles))
+                continue;
+
+            using var indent = ImRaii.PushIndent();
+            DrawScenarioGroupLevel(groupFiles, depth + 1);
+        }
+
+        foreach (var file in files.Where(f => f.Segments.Length == depth)) {
+            DrawScenarioRow(file.File);
+        }
+    }
+    
+    private bool DrawGroupRow(string name, List<GroupedScenarioFile> groupFiles) {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+
+        // uwu whats this? a state storage in imgui? 
+        var storage = ImGui.GetStateStorage();
+        var openKey = ImGui.GetID("##open");
+        if (DrawRowHighlight())
+            storage.SetBool(openKey, !storage.GetBool(openKey));
+
+        var isOpen = !string.IsNullOrEmpty(_searchScenarioText) || storage.GetBool(openKey);
+        var startX = ImGui.GetCursorPosX();
+        ImGui.AlignTextToFramePadding();
+        using (ImRaii.PushFont(UiBuilder.IconFont)) {
+            ImGui.TextDisabled((isOpen ? FontAwesomeIcon.CaretDown : FontAwesomeIcon.CaretRight).ToIconString());
+        }
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(startX + ImGui.GetTreeNodeToLabelSpacing());
+
+        var enabledCount = groupFiles.Count(f => f.File.MetaData.Enabled);
+        var groupEnabled = enabledCount == groupFiles.Count;
+        ImGuiP.PushItemFlag(ImGuiItemFlags.MixedValue, enabledCount > 0 && !groupEnabled);
+        if (ImGui.Checkbox("##scenarioGroupEnableButton", ref groupEnabled)) {
+            groupFiles.Where(f => f.File.MetaData.Enabled != groupEnabled).ToList().ForEach(f => SetScenarioEnabled(f.File, groupEnabled));
+        }
+        ImGuiP.PopItemFlag();
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(loc["ListWnd_Scenario_Group_Enable_Desc"]);
+
+        ImGui.SameLine();
+        ImGui.Text(name);
+        ImGui.SameLine();
+        ImGui.TextDisabled($"({groupFiles.Count})");
+
+        return isOpen;
+    }
+
+    private void DrawScenarioRow(ScenarioFileData s) {
+        using var id = ImRaii.PushId(s.FilePath);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        DrawRowHighlight();
+        
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetTreeNodeToLabelSpacing());
+        var scenarioEnabled = s.MetaData.Enabled;
+        if (ImGui.Checkbox("##scenarioEnableButton", ref scenarioEnabled)) {
+            SetScenarioEnabled(s, scenarioEnabled);
+        }
+
+        ImGui.SameLine();
+        var conditionState = ScenarioConditionState(s);
+        if (conditionState.HasValue) {
+            DrawScenarioConditionBadge(conditionState.Value);
+        }
+
+        using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.NoteColor, conditionState == false)) {
+            ImGui.Text(s.MetaData.Title);
+        }
+
+        if (!string.IsNullOrWhiteSpace(s.MetaData.Description)) {
+            ImGuiComponents.HelpMarker(s.MetaData.Description);
+        }
+
+        ImGui.TableNextColumn();
+        var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.Location.Territory);
+        if (ImGuiComponents.IconButton("##scenarioMapButton", FontAwesomeIcon.MapMarker)) {
+            unsafe {
+                AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
+            }
+        }
+        ImGui.SameLine(0, 10);
+        using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))) {
+            var placeName = territoryData.PlaceName.Value.Name.ToString();
+            if (placeName.Length <= 15) {
+                ImGui.Text(placeName);
+            } else {
+                ImGui.Text($"{placeName[..15]}...");
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip(placeName);
+            }
+        }
+
+        ImGui.TableNextColumn();
+        if (ImGuiComponents.IconButton("##scenarioEditButton", FontAwesomeIcon.Wrench)) {
+            serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(loc["ListWnd_Scenario_Action_EditScenario_Desc"]);
+
+        ImGui.SameLine(0, 5);
+        var deletePopupId = $"{loc["ListWnd_Scenario_Popup_DeleteScenario_Title"]}##ConfirmDelete";
+        if (ImGuiComponents.IconButton("##scenarioDeleteButton", FontAwesomeIcon.Trash)) {
+            ImGui.OpenPopup(deletePopupId);
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip(loc["ListWnd_Scenario_Action_DeleteScenario_Desc"]);
+
+        ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
+
+        using var modal = ImRaii.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings);
+        if (modal.Success) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+            ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", s.MetaData.Title]);
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            ImGui.Separator();
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+            if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Accept"], new Vector2(120, 0))) {
+                _fileManager.RemoveScenarioFile(s.FilePath);
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.SetItemDefaultFocus();
+            ImGui.SameLine();
+            if (ImGui.Button(loc["ListWnd_Scenario_Popup_DeleteScenario_Decline"], new Vector2(120, 0))) {
+                ImGui.CloseCurrentPopup();
+            }
+        }
+    }
+
+    private static bool DrawRowHighlight() {
+        var cursor = ImGui.GetCursorPos();
+        bool isClicked;
+        using (ImRaii.PushColor(ImGuiCol.HeaderHovered, Vector4.Zero).Push(ImGuiCol.HeaderActive, Vector4.Zero)) {
+            isClicked = ImGui.Selectable("##row", false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap, new Vector2(0, ImGui.GetFrameHeight()));
+        }
+
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenOverlapped))
+            ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg1, ImGui.GetColorU32(ImGuiCol.HeaderHovered));
+
+        ImGui.SetCursorPos(cursor);
+        return isClicked;
+    }
+
+    private void SetScenarioEnabled(ScenarioFileData s, bool enabled) {
+        if (_fileManager.LoadScenarioFile(s.FilePath) is not { } file)
+            return;
+
+        file.Enabled = enabled;
+        _fileManager.StoreScenarioFile(file, s.FilePath);
+    }
+
+    private readonly record struct GroupedScenarioFile(ScenarioFileData File, string[] Segments);
 }

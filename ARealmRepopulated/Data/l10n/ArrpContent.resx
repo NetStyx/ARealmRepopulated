@@ -156,6 +156,9 @@
   <data name="ListWnd_Scenario_Action_Scan_Desc" xml:space="preserve">
     <value>Rescan the available scenario files</value>
   </data>
+  <data name="ListWnd_Scenario_Group_Enable_Desc" xml:space="preserve">
+    <value>Turn every scenario in this group on or off</value>
+  </data>
   <data name="ListWnd_Scenario_Action_Add_Desc" xml:space="preserve">
     <value>Add a new scenario</value>
   </data>
@@ -209,6 +212,18 @@
   </data>
   <data name="ScenarioEditor_BaseData_Input_Description" xml:space="preserve">
     <value>Description:</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Group" xml:space="preserve">
+    <value>Group:</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Group_Hint" xml:space="preserve">
+    <value>e.g. Garden/Guests</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Group_Help" xml:space="preserve">
+    <value>Sorts the scenario into a group in the scenario list. Use / to nest groups, for example Garden/Guests. Leave it empty to keep the scenario at the top level.</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_Group_None" xml:space="preserve">
+    <value>No groups yet</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_Looping" xml:space="preserve">
     <value>Loop scenario</value>

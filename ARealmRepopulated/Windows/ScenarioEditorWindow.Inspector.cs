@@ -77,6 +77,36 @@ public partial class ScenarioEditorWindow {
                 }
             });
 
+            form.Row(loc["ScenarioEditor_BaseData_Input_Group"], () => {
+                var innerSpacing = ImGui.GetStyle().ItemInnerSpacing.X;
+                var group = ScenarioObject.Group;
+                ImGui.SetNextItemWidth(-(ImGui.GetFrameHeight() + innerSpacing));
+                if (ImGui.InputTextWithHint("##value", loc["ScenarioEditor_BaseData_Input_Group_Hint"], ref group)) {
+                    ScenarioObject.Group = group;
+                }
+
+                ImGui.SameLine(0, innerSpacing);
+                using var combo = ImRaii.Combo("##groupSuggestions", string.Empty, ImGuiComboFlags.NoPreview | ImGuiComboFlags.PopupAlignLeft);
+                if (!combo.Success)
+                    return;
+
+                var existingGroups = scenarioFileManager.GetScenarioFiles()
+                    .Select(f => string.Join('/', f.MetaData.GroupSegments()))
+                    .Where(g => g.Length > 0)
+                    .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                    .Order(StringComparer.InvariantCultureIgnoreCase)
+                    .ToList();
+
+                if (existingGroups.Count == 0)
+                    ImGui.TextDisabled(loc["ScenarioEditor_BaseData_Input_Group_None"]);
+
+                foreach (var existing in existingGroups) {
+                    if (ImGui.Selectable(existing, existing == ScenarioObject.Group)) {
+                        ScenarioObject.Group = existing;
+                    }
+                }
+            }, loc["ScenarioEditor_BaseData_Input_Group_Help"]);
+
             form.CheckboxRow(loc["ScenarioEditor_BaseData_Input_Looping"], ScenarioObject.Looping, value => ScenarioObject.Looping = value);
 
             using (ImRaii.Disabled(!ScenarioObject.Looping)) {

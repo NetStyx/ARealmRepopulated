@@ -671,6 +671,7 @@ public partial class ScenarioEditorWindow(
         => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(source, ScenarioFileManager.ScenarioLoadSerializerOptions), ScenarioFileManager.ScenarioLoadSerializerOptions);
 
     private void SaveScenario() {
+        ScenarioObject.Group = string.Join('/', ScenarioObject.GroupSegments());
         if (string.IsNullOrWhiteSpace(_scenarioFilePath)) {
             _scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
         } else {
