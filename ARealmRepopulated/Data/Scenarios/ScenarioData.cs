@@ -11,6 +11,11 @@ public class ScenarioData : IScenarioMetaData {
     public int Version { get; set; } = ScenarioMigrator.CurrentScenarioVersion;
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
+
+    [DefaultValue("")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string Group { get; set; } = "";
+
     public ScenarioLocation Location { get; set; } = new();
     public List<ScenarioNpcData> Npcs { get; set; } = [];
     public bool Looping { get; set; } = true;
@@ -24,6 +29,7 @@ public class ScenarioFileMetaData : IScenarioMetaData {
     public bool Enabled { get; set; } = true;
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
+    public string Group { get; set; } = "";
     public ScenarioLocation Location { get; set; } = new();
 }
 
@@ -38,9 +44,15 @@ public class ScenarioLocation {
 public interface IScenarioMetaData {
     int Version { get; }
     string Title { get; }
-    string Description { get; }
+    string Description { get; }    
+    string Group { get; }
     ScenarioLocation Location { get; }
     bool Enabled { get; }
+}
+
+public static class ScenarioMetaDataExtensions {
+    public static string[] GroupSegments(this IScenarioMetaData data)
+        => (data.Group ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
 public class ScenarioNpcData {    
