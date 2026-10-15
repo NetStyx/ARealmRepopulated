@@ -461,7 +461,7 @@ public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager data
                 ? FromColumns(r => r.LalafellDunesfolkFemale, r => r.LalafellDunesfolkFemaleLastName)
                 : FromColumns(r => r.LalafellDunesfolkMale, r => r.LalafellDunesfolkMaleLastName),
 
-            (NpcRace.Roegadyn, NpcTribe.Helions) => gender == NpcSex.Female
+            (NpcRace.Roegadyn, NpcTribe.SeaWolf) => gender == NpcSex.Female
                 ? FromColumns(r => r.RoegadynSeaWolfFemale, r => r.RoegadynSeaWolfFemaleLastName)
                 : FromColumns(r => r.RoegadynSeaWolfMale, r => r.RoegadynSeaWolfMaleLastName),
 
