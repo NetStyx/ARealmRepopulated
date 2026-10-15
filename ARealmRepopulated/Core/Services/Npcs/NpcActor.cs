@@ -26,6 +26,10 @@ public unsafe class NpcActor(
     public const float SprintingSpeed = RunningSpeed * 1.5f;
 
     private const ulong NoTargetId = 0xE0000000;
+    private const ObjectTargetableFlags SetupCompleted = (ObjectTargetableFlags)0x08;
+    private const ObjectTargetableFlags VisualsLoaded = (ObjectTargetableFlags)0x20;
+    private const ObjectTargetableFlags ModelLoaded = SetupCompleted | VisualsLoaded;
+
 
     private bool _isReady = false;
     private BattleChara* _actor = null;
@@ -67,8 +71,25 @@ public unsafe class NpcActor(
     public bool IsReleased
         => _actor == null;
 
-    public bool IsReady() {
-        if (_actor->Timeline.TimelineSequencer.TimelineIds[0] == 3) {
+    /// <summary>
+    /// Whether the actor settled after spawning.
+    /// </summary>
+    /// <remarks>
+    /// Apparently its possible that the idle timeline can start before the actor is actually finished bootstrapping.
+    /// That has the unfortunate side effect that an actor will not voice its emotes for example, because LoadCharacterSound
+    /// drops every sound while RenderFlags still carries a reason to hide. The game clears those during setup and marks the steps:
+    /// <code>
+    ///   // GameObject.Update
+    ///   if ((TargetableStatus &amp; 0x20) == 0 &amp;&amp; vf33())                 // model, equipment and attached objects loaded
+    ///     TargetableStatus |= 0x20; vf32();                               // clears RenderFlags bit 11
+    ///   if ((TargetableStatus &amp; 0x08) == 0 &amp;&amp; (TargetableStatus &amp; 0x70) == 0x70 &amp;&amp; ...)
+    ///     TargetableStatus |= 0x08; vf31();                               // decides RenderFlags bit 8
+    /// </code>
+    /// 0x08 is set once per object, DisableDraw only clears 0x20, so both are needed after a respawn.
+    /// see /doc/research/ready-or-not.md
+    /// </remarks>
+    public bool IsReady() {        
+        if (_actor->Timeline.TimelineSequencer.TimelineIds[0] == 3 && (_actor->TargetableStatus & ModelLoaded) == ModelLoaded) {
             _isReady = true;
         }
         return _isReady;
