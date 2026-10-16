@@ -493,6 +493,12 @@ public class ConfigWindow(
         }
 
         ImGui.SameLine();
+        if (_orchestrator.Orchestrations.FirstOrDefault(o => o.Hash == s.FileHash) is { Scenario: { Statistics.IsLoopingTooFast: true } fastLoopingScenario }) {
+            ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow,
+                loc["ListWnd_Scenario_LoopingTooFast", fastLoopingScenario.Statistics.AverageRunTime.TotalSeconds.ToString("0.00")]);
+            ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
+        }
+
         var conditionState = ScenarioConditionState(s);
         if (conditionState.HasValue) {
             DrawScenarioConditionBadge(conditionState.Value);

@@ -1,10 +1,12 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.Threading;
@@ -16,6 +18,8 @@ public unsafe class ScenarioOrchestrator(
     IPluginLog pluginLog,
     IObjectTable objectTable,
     IServiceProvider serviceProvider,
+    INotificationManager notificationManager,
+    ArrpTranslation loc,
     ScenarioFileManager fileManager,
     PluginConfig config,
     NpcServices npcServices,
@@ -195,6 +199,14 @@ public unsafe class ScenarioOrchestrator(
             pluginLog.Warning("Cannot spawn scenario {FileName}: Could not spawn all actors", [orchestration.FileName]);
             return false;
         }
+
+        scenarioInstance.Statistics.OnLoopingTooFast += () => {
+            pluginLog.Warning("Scenario {FileName} runs average {MeanRunTime:0.000} seconds.", [orchestration.FileName, scenarioInstance.Statistics.AverageRunTime.TotalSeconds]);
+            notificationManager.AddNotification(new Notification {
+                Type = NotificationType.Warning,
+                Content = loc["Notification_Scenario_LoopingTooFast", orchestration.Data.Title]
+            });
+        };
 
         orchestration.Scenario = scenarioInstance;
         pluginLog.Info("Created orchestration instance {InstanceName} for scenario {FileName}", [scenarioInstance.ScenarioInstance.AsHexString(), orchestration.FileName]);

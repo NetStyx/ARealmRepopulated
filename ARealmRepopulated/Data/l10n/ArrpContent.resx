@@ -1023,4 +1023,12 @@ Turn it off to keep the actor at exactly the position you set for it. This would
   <data name="ScenarioEditor_Conditions_CWeather_SummaryNegated" xml:space="preserve">
     <value>except {0}</value>
   </data>
+  <data name="ListWnd_Scenario_LoopingTooFast" xml:space="preserve">
+    <value>This scenario starts over almost instantly ({0}s. on average). A fixed delay has been added between runs.
+        
+This might impact performance. Ensure that the actions are valid for the actor or set a sensible delay between loops.</value>
+  </data>
+  <data name="Notification_Scenario_LoopingTooFast" xml:space="preserve">
+    <value>Issues with scenario "{0}" detected.</value>
+  </data>
 </root>

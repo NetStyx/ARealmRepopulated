@@ -15,7 +15,15 @@ public unsafe class Scenario(IPluginLog log) {
     public Guid ScenarioInstance { get; } = Guid.NewGuid();
     public List<ScenarioNpc> Npcs { get; set; } = [];
     public bool IsLooping { get; set; } = false;
-    public TimeSpan DelayBetweenRuns { get; set; } = TimeSpan.Zero;
+    public ScenarioStatistics Statistics { get; } = new();
+
+    public TimeSpan DelayBetweenRuns {
+        get;
+        set {
+            field = value;
+            Statistics.DelayBetweenRuns = value;
+        }
+    } = TimeSpan.Zero;
 
     private readonly ScenarioState _state = new();
     private double _currentDelay = 0;
@@ -44,18 +52,19 @@ public unsafe class Scenario(IPluginLog log) {
 
         if (!_isWaitingForNextRun) {
             _isWaitingForNextRun = true;
-            log.Info($"[{ScenarioInstance.AsHexString()}] Scenario loop finished.");
+            log.Debug($"[{ScenarioInstance.AsHexString()}] Scenario loop finished.");
             if (DelayBetweenRuns.TotalMilliseconds > 0) {
                 log.Debug($"[{ScenarioInstance.AsHexString()}] Waiting {DelayBetweenRuns.TotalSeconds} seconds before next run.");
             }
         }
 
+        var delay = Statistics.IsLoopingTooFast ? DelayBetweenRuns + TimeSpan.FromSeconds(1) : DelayBetweenRuns;
         _currentDelay += time.TotalMilliseconds;
-        if (_currentDelay < DelayBetweenRuns.TotalMilliseconds) {
+        if (_currentDelay < delay.TotalMilliseconds) {
             return;
         }
 
-        log.Info($"[{ScenarioInstance.AsHexString()}] Starting next scenario loop");
+        log.Debug($"[{ScenarioInstance.AsHexString()}] Starting next scenario loop");
         _isWaitingForNextRun = false;
         _currentDelay = 0;
         _state.CurrentScenarioSegment = 0;
@@ -63,12 +72,17 @@ public unsafe class Scenario(IPluginLog log) {
     }
 
     public void Advance(TimeSpan time) {
+        Statistics.Tick(time);
         if (IsSyncing) {
             log.Debug($"[{ScenarioInstance.AsHexString()}] [{_state.CurrentScenarioSegment}] Advancing to segment {_state.CurrentScenarioSegment + 1}");
             _state.CurrentScenarioSegment++;
         }
 
         Npcs.ForEach(n => n.Advance(_state, time));
+
+        if (IsFinished) {
+            Statistics.Lap();
+        }
     }
 
     public void Proximity(BattleChara* character) {

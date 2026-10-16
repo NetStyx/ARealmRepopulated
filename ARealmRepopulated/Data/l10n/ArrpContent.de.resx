@@ -1017,4 +1017,10 @@
   <data name="ScenarioEditor_Conditions_CWeather_SummaryNegated" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ListWnd_Scenario_LoopingTooFast" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="Notification_Scenario_LoopingTooFast" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>
