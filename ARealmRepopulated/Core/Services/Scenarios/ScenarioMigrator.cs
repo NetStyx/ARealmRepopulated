@@ -1,8 +1,4 @@
-using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Plugin.Services;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
@@ -28,36 +24,31 @@ public class ScenarioMigrator(IServiceProvider serviceProvider, IPluginLog log) 
         }
     }
 
-    public bool Migrate(FileInfo fileInfo, [NotNullWhen(true)] out ScenarioFileMetaData? metaData) {
-
-        var json = File.ReadAllText(fileInfo.FullName);
-        var root = JsonNode.Parse(json)?.AsObject();
-        if (root == null) {
-            metaData = null;
-            return false;
+    public ScenarioMigrationResult? Migrate(string json) {
+        if (JsonNode.Parse(json) is not JsonObject root) {
+            return null;
         }
 
         var version = root["Version"]?.GetValue<int>() ?? 0;
-        if (version < CurrentScenarioVersion) {
-            foreach (var kvp in _migrationDictionary) {
-                if (version < kvp.Key) {
-                    log.Info($"Migrating scenario from version {version} to version {kvp.Key}");
-                    kvp.Value.Upgrade(root);
-
-                    version++;
-                    root["Version"] = version;
-                }
-            }
-
-            File.WriteAllText(fileInfo.FullName, JsonSerializer.Serialize(root, ScenarioFileManager.ScenarioMetaSerializerOptions));
+        if (version >= CurrentScenarioVersion) {
+            return new ScenarioMigrationResult(root, false);
         }
 
-        metaData = root.Deserialize<ScenarioFileMetaData>(ScenarioFileManager.ScenarioMetaSerializerOptions)
-                ?? throw new InvalidDataException("File is not a valid scenario data format");
-        return true;
+        foreach (var kvp in _migrationDictionary) {
+            if (version < kvp.Key) {
+                log.Info($"Migrating scenario from version {version} to version {kvp.Key}");
+                kvp.Value.Upgrade(root);
+
+                version++;
+                root["Version"] = version;
+            }
+        }
+        return new ScenarioMigrationResult(root, true);
     }
 
 }
+
+public sealed record ScenarioMigrationResult(JsonObject Scenario, bool WasUpgraded);
 
 [AttributeUsage(AttributeTargets.Class)]
 public class ScenarioMigrationAttribute : Attribute {
