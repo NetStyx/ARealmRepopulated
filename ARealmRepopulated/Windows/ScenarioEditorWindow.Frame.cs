@@ -675,6 +675,9 @@ public partial class ScenarioEditorWindow(
         if (string.IsNullOrWhiteSpace(_scenarioFilePath)) {
             _scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
         } else {
+            if (scenarioFileManager.LoadScenarioFile(_scenarioFilePath) is { } storedScenario)
+                ScenarioObject.Enabled = storedScenario.Enabled;
+
             scenarioFileManager.StoreScenarioFile(ScenarioObject, _scenarioFilePath);
         }
     }
