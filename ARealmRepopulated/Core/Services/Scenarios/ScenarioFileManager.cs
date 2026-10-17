@@ -96,9 +96,16 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         }
 
         fileInfo.WaitForAccessibility();
-        if (!migrator.Migrate(fileInfo, out var fileMetaData)) {
+        if (migrator.Migrate(File.ReadAllText(fileInfo.FullName)) is not { } migration) {
             return;
         }
+
+        if (migration.WasUpgraded) {
+            File.WriteAllText(fileInfo.FullName, JsonSerializer.Serialize(migration.Scenario, ScenarioMetaSerializerOptions));
+        }
+
+        var fileMetaData = migration.Scenario.Deserialize<ScenarioFileMetaData>(ScenarioMetaSerializerOptions)
+            ?? throw new InvalidDataException("File is not a valid scenario data format");
 
         var fileHash = fileInfo.GetFileHash();
         var fileData = new ScenarioFileData(fileHash, fileInfo.Name, fileInfo.FullName, fileMetaData);
@@ -123,16 +130,27 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         => LoadScenarioFile(new FileInfo(filePath));
     public ScenarioData? LoadScenarioFile(FileInfo fileInfo) {
         log.Debug($"Reading scenario file {fileInfo.Name}");
-        var fileData = File.ReadAllText(fileInfo.FullName);
-        return DeserializeScenarioData(fileData);
+        try {
+            var jsonString = File.ReadAllText(fileInfo.FullName);
+            return JsonSerializer.Deserialize<ScenarioData>(jsonString, ScenarioLoadSerializerOptions);
+        } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) {
+            log.Warning("Could not read scenario file {FileName}: {IoError}", [fileInfo.Name, ex.Message]);
+        } catch (JsonException jex) {
+            log.Warning("Could not read full scenario data of {FileName}. Invalid json format: {JsonError}", [fileInfo.Name, jex.Message]);
+        } catch (Exception ex) {
+            log.Error(ex, "Could not read full scenario data of {FileName}", [fileInfo.Name]);
+        }
+        return null;
     }
 
     public ScenarioData? ImportBase64Scenario(string base64Data) {
         try {
             var jsonString = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64Data));
-            return DeserializeScenarioData(jsonString);
+            return migrator.Migrate(jsonString)?.Scenario.Deserialize<ScenarioData>(ScenarioLoadSerializerOptions);
         } catch (FormatException fex) {
             log.Warning("Could not import scenario from base64 data. Invalid base64 format: {Base64Error}", [fex.Message]);
+        } catch (JsonException jex) {
+            log.Warning("Could not import scenario from base64 data. Invalid json format: {JsonError}", [jex.Message]);
         } catch (Exception ex) {
             log.Error(ex, "Could not import scenario from base64 data");
         }
@@ -142,17 +160,6 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public static string ExportBase64Scenario(ScenarioData data) {
         var jsonString = JsonSerializer.Serialize(data, ScenarioLoadSerializerOptions);
         return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(jsonString));
-    }
-
-    private ScenarioData? DeserializeScenarioData(string jsonString) {
-        try {
-            return JsonSerializer.Deserialize<ScenarioData>(jsonString, ScenarioLoadSerializerOptions);
-        } catch (JsonException jex) {
-            log.Warning("Could not read full scenario data. Invalid json format: {JsonError}", [jex.Message]);
-        } catch (Exception ex) {
-            log.Error(ex, "Could not read full scenario data");
-        }
-        return null;
     }
 
     public FileInfo StoreScenarioFile(ScenarioData data)
