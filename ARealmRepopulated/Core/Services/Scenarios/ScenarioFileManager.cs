@@ -175,7 +175,15 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         var jsonString = JsonSerializer.Serialize(scenarioData, ScenarioLoadSerializerOptions);
         File.WriteAllText(filePath, jsonString);
 
-        return new FileInfo(filePath);
+        var fileInfo = new FileInfo(filePath);
+        using (_filesLock.EnterScope()) {
+            // Update the meta data of the file so that the list does not flicker when enableding or disableding a scenario.
+            var index = _currentFiles.FindIndex(f => f.FilePath == fileInfo.FullName);
+            if (index >= 0 && JsonSerializer.Deserialize<ScenarioFileMetaData>(jsonString, ScenarioMetaSerializerOptions) is { } metaData)
+                _currentFiles[index] = _currentFiles[index] with { MetaData = metaData };
+        }
+
+        return fileInfo;
     }
 
     public void RemoveScenarioFile(string filePath) {
