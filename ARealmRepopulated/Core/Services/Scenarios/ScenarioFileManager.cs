@@ -38,7 +38,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         _fileSystemWatcher.EnableRaisingEvents = true;
         _fileSystemWatcher.OnModified += _fileSystemWatcherFired;
 
-        ScanScenarioFiles();
+        ScanScenarioFiles(raiseEvents: true);
     }
 
     public void StopMonitoring() {
@@ -56,25 +56,25 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         return [.. _currentFiles.Where(x => x.MetaData.Location.Territory == location.TerritoryType)];
     }
 
-    public void ScanScenarioFiles() {
+    public void ScanScenarioFiles(bool raiseEvents) {
         using var _ = _filesLock.EnterScope();
         _fileSystemWatcher.EnableRaisingEvents = false;
         _currentFiles.Clear();
         Directory
             .GetFiles(ScenarioPath, "*.json", SearchOption.TopDirectoryOnly)
-            .ToList().ForEach(TryReadScenarioFile);
+            .ToList().ForEach(f => TryReadScenarioFile(f, raiseEvents));
         _fileSystemWatcher.EnableRaisingEvents = true;
     }
 
     private void _fileSystemWatcherFired(FileSystemEventArgs e)
-        => TryReadScenarioFile(e.FullPath);
+        => TryReadScenarioFile(e.FullPath, raiseEvents: true);
 
-    private void TryReadScenarioFile(string pathToFile) {
+    private void TryReadScenarioFile(string pathToFile, bool raiseEvents) {
         var fileInfo = new FileInfo(pathToFile);
         log.Info($"Scenario file changed: {fileInfo.Name}");
 
         try {
-            ScanScenarioFile(fileInfo);
+            ScanScenarioFile(fileInfo, raiseEvents);
         } catch (JsonException jex) {
             log.Warning("Could not read meta data of scenario file {FileName}. Invalid json format: {JsonError}", [fileInfo.Name, jex.Message]);
         } catch (Exception ex) {
@@ -82,14 +82,15 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         }
     }
 
-    private void ScanScenarioFile(FileInfo fileInfo) {
+    private void ScanScenarioFile(FileInfo fileInfo, bool raiseEvents) {
         using var _ = _filesLock.EnterScope();
         if (!fileInfo.Exists) {
             _currentFiles
                 .Where(x => x.FilePath.Equals(fileInfo.FullName))
                 .ToList().ForEach(f => {
                     _currentFiles.Remove(f);
-                    dalamudFramework.RunOnTick(() => OnScenarioFileRemoved?.Invoke(f));
+                    if (raiseEvents)
+                        dalamudFramework.RunOnTick(() => OnScenarioFileRemoved?.Invoke(f));
                 });
 
             return;
@@ -115,6 +116,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
             _currentFiles.Remove(loadedFileInfo);
         }
         _currentFiles.Add(fileData);
+
+        if (!raiseEvents)
+            return;
 
         dalamudFramework.RunOnTick(() => {
             if (loadedFileInfo != null) {

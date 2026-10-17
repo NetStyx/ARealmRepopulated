@@ -366,11 +366,16 @@ public class ConfigWindow(
 
             ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {                
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetTreeNodeToLabelSpacing());
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.Recycle)) {
-                    _fileManager.ScanScenarioFiles();
+                using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpYellow, _orchestrator.HasPendingChanges)) {
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Recycle)) {
+                        _orchestrator.Reload();
+                    }
                 }
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(loc["ListWnd_Scenario_Action_Scan_Desc"]);
+                if (ImGui.IsItemHovered()) {
+                    ImGui.SetTooltip(_orchestrator.HasPendingChanges
+                        ? $"{loc["ListWnd_Scenario_Action_Scan_Desc"]}\n\n{loc["ListWnd_Scenario_Action_Scan_Pending"]}"
+                        : loc["ListWnd_Scenario_Action_Scan_Desc"]);
+                }
 
                 ImGui.SameLine();
                 ImGui.Text(loc["ListWnd_Scenario_Header_Title"]);

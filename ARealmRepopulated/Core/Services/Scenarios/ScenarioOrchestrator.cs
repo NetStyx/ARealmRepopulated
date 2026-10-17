@@ -36,6 +36,9 @@ public unsafe class ScenarioOrchestrator(
     public IEnumerable<Orchestration> ActiveOrchestrations => Orchestrations.Where(o => o.IsActive);
     public event Action? OnOrchestrationStateChanged;
 
+    /// <summary>A file change in the current area was skipped because auto load is off. Cleared by the next load.</summary>
+    public bool HasPendingChanges { get; private set; }
+
     private void NpcServices_ActorDestroyed(Character* chara) {
         using var lockScope = _scenarioActionLock.EnterScope();
         foreach (var orchestration in Orchestrations) {
@@ -76,17 +79,26 @@ public unsafe class ScenarioOrchestrator(
         Load(eventService.CurrentLocation);
     }
 
-    private void ScenarioFileManager_ScenarioFileChanged(ScenarioFileData metaData)
-        => LoadFile(metaData);
+    private void ScenarioFileManager_ScenarioFileChanged(ScenarioFileData metaData) {
+        if (config.AutoLoadScenarios)
+            LoadFile(metaData);
+        else if (metaData.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(metaData.MetaData.Location))
+            HasPendingChanges = true;
+    }
 
-    private void ScenarioFileManager_ScenarioFileRemoved(ScenarioFileData metaData)
-        => UnloadFile(metaData);
+    private void ScenarioFileManager_ScenarioFileRemoved(ScenarioFileData metaData) {
+        if (config.AutoLoadScenarios)
+            UnloadFile(metaData);
+        else if (Orchestrations.Any(o => o.Hash == metaData.FileHash))
+            HasPendingChanges = true;
+    }
 
     private void Framework_Update(IFramework framework)
         => AdvanceScenarios(framework.UpdateDelta);
 
     private void Load(LocationData locationData) {
         Unload();
+        HasPendingChanges = false;
 
         pluginLog.Info($"Loading scenarios for territory {locationData.TerritoryType}");
         fileManager.GetScenarioFilesByTerritory(locationData).ForEach(LoadFile);
@@ -331,6 +343,7 @@ public unsafe class ScenarioOrchestrator(
     }
 
     public void Reload() {
+        fileManager.ScanScenarioFiles(raiseEvents: false);
         Load(eventService.CurrentLocation);
     }
 
