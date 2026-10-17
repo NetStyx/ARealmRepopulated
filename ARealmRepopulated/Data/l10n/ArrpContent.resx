@@ -124,7 +124,7 @@
     <value>Manage your custom scenarios in this section. You can create, edit and delete scenarios as you like. Please be aware that having too many scenarios and actors at the same time in the same location might impact performance. The scenarios are stored as files in the 'scenarios' subfolder located in the plugin configuration directory.</value>
   </data>
   <data name="ListWnd_Options_AutoLoad_Desc" xml:space="preserve">
-    <value>Automatically loads available scenarios on start. Also keeps track of the file status and reloads if changes to the files are detected.</value>
+    <value>Loads the scenarios of an area when you arrive there or a cutscene ends, and restarts a scenario when its file changes. When off, use the reload button in the scenario list or /arrp reload. Switching a single scenario on or off or saving it in the editor then only takes effect after the next reload.</value>
   </data>
   <data name="ListWnd_Options_DtrBar_Desc" xml:space="preserve">
     <value>Displays a clickable entry in the DTR bar. It provides quick access to the configuration menu and displays the count of loaded scenarios in the current area.</value>
@@ -154,7 +154,7 @@
     <value>Search ... </value>
   </data>
   <data name="ListWnd_Scenario_Action_Scan_Desc" xml:space="preserve">
-    <value>Rescan the available scenario files</value>
+    <value>Rescan the scenario files and reload the scenarios of the current area</value>
   </data>
   <data name="ListWnd_Scenario_Group_Enable_Desc" xml:space="preserve">
     <value>Turn every scenario in this group on or off</value>
@@ -1027,6 +1027,9 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>This scenario starts over almost instantly ({0}s. on average). A fixed delay has been added between runs.
         
 This might impact performance. Ensure that the actions are valid for the actor or set a sensible delay between loops.</value>
+  </data>
+  <data name="ListWnd_Scenario_Action_Scan_Pending" xml:space="preserve">
+    <value>Some changes to the scenarios of this area are waiting for a reload, because Auto load scenarios is off.</value>
   </data>
   <data name="Notification_Scenario_LoopingTooFast" xml:space="preserve">
     <value>Issues with scenario "{0}" detected.</value>

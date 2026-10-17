@@ -1020,6 +1020,9 @@
   <data name="ListWnd_Scenario_LoopingTooFast" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ListWnd_Scenario_Action_Scan_Pending" xml:space="preserve">
+    <value>a</value>
+  </data>
   <data name="Notification_Scenario_LoopingTooFast" xml:space="preserve">
     <value>a</value>
   </data>
