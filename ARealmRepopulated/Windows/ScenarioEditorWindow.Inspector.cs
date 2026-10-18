@@ -205,8 +205,27 @@ public partial class ScenarioEditorWindow {
                 }
                 ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_General_Input_NameRandom"]);
             });
+
+            form.StretchedRow(loc["ScenarioEditor_ActorData_General_Input_NameDisplay"], () => {
+                using var combo = ImRaii.Combo("##value", DescribeNameDisplay(npc.DisplayNameSetting));
+                if (!combo.Success)
+                    return;
+
+                foreach (var option in Enum.GetValues<NpcNameDisplay>()) {
+                    if (ImGui.Selectable(DescribeNameDisplay(option), npc.DisplayNameSetting == option)) {
+                        npc.DisplayNameSetting = option;
+                    }
+                }
+            }, loc["ScenarioEditor_ActorData_General_Input_NameDisplay_Desc"]);
         });
     }
+
+    private string DescribeNameDisplay(NpcNameDisplay display) => display switch {
+        NpcNameDisplay.Never => loc["ScenarioEditor_ActorData_General_Input_NameDisplay_Never"],
+        NpcNameDisplay.GameDefault => loc["ScenarioEditor_ActorData_General_Input_NameDisplay_GameDefault"],
+        NpcNameDisplay.Always => loc["ScenarioEditor_ActorData_General_Input_NameDisplay_Always"],
+        _ => display.ToString()
+    };
 
     private void DrawActorPlacementSection(ScenarioNpcData npc) {
         ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Placement_Title"]);

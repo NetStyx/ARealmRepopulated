@@ -14,7 +14,9 @@ public static class ScenarioNpcDataExtensions {
             Rotation = npc.Rotation,
             DrawOffset = npc.DrawOffset,
             SnapToSurface = npc.SnapToSurface,
-            Appearance = npc.Appearance
+            Appearance = npc.Appearance,
+            DisplayName = npc.Name,
+            DisplayNameSetting = npc.DisplayNameSetting
         };
         
         if (npc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName)) {

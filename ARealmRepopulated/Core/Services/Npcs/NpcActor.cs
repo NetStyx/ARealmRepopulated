@@ -3,6 +3,7 @@ using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
 using ARealmRepopulated.Core.SpatialMath;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -39,6 +40,12 @@ public unsafe class NpcActor(
     private Vector3 _emoteOffset = Vector3.Zero;
 
     public IntPtr Address { get => new(_actor); }
+
+    public string DisplayName
+        => _spawnOptions.DisplayName;
+
+    public NpcNameDisplay DisplayNameSetting
+        => _spawnOptions.DisplayNameSetting;
 
     /// <summary>
     /// Called right after the object was setup by the game but before it is drawn.
@@ -150,6 +157,26 @@ public unsafe class NpcActor(
 
     public bool IsFadedOut()
        => _actor->Alpha == 0;
+
+    public float GetAlpha()
+        => _actor->Alpha;
+
+    public bool IsDrawn()
+        => _actor->RenderFlags == VisibilityFlags.None;
+
+    /// <summary>
+    /// Where the game anchors the nameplate of a character, see GameObject.GetNamePlateWorldPosition.
+    /// </summary>
+    /// <remarks>
+    /// The game also turns the horizontal part of the offset with the rotation, which stays out until we know it is ever set on characters.
+    /// The scale part comes from the model sheet, because the game fills it in SetupRaw, which our actors never run.
+    /// see /doc/research/nameplates.md#anchor
+    /// </remarks>
+    public Vector3 GetNamePlatePosition() {
+        var position = _actor->Position;
+        position.Y += _actor->NameplateOffset.Y + (dataCache.GetNamePlateOffsetScale(_actor->ModelContainer.ModelCharaId) * _actor->Scale);
+        return position;
+    }
 
     public void SetPosition(Vector3 position)
         => _actor->SetPosition(position.X, position.Y, position.Z);            

@@ -58,6 +58,7 @@ public static class ScenarioMetaDataExtensions {
 public class ScenarioNpcData {    
     public string Identifier { get; set; } = Guid.NewGuid().AsHexString();
     public string Name { get; set; } = "";
+    public NpcNameDisplay DisplayNameSetting { get; set; } = NpcNameDisplay.Never;
     public NpcAppearanceData Appearance { get; set; } = NpcAppearanceData.Default;
     public Vector3 Position { get; set; }
     public bool SnapToSurface { get; set; } = true;
@@ -104,6 +105,12 @@ public abstract class ScenarioNpcAction {
     public virtual bool CanHaveDuration => true;
     [JsonIgnore]
     public virtual bool RequiresReadyActor => false;
+}
+
+public enum NpcNameDisplay {
+    Never,
+    GameDefault,
+    Always
 }
 
 public enum NpcSpeed {

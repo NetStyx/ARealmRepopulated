@@ -197,6 +197,10 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
 
     public ushort GetModelSoundPack(int modelCharaId)
         => _modelCharaSheet.GetRowOrDefault((uint)modelCharaId)?.SEPack ?? 0;
+    
+    // Unknown6 contains the height per unit of scale for certain models (see /doc/research/nameplates.md#anchor).
+    public float GetNamePlateOffsetScale(int modelCharaId)
+        => (_modelCharaSheet.GetRowOrDefault((uint)modelCharaId)?.Unknown6 ?? 0) * 0.1f;
 
     public Weather? GetWeather(byte weatherId)
         => _weatherSheet.GetRowOrDefault(weatherId);

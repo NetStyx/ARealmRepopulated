@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
@@ -272,7 +273,11 @@ public class NpcSpawnOptions {
     public const ushort DefaultWorld = 0xFFFF;
 
     public ObjectKind Kind { get; set; } = ObjectKind.BattleNpc;
+    
     public string Name { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public NpcNameDisplay DisplayNameSetting { get; set; } = NpcNameDisplay.Never;
+
     public ushort HomeWorld { get; set; } = DefaultWorld;
     public ushort CurrentWorld { get; set; } = DefaultWorld;
 
