@@ -1041,4 +1041,15 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="Notification_Scenario_LoopingTooFast" xml:space="preserve">
     <value>Issues with scenario "{0}" detected.</value>
   </data>
+  <data name="ListWnd_Scenario_Group_Broken" xml:space="preserve">
+    <value>Broken files</value>
+  </data>
+  <data name="ListWnd_Scenario_Group_Broken_Desc" xml:space="preserve">
+    <value>These scenario files could not be read, so they do not run. Fix them in a text editor or delete them.</value>
+  </data>
+  <data name="ListWnd_Scenario_Broken_Desc" xml:space="preserve">
+    <value>This file could not be read, so it does not run. Fix it in a text editor or delete it.
+
+{0}</value>
+  </data>
 </root>

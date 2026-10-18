@@ -12,7 +12,13 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-public sealed record ScenarioFileData(string FileHash, string FileName, string FilePath, ScenarioFileMetaData MetaData);
+/// <summary>
+/// A scenario file in the scenario folder, identified by its path. A file that could not be read carries the reason in
+/// <see cref="Error"/> and placeholder meta data.
+/// </summary>
+public sealed record ScenarioFileData(string FileName, string FilePath, ScenarioFileMetaData MetaData, string? Error = null) {
+    public bool IsBroken => Error != null;
+}
 public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, ScenarioMigrator migrator) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
@@ -66,8 +72,11 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         _fileSystemWatcher.EnableRaisingEvents = true;
     }
 
-    private void _fileSystemWatcherFired(FileSystemEventArgs e)
-        => TryReadScenarioFile(e.FullPath, raiseEvents: true);
+    private void _fileSystemWatcherFired(FileSystemEventArgs e) {
+        // a rename to another extension still reports the new name
+        if (Path.GetExtension(e.FullPath).Equals(".json", StringComparison.OrdinalIgnoreCase))
+            TryReadScenarioFile(e.FullPath, raiseEvents: true);
+    }
 
     private void TryReadScenarioFile(string pathToFile, bool raiseEvents) {
         var fileInfo = new FileInfo(pathToFile);
@@ -77,8 +86,10 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
             ScanScenarioFile(fileInfo, raiseEvents);
         } catch (JsonException jex) {
             log.Warning("Could not read meta data of scenario file {FileName}. Invalid json format: {JsonError}", [fileInfo.Name, jex.Message]);
+            UpdateFileEntry(new ScenarioFileData(fileInfo.Name, fileInfo.FullName, new() { Enabled = false }, jex.Message), raiseEvents);
         } catch (Exception ex) {
             log.Error(ex, "Could not read meta data of scenario file {FileName}", [fileInfo.Name]);
+            UpdateFileEntry(new ScenarioFileData(fileInfo.Name, fileInfo.FullName, new() { Enabled = false }, ex.Message), raiseEvents);
         }
     }
 
@@ -86,7 +97,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         using var _ = _filesLock.EnterScope();
         if (!fileInfo.Exists) {
             _currentFiles
-                .Where(x => x.FilePath.Equals(fileInfo.FullName))
+                .Where(x => x.FilePath.IsSamePath(fileInfo.FullName))
                 .ToList().ForEach(f => {
                     _currentFiles.Remove(f);
                     if (raiseEvents)
@@ -97,9 +108,8 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         }
 
         fileInfo.WaitForAccessibility();
-        if (migrator.Migrate(File.ReadAllText(fileInfo.FullName)) is not { } migration) {
-            return;
-        }
+        var migration = migrator.Migrate(File.ReadAllText(fileInfo.FullName))
+            ?? throw new InvalidDataException("File is not a valid scenario data format");
 
         if (migration.WasUpgraded) {
             File.WriteAllText(fileInfo.FullName, JsonSerializer.Serialize(migration.Scenario, ScenarioMetaSerializerOptions));
@@ -108,23 +118,33 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         var fileMetaData = migration.Scenario.Deserialize<ScenarioFileMetaData>(ScenarioMetaSerializerOptions)
             ?? throw new InvalidDataException("File is not a valid scenario data format");
 
-        var fileHash = fileInfo.GetFileHash();
-        var fileData = new ScenarioFileData(fileHash, fileInfo.Name, fileInfo.FullName, fileMetaData);
+        UpdateFileEntry(new ScenarioFileData(fileInfo.Name, fileInfo.FullName, fileMetaData), raiseEvents);
+    }
 
-        var loadedFileInfo = _currentFiles.FirstOrDefault(x => x.FileHash == fileHash || x.FilePath == fileInfo.FullName);
-        if (loadedFileInfo != null) {
-            _currentFiles.Remove(loadedFileInfo);
+    /// <summary>
+    /// Replaces the entry of the same path. Running actors of the old entry are removed first; a broken file only
+    /// raises that removal.
+    /// </summary>
+    private void UpdateFileEntry(ScenarioFileData fileData, bool raiseEvents) {
+        using var _ = _filesLock.EnterScope();
+        var index = _currentFiles.FindIndex(x => x.FilePath.IsSamePath(fileData.FilePath));
+        var previousFileData = index >= 0 ? _currentFiles[index] : null;
+        if (index >= 0) {
+            _currentFiles[index] = fileData;
+        } else {
+            _currentFiles.Add(fileData);
         }
-        _currentFiles.Add(fileData);
 
         if (!raiseEvents)
             return;
 
         dalamudFramework.RunOnTick(() => {
-            if (loadedFileInfo != null) {
-                OnScenarioFileRemoved?.Invoke(loadedFileInfo);
+            if (previousFileData != null) {
+                OnScenarioFileRemoved?.Invoke(previousFileData);
             }
-            OnScenarioFileChanged?.Invoke(fileData);
+            if (!fileData.IsBroken) {
+                OnScenarioFileChanged?.Invoke(fileData);
+            }
         });
     }
 
@@ -182,9 +202,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         var fileInfo = new FileInfo(filePath);
         using (_filesLock.EnterScope()) {
             // Update the meta data of the file so that the list does not flicker when enableding or disableding a scenario.
-            var index = _currentFiles.FindIndex(f => f.FilePath == fileInfo.FullName);
+            var index = _currentFiles.FindIndex(f => f.FilePath.IsSamePath(fileInfo.FullName));
             if (index >= 0 && JsonSerializer.Deserialize<ScenarioFileMetaData>(jsonString, ScenarioMetaSerializerOptions) is { } metaData)
-                _currentFiles[index] = _currentFiles[index] with { MetaData = metaData };
+                _currentFiles[index] = _currentFiles[index] with { MetaData = metaData, Error = null };
         }
 
         return fileInfo;

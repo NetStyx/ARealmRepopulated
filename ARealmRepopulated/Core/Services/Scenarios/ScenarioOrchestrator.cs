@@ -1,4 +1,5 @@
 using ARealmRepopulated.Configuration;
+using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
@@ -87,10 +88,11 @@ public unsafe class ScenarioOrchestrator(
     }
 
     private void ScenarioFileManager_ScenarioFileRemoved(ScenarioFileData metaData) {
-        if (config.AutoLoadScenarios)
+        if (config.AutoLoadScenarios) {
             UnloadFile(metaData);
-        else if (Orchestrations.Any(o => o.Hash == metaData.FileHash))
+        } else if (Orchestrations.Any(o => o.FilePath.IsSamePath(metaData.FilePath))){
             HasPendingChanges = true;
+        }
     }
 
     private void Framework_Update(IFramework framework)
@@ -105,7 +107,7 @@ public unsafe class ScenarioOrchestrator(
     }
 
     private void UnloadFile(ScenarioFileData data) {
-        var orchestration = Orchestrations.FirstOrDefault(o => o.Hash == data.FileHash);
+        var orchestration = Orchestrations.FirstOrDefault(o => o.FilePath.IsSamePath(data.FilePath));
         if (orchestration == null)
             return;
 
@@ -155,7 +157,7 @@ public unsafe class ScenarioOrchestrator(
                     [data.FileName, string.Join("; ", scenarioData.Conditions)]);
             }
 
-            Orchestrations.Add(new Orchestration { Hash = data.FileHash, FileName = data.FileName, Data = scenarioData });
+            Orchestrations.Add(new Orchestration { FilePath = data.FilePath, FileName = data.FileName, Data = scenarioData });
             _lastConditionCheck = ConditionCheckInterval + 1f; // force a condition check on next update
             OnOrchestrationStateChanged?.Invoke();
         }
@@ -372,7 +374,7 @@ public unsafe class ScenarioOrchestrator(
 }
 
 public class Orchestration {
-    public required string Hash { get; set; }
+    public required string FilePath { get; set; }
     public required string FileName { get; set; }
     public required ScenarioData Data { get; set; }    
     public Scenario? Scenario { get; set; }
