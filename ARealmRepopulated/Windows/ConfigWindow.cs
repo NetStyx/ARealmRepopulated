@@ -1,6 +1,7 @@
 using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Changelog;
 using ARealmRepopulated.Core.Services.Scenarios;
@@ -87,7 +88,7 @@ public class ConfigWindow(
     }
 
     private bool? ScenarioConditionState(ScenarioFileData file) {
-        if (_orchestrator.Orchestrations.FirstOrDefault(o => o.Hash == file.FileHash) is not { } orchestration)
+        if (_orchestrator.Orchestrations.FirstOrDefault(o => o.FilePath.IsSamePath(file.FilePath)) is not { } orchestration)
             return null;
 
         return orchestration.Data.Conditions.Any(c => c.IsConfigured) ? orchestration.AreConditionsMet : null;
@@ -420,7 +421,22 @@ public class ConfigWindow(
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_OpenFolder_Desc"]);
             });
 
-            var scenarioFiles = _fileManager.GetScenarioFiles()
+            var allScenarioFiles = _fileManager.GetScenarioFiles();            
+            var brokenFiles = allScenarioFiles
+                .Where(s => s.IsBroken)
+                .OrderBy(s => s.FileName)
+                .Select(s => new GroupedScenarioFile(s, []))
+                .ToList();
+            if (brokenFiles.Count > 0) {
+                using var brokenGroupId = ImRaii.PushId("##brokenFiles");
+                if (DrawGroupRow(loc["ListWnd_Scenario_Group_Broken"], brokenFiles, isBrokenGroup: true)) {
+                    using var indent = ImRaii.PushIndent();
+                    brokenFiles.ForEach(f => DrawScenarioRow(f.File));
+                }
+            }
+
+            var scenarioFiles = allScenarioFiles
+                .Where(s => !s.IsBroken)
                 .Where(s => !_displayCurrentLocationOnly || eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))
                 .OrderBy(s => s.MetaData.Location.Territory == state.TerritoryType ? 0 : 1)
                 .ThenBy(s => s.MetaData.Location.Territory)
@@ -455,7 +471,7 @@ public class ConfigWindow(
         }
     }
     
-    private bool DrawGroupRow(string name, List<GroupedScenarioFile> groupFiles) {
+    private bool DrawGroupRow(string name, List<GroupedScenarioFile> groupFiles, bool isBrokenGroup = false) {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
 
@@ -474,15 +490,19 @@ public class ConfigWindow(
         ImGui.SameLine();
         ImGui.SetCursorPosX(startX + ImGui.GetTreeNodeToLabelSpacing());
 
-        var enabledCount = groupFiles.Count(f => f.File.MetaData.Enabled);
-        var groupEnabled = enabledCount == groupFiles.Count;
-        ImGuiP.PushItemFlag(ImGuiItemFlags.MixedValue, enabledCount > 0 && !groupEnabled);
-        if (ImGui.Checkbox("##scenarioGroupEnableButton", ref groupEnabled)) {
-            groupFiles.Where(f => f.File.MetaData.Enabled != groupEnabled).ToList().ForEach(f => SetScenarioEnabled(f.File, groupEnabled));
+        if (isBrokenGroup) {
+            ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpRed, loc["ListWnd_Scenario_Group_Broken_Desc"]);
+        } else {
+            var enabledCount = groupFiles.Count(f => f.File.MetaData.Enabled);
+            var groupEnabled = enabledCount == groupFiles.Count;
+            ImGuiP.PushItemFlag(ImGuiItemFlags.MixedValue, enabledCount > 0 && !groupEnabled);
+            if (ImGui.Checkbox("##scenarioGroupEnableButton", ref groupEnabled)) {
+                groupFiles.Where(f => f.File.MetaData.Enabled != groupEnabled).ToList().ForEach(f => SetScenarioEnabled(f.File, groupEnabled));
+            }
+            ImGuiP.PopItemFlag();
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip(loc["ListWnd_Scenario_Group_Enable_Desc"]);
         }
-        ImGuiP.PopItemFlag();
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(loc["ListWnd_Scenario_Group_Enable_Desc"]);
 
         ImGui.SameLine();
         ImGui.Text(name);
@@ -500,13 +520,18 @@ public class ConfigWindow(
         DrawRowHighlight();
         
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetTreeNodeToLabelSpacing());
-        var scenarioEnabled = s.MetaData.Enabled;
-        if (ImGui.Checkbox("##scenarioEnableButton", ref scenarioEnabled)) {
-            SetScenarioEnabled(s, scenarioEnabled);
+        if (s.IsBroken) {
+            ImGui.AlignTextToFramePadding();
+            ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpRed, loc["ListWnd_Scenario_Broken_Desc", s.Error!]);
+        } else {
+            var scenarioEnabled = s.MetaData.Enabled;
+            if (ImGui.Checkbox("##scenarioEnableButton", ref scenarioEnabled)) {
+                SetScenarioEnabled(s, scenarioEnabled);
+            }
         }
 
         ImGui.SameLine();
-        if (_orchestrator.Orchestrations.FirstOrDefault(o => o.Hash == s.FileHash) is { Scenario: { Statistics.IsLoopingTooFast: true } fastLoopingScenario }) {
+        if (_orchestrator.Orchestrations.FirstOrDefault(o => o.FilePath.IsSamePath(s.FilePath)) is { Scenario: { Statistics.IsLoopingTooFast: true } fastLoopingScenario }) {
             ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow,
                 loc["ListWnd_Scenario_LoopingTooFast", fastLoopingScenario.Statistics.AverageRunTime.TotalSeconds.ToString("0.00")]);
             ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
@@ -517,8 +542,9 @@ public class ConfigWindow(
             DrawScenarioConditionBadge(conditionState.Value);
         }
 
+        var title = s.IsBroken ? s.FileName : s.MetaData.Title;
         using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.NoteColor, conditionState == false)) {
-            ImGui.Text(s.MetaData.Title);
+            ImGui.Text(title);
         }
 
         if (!string.IsNullOrWhiteSpace(s.MetaData.Description)) {
@@ -526,30 +552,34 @@ public class ConfigWindow(
         }
 
         ImGui.TableNextColumn();
-        var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.Location.Territory);
-        if (ImGuiComponents.IconButton("##scenarioMapButton", FontAwesomeIcon.MapMarker)) {
-            unsafe {
-                AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
+        if (!s.IsBroken) {
+            var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.Location.Territory);
+            if (ImGuiComponents.IconButton("##scenarioMapButton", FontAwesomeIcon.MapMarker)) {
+                unsafe {
+                    AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
+                }
             }
-        }
-        ImGui.SameLine(0, 10);
-        using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))) {
-            var placeName = territoryData.PlaceName.Value.Name.ToString();
-            if (placeName.Length <= 15) {
-                ImGui.Text(placeName);
-            } else {
-                ImGui.Text($"{placeName[..15]}...");
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip(placeName);
+            ImGui.SameLine(0, 10);
+            using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))) {
+                var placeName = territoryData.PlaceName.Value.Name.ToString();
+                if (placeName.Length <= 15) {
+                    ImGui.Text(placeName);
+                } else {
+                    ImGui.Text($"{placeName[..15]}...");
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip(placeName);
+                }
             }
         }
 
         ImGui.TableNextColumn();
-        if (ImGuiComponents.IconButton("##scenarioEditButton", FontAwesomeIcon.Wrench)) {
-            if (windowSystem.Windows.OfType<ScenarioEditorWindow>().FirstOrDefault(w => w.IsOpen && w.IsEditing(s.FilePath)) is { } openEditor) {
-                openEditor.BringToFront();
-            } else {
-                serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+        using (ImRaii.Disabled(s.IsBroken)) {
+            if (ImGuiComponents.IconButton("##scenarioEditButton", FontAwesomeIcon.Wrench)) {
+                if (windowSystem.Windows.OfType<ScenarioEditorWindow>().FirstOrDefault(w => w.IsOpen && w.IsEditing(s.FilePath)) is { } openEditor) {
+                    openEditor.BringToFront();
+                } else {
+                    serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+                }
             }
         }
         if (ImGui.IsItemHovered())
@@ -568,7 +598,7 @@ public class ConfigWindow(
         using var modal = ImRaii.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings);
         if (modal.Success) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-            ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", s.MetaData.Title]);
+            ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", title]);
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             ImGui.Separator();
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);

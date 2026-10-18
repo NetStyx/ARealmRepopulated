@@ -18,6 +18,9 @@ public class FileSystemWatcherDebouncer : FileSystemWatcher {
     }
 
     private void FileSystemEntryChanged(object source, FileSystemEventArgs e) {
+        if (e is RenamedEventArgs renamed)
+            FileSystemEntryChanged(source, new FileSystemEventArgs(WatcherChangeTypes.Deleted, System.IO.Path.GetDirectoryName(renamed.OldFullPath)!, renamed.OldName));
+
         if (!_eventDictionary.TryAdd(e.FullPath, e))
             return;
 

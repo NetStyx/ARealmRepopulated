@@ -1,23 +1,16 @@
 using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading;
 
 namespace ARealmRepopulated.Core.Files;
 
 public static class FileExtensions {
 
-    public static string GetFileHash(this FileInfo fileInfo) {
-        ArgumentNullException.ThrowIfNull(fileInfo);
-
-        if (!fileInfo.Exists)
-            throw new FileNotFoundException("File not found.", fileInfo.FullName);
-
-        using var stream = fileInfo.OpenRead();
-        using var sha = SHA256.Create();
-        var hash = sha.ComputeHash(stream);
-        return Convert.ToBase64String(hash);
-    }
+    /// <summary>
+    /// Compares two paths the way the Windows file system does, ignoring case.
+    /// </summary>
+    public static bool IsSamePath(this string path, string otherPath)
+        => string.Equals(path, otherPath, StringComparison.OrdinalIgnoreCase);
 
     public static bool IsAccessible(this FileInfo fileInfo) {
         try {
