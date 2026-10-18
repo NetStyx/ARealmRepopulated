@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ListWnd_Title" xml:space="preserve">
-    <value>ARealmRepopulated Configuration</value>
+    <value>ARealmRepopulated {0}</value>
   </data>
   <data name="ListWnd_Scenario_Desc" xml:space="preserve">
     <value>Manage your custom scenarios in this section. You can create, edit and delete scenarios as you like. Please be aware that having too many scenarios and actors at the same time in the same location might impact performance. The scenarios are stored as files in the 'scenarios' subfolder located in the plugin configuration directory.</value>
@@ -130,7 +130,8 @@
     <value>Displays a clickable entry in the DTR bar. It provides quick access to the configuration menu and displays the count of loaded scenarios in the current area.</value>
   </data>
   <data name="ListWnd_Options_DebugOverlay_Desc" xml:space="preserve">
-    <value>The debug overlay is used to display the scenario actor paths when editing a specific scenario. To give an example: Without it you dont have access to the drag and drop functionallities for movement nodes.\nYou can disable this option if you not plan on editing the scenarios.</value>
+    <value>The debug overlay is used to display the scenario actor paths when editing a specific scenario. To give an example: Without it you dont have access to the drag and drop functionality for movement nodes.
+You can disable this option if you do not plan on editing the scenarios.</value>
   </data>
   <data name="ListWnd_Options_AutoLoad_Option" xml:space="preserve">
     <value>Auto load scenarios</value>
@@ -377,7 +378,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Despawn</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ADespawn_Desc" xml:space="preserve">
-    <value>Despawnes the actor. This does not unload it but disables the drawing cycles.</value>
+    <value>Despawns the actor. This does not unload it but disables the drawing cycles.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AMove_Short" xml:space="preserve">
     <value>Move</value>
@@ -398,7 +399,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Path</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_APath_Desc" xml:space="preserve">
-    <value>Create a path based on a point lists. The actor walks or runs along this path more naturally as opposed to multiple move actions.</value>
+    <value>Create a path based on a list of points. The actor walks or runs along this path more naturally as opposed to multiple move actions.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_APath_Tension" xml:space="preserve">
     <value>Tension</value>
@@ -587,7 +588,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Feet</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_EEars" xml:space="preserve">
-    <value>Earings</value>
+    <value>Earrings</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_ENeck" xml:space="preserve">
     <value>Necklace</value>
@@ -626,7 +627,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>A Realm Repopulated - Welcome !</value>
   </data>
   <data name="OnboardingWnd_Intro" xml:space="preserve">
-    <value>This is the onboarding wizard for the plugin 'A Realm Repopulated'. The purpose of it is to give you the ability to enhance your surroundings by adding additional background NPCs. Each NPC can be given a set of instructions that guides its behaviour to create the feeling of the world being a bit more alive then usual.</value>
+    <value>This is the onboarding wizard for the plugin 'A Realm Repopulated'. The purpose of it is to give you the ability to enhance your surroundings by adding additional background NPCs. Each NPC can be given a set of instructions that guides its behavior to create the feeling of the world being a bit more alive than usual.</value>
   </data>
   <data name="OnboardingWnd_SpawnDesc" xml:space="preserve">
     <value>To see how it works, you can use the button below to spawn a dummy NPC to see the plugin working.</value>
@@ -653,7 +654,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Introduction to scenarios</value>
   </data>
   <data name="OnboardingWnd_Scenario_Desc" xml:space="preserve">
-    <value>Demo scenario created by the onboarding wizzard.</value>
+    <value>Demo scenario created by the onboarding wizard.</value>
   </data>
   <data name="OnboardingWnd_Scenario_Npc_Greeting" xml:space="preserve">
     <value>Hello !!</value>
@@ -692,7 +693,7 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Total object limit</value>
   </data>
   <data name="ListWnd_Options_SoftLimit_Desc" xml:space="preserve">
-    <value>The soft limit defines how much actors overall can be spawned across all scenarios. There is also a hard limit ({0} overall objects) which restricts the spawn of actors when the game itself creates additonal NPCs (eg.: during cutscenes)</value>
+    <value>The soft limit defines how many actors overall can be spawned across all scenarios. There is also a hard limit ({0} overall objects) which restricts the spawn of actors when the game itself creates additional NPCs (eg.: during cutscenes)</value>
   </data>
   <data name="ListWnd_Options_SoftLimit_Option" xml:space="preserve">
     <value>Actor Soft Limit</value>
@@ -710,16 +711,13 @@ Only one of the two can be moved at a time, since both markers would otherwise s
     <value>Timeline ID</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_Desc" xml:space="preserve">
-    <value>Plays a animation from the pool of action timelines. Note that not every animation is compatible with every model.</value>
+    <value>Plays an animation from the pool of action timelines. Note that not every animation is compatible with every model.</value>
   </data>
   <data name="ListWnd_Scenario_Header_Location_Scoped_Desc" xml:space="preserve">
     <value>Displays only the scenarios in the current location when selected.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc_Desc" xml:space="preserve">
     <value>Select the animation that is currently played by a nearby NPC.</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Actions_ATimeline_ResetMode" xml:space="preserve">
-    <value>End animation after finishing this action.</value>
   </data>
   <data name="ScenarioEditor_ActorData_Actions_AEmote_InteractWithLayout" xml:space="preserve">
     <value>Allow interaction with environment</value>
@@ -837,6 +835,15 @@ Turn it off to keep the actor at exactly the position you set for it. This would
   <data name="ListWnd_Info_Help_OpenWiki" xml:space="preserve">
     <value>Open wiki</value>
   </data>
+  <data name="ListWnd_Info_Help_ShowIntroduction" xml:space="preserve">
+    <value>Show the introduction again</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_OpenGuide" xml:space="preserve">
+    <value>Open the integration guide</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_OpenGuide_Desc" xml:space="preserve">
+    <value>If you want to read how integrations are set up properly, the integration guide in the wiki walks you through it step by step.</value>
+  </data>
   <data name="ScenarioEditor_Outline_UntitledScenario" xml:space="preserve">
     <value>Untitled Scenario</value>
   </data>
@@ -952,7 +959,7 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>Conditions</value>
   </data>
   <data name="ScenarioEditor_Conditions_Desc" xml:space="preserve">
-    <value>Conditions decide when this scenario is allowed to run. Its actors spawn once every condition is fullfilled and are taken away again after the current run has finished. A scenario without conditions always runs.</value>
+    <value>Conditions decide when this scenario is allowed to run. Its actors spawn once every condition is fulfilled and are taken away again after the current run has finished. A scenario without conditions always runs.</value>
   </data>
   <data name="ScenarioEditor_Conditions_Add" xml:space="preserve">
     <value>Add condition</value>
@@ -970,7 +977,7 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>Invert</value>
   </data>
   <data name="ScenarioEditor_Conditions_Input_NegateHint" xml:space="preserve">
-    <value>Inverting means that when the original condition is fullfilled, it will be interpreted as not fullfilled, and vice versa.</value>
+    <value>Inverting means that when the original condition is fulfilled, it will be interpreted as not fulfilled, and vice versa.</value>
   </data>
   <data name="ScenarioEditor_Conditions_CTime_Short" xml:space="preserve">
     <value>Eorzea time</value>
@@ -1006,13 +1013,13 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>Waiting for conditions:</value>
   </data>
   <data name="ScenarioEditor_Header_ConditionsMet" xml:space="preserve">
-    <value>The conditions of this scenario are currently fullfilled. A chance is not counted here.</value>
+    <value>The conditions of this scenario are currently fulfilled. A chance is not counted here.</value>
   </data>
   <data name="ScenarioEditor_Header_ConditionsNotMet" xml:space="preserve">
-    <value>The conditions of this scenario are not currently fullfilled, so its actors are not spawned.</value>
+    <value>The conditions of this scenario are not currently fulfilled, so its actors are not spawned.</value>
   </data>
   <data name="ListWnd_Scenario_ConditionsMet" xml:space="preserve">
-    <value>This scenario's conditions are fullfilled. The actors will spawn.</value>
+    <value>The conditions of this scenario are fulfilled. The actors will spawn.</value>
   </data>
   <data name="ListWnd_Scenario_ConditionsNotMet" xml:space="preserve">
     <value>This scenario is waiting for its conditions. No actors will spawn.</value>

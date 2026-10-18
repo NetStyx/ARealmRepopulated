@@ -19,6 +19,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.IO;
@@ -43,6 +44,7 @@ public partial class ScenarioEditorWindow(
     ArrpTranslation loc,
     FileDialogManager fileDialogManager,
     IObjectTable objectTable,
+    IDalamudPluginInterface pluginInterface,
     ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow") {
 
     private const string AddActionPopupId = "##arrpScenarioEditorAddAction";    
@@ -174,6 +176,10 @@ public partial class ScenarioEditorWindow(
 
         InitScenarioStructures(loadedScenarioObject, filePath);
     }
+
+    public bool IsEditing(string filePath)
+        => !string.IsNullOrWhiteSpace(_scenarioFilePath)
+            && string.Equals(Path.GetFullPath(_scenarioFilePath), Path.GetFullPath(filePath), StringComparison.OrdinalIgnoreCase);
 
     private void InitScenarioStructures(ScenarioData scenarioData, string filePath) {
         _scenarioFilePath = filePath;

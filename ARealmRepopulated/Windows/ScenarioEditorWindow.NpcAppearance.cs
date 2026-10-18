@@ -8,6 +8,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 using System.Numerics;
 
 namespace ARealmRepopulated.Windows;
@@ -366,6 +367,18 @@ public partial class ScenarioEditorWindow {
                 isExternal => npc.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, isExternal ? "true" : ""),
                 loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance_Desc"]);
         });
+
+        if (pluginInterface.Manifest.RepoUrl is { Length: > 0 } repoUrl) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            ImGui.Separator();
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            using (ImRaii.Disabled())
+                ImGui.TextWrapped(loc["ScenarioEditor_ActorData_Appearance_Integration_OpenGuide_Desc"]);
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Book, loc["ScenarioEditor_ActorData_Appearance_Integration_OpenGuide"])) {
+                Util.OpenLink($"{repoUrl.TrimEnd('/')}/wiki/Plugin-Integrations");
+            }
+        }
     }
 
     private static void DrawNpcModelRow(string description, byte? val) {

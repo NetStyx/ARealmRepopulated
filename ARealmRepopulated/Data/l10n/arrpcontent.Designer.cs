@@ -889,15 +889,6 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to End animation after finishing this action..
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Actions_ATimeline_ResetMode {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Actions_ATimeline_ResetMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Timeline.
         /// </summary>
         public static string ScenarioEditor_ActorData_Actions_ATimeline_Short {

@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ListWnd_Title" xml:space="preserve">
-    <value>a</value>
+    <value>a {0}</value>
   </data>
   <data name="ListWnd_Scenario_Desc" xml:space="preserve">
     <value>a</value>
@@ -714,9 +714,6 @@
   <data name="ScenarioEditor_ActorData_Actions_ATimeline_AddTimelineSlot_CopyNpc_Desc" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Actions_ATimeline_ResetMode" xml:space="preserve">
-    <value>a</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Actions_AEmote_InteractWithLayout" xml:space="preserve">
     <value>a</value>
   </data>
@@ -829,6 +826,15 @@
     <value>a</value>
   </data>
   <data name="ListWnd_Info_Help_OpenWiki" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Info_Help_ShowIntroduction" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_OpenGuide" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Integration_OpenGuide_Desc" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_Outline_UntitledScenario" xml:space="preserve">
