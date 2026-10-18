@@ -13,6 +13,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
@@ -35,6 +36,8 @@ public class ConfigWindow(
     ScenarioFileManager _fileManager,
     ScenarioOrchestrator _orchestrator,
     DebugOverlay _debugOverlay,
+    OnboardingWindow onboardingWindow,
+    WindowSystem windowSystem,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
     ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
@@ -56,7 +59,7 @@ public class ConfigWindow(
     }
 
     private void UpdateWindowTitle()
-        => this.WindowName = $"{loc["ListWnd_Title"]}###ARealmRepopulatedConfigWindow";
+        => this.WindowName = $"{loc["ListWnd_Title", pluginInterface.Manifest.AssemblyVersion]}###ARealmRepopulatedConfigWindow";
 
     public override void Draw() {
         DrawMainContent();
@@ -175,7 +178,7 @@ public class ConfigWindow(
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         var entries = changelogService.Changelog.OrderByDescending(c => c.Version).ToList();
-        var currentVersion = typeof(Plugin).Assembly.GetName().Version ?? new Version();
+        var currentVersion = pluginInterface.Manifest.AssemblyVersion;
         var selected = entries.FirstOrDefault(c => c.Version == _selectedChangelogVersion);
 
         DrawInfoList(entries, selected, currentVersion);
@@ -243,6 +246,11 @@ public class ConfigWindow(
         foreach (var step in quickStartSteps) {
             ImGui.Bullet();
             ImGui.TextWrapped(loc[step]);
+        }
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Play, loc["ListWnd_Info_Help_ShowIntroduction"])) {
+            onboardingWindow.IsOpen = true;
         }
 
         ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_Wiki"]);
@@ -538,7 +546,11 @@ public class ConfigWindow(
 
         ImGui.TableNextColumn();
         if (ImGuiComponents.IconButton("##scenarioEditButton", FontAwesomeIcon.Wrench)) {
-            serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+            if (windowSystem.Windows.OfType<ScenarioEditorWindow>().FirstOrDefault(w => w.IsOpen && w.IsEditing(s.FilePath)) is { } openEditor) {
+                openEditor.BringToFront();
+            } else {
+                serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
+            }
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(loc["ListWnd_Scenario_Action_EditScenario_Desc"]);

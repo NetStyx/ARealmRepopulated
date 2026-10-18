@@ -29,7 +29,7 @@ public class PluginConfig : IPluginConfiguration {
     /// It is used to block creation of additional objects by adding the count of existing client object table entries to the already spawned actors and compare them to this hard limit.       
     /// </summary>
     /// <remarks>
-    /// I dont expose these this via the UI but i can be overriden in the configuration if needed.
+    /// I dont expose these this via the UI but it can be lowered (not increased) via the configuration if needed.
     /// </remarks>
     /// <example>
     /// If, for whatever reason, there are already 50 objects present in the client object table, only 180 - 50 = 130 actors can be spawned by the plugin before reaching the hard limit even when the soft limit is not yet reached.      
