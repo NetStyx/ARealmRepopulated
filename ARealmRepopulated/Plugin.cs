@@ -6,6 +6,7 @@ using ARealmRepopulated.Core.Services;
 using ARealmRepopulated.Core.Services.Changelog;
 using ARealmRepopulated.Core.Services.Chat;
 using ARealmRepopulated.Core.Services.LayoutWorld;
+using ARealmRepopulated.Core.Services.Nameplates;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Scenarios.Conditions;
@@ -44,6 +45,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<ChatBubbleService>()
             .AddSingleton<LayoutWorldService>()
             .AddSingleton<NpcServices>()
+            .AddSingleton<NpcNamePlateService>()
             .AddSingleton<NpcAppearanceService>()
             .AddSingleton<NpcAppearanceDataParser>()
             .AddSingleton<ScenarioOrchestrator>()
@@ -86,6 +88,7 @@ public sealed class Plugin : IDalamudPlugin {
         _services.GetRequiredService<ChatCommands>().Initialize();
         _services.GetRequiredService<ScenarioOrchestrator>().Initialize();
         _services.GetRequiredService<NpcServices>().Initialize();
+        _services.GetRequiredService<NpcNamePlateService>().Initialize();
         _services.GetRequiredService<NpcAppearanceDataParser>().Initialize();
         _services.GetRequiredService<ChangelogService>().Initialize();
         _services.GetRequiredService<ScenarioFileManager>().StartMonitoring();

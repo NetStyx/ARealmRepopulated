@@ -35,9 +35,7 @@ public unsafe class ScenarioOrchestrator(
 
     public List<Orchestration> Orchestrations { get; private set; } = [];
     public IEnumerable<Orchestration> ActiveOrchestrations => Orchestrations.Where(o => o.IsActive);
-    public event Action? OnOrchestrationStateChanged;
-
-    /// <summary>A file change in the current area was skipped because auto load is off. Cleared by the next load.</summary>
+    public event Action? OnOrchestrationStateChanged;    
     public bool HasPendingChanges { get; private set; }
 
     private void NpcServices_ActorDestroyed(Character* chara) {

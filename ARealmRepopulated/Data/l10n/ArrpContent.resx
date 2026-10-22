@@ -1052,4 +1052,19 @@ This might impact performance. Ensure that the actions are valid for the actor o
 
 {0}</value>
   </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameDisplay" xml:space="preserve">
+    <value>Display actor name</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameDisplay_Desc" xml:space="preserve">
+    <value>Shows the name above the actor. Game default follows your nameplate setting for NPC names.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameDisplay_Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameDisplay_GameDefault" xml:space="preserve">
+    <value>Game default</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_NameDisplay_Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
 </root>
