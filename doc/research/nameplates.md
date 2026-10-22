@@ -1,8 +1,7 @@
 # Nameplates
 
-Someone wanted to have their actors proudly present the name on top of the model. Welp.. cant hide from Atk* stuff forever. 
-To stay with the "do NOT make your actors targetable" doctrine and still show something resembling a nameplate, we show actor names with custom text nodes 
-inside the games `NamePlate` addon and copy the games placement. Huzzah!
+Someone wanted to have their actors present their name on top of the model. Welp.. cant hide from Atk* stuff forever. 
+To stay with the "do NOT make your actors targetable" doctrine and still show something resembling a nameplate, we show actor names with custom text nodes inside the games `NamePlate` addon and copy the games placement. Huzzah! Weil muss ja und so.
 
 ## Why not the games own plates
 
@@ -61,9 +60,11 @@ Vector4* Camera::WorldToViewportPoint(Camera* this, Vector4* out, Vector3* world
 
 ## Platesize, fade distance and depth
 
-- The distance is the squared ground distance to the player.
-- The games limit of 50 plates is the size of its own plate pool
-- Lets ignore it, we dont "pollute" the nameplate pool because we are creating our own node
+- The distance is the squared ground distance (x, z, without y) from object to the player.
+- `UI3DModule.UpdateGameObjects` rebuilds its list every frame and stops at 50 plates which it holds in its own array.
+- Headache
+- We can ignore it! The array the game uses is filled using objects from the client object table, starting with the player, his target and the soft target and then anything else that is targetable. Which means we are golden.
+
 
 ```c
 int UI3DModule::CalculateNamePlateScale(float distanceSquared) {
