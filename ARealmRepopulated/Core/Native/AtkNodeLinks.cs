@@ -10,8 +10,10 @@ public static unsafe class AtkNodeLinks {
     /// <summary>
     /// Appends the child as the last child of the parent. The caller rebuilds the draw node list.
     /// </summary>
-    public static void AppendChild(AtkResNode* parent, AtkResNode* child) {
-        // the game links children backwards it seems. The first child has no next sibling, later ones hang off PrevSiblingNode
+    /// <remarks>
+    /// The game links children backwards it seems. The first child has no next sibling, later ones hang off PrevSiblingNode. The caller is responsible for rebuilding the draw node list.
+    /// </remarks>
+    public static void AppendChild(AtkResNode* parent, AtkResNode* child) {        
         var last = parent->ChildNode;
         if (last == null) {
             parent->ChildNode = child;

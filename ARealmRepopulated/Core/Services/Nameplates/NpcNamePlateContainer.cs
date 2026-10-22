@@ -6,11 +6,11 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace ARealmRepopulated.Core.Services.Nameplates;
 
 /// <summary>
-/// Our own node under the nameplate addon root. Makes it easier to manage our nodes.
+/// Our own node under the nameplate addon root. Keeps our nodes together.
 /// </summary>
 public sealed unsafe class NpcNamePlateContainer {
 
-    // The game uses low numbers for its own nodes. So we use "ARRP" in ascii as our base which sits well above what the game uses for nameplate layouts.
+    // The game uses low numbers for its own nodes. So we use "ARRP" in ascii as our base which sits above what the game uses for nameplate layouts.
     private const uint NodeIdBase = 0x41525250;
 
     private readonly AtkUnitBase* _addon;
@@ -57,10 +57,7 @@ public sealed unsafe class NpcNamePlateContainer {
 
     public void SetColors(ByteColor textColor, ByteColor edgeColor)
         => _texts.ForEach(t => t.SetColors(textColor, edgeColor));
-
-    /// <summary>
-    /// Takes the container out of the addon and frees it with all its texts.
-    /// </summary>
+    
     public void Destroy() {
         // the order of these steps is important to not run into use-after-free problems.
         AtkNodeLinks.Unlink(_node);

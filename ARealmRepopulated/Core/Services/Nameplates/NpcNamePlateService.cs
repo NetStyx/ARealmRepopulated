@@ -30,12 +30,9 @@ public unsafe class NpcNamePlateService(
     IGameConfig gameConfig,
     IObjectTable objectTable,
     NpcServices npcServices) : IDisposable {
-
-    // the addon name as ClientStructs declares it on AddonNamePlate
-    private static readonly string NamePlateAddon = typeof(AddonNamePlate).GetCustomAttribute<AddonAttribute>()!.AddonIdentifiers.First();
-
-    // squared ground distance beyond which the game shows no nameplate, 50 yalms
-    private const float MaxDistanceSquared = 2500;
+    
+    private static readonly string NamePlateAddon = typeof(AddonNamePlate).GetCustomAttribute<AddonAttribute>()!.AddonIdentifiers.First();    
+    private const float MaxPlateDrawDistanceSq = 2500;
 
     private AtkUnitBase* _addon = null;
     private NpcNamePlateStyle _style;
@@ -69,7 +66,7 @@ public unsafe class NpcNamePlateService(
     /// Places our nodes the way AddonNamePlate places its plates.
     /// </summary>
     /// <remarks>
-    /// see /doc/research/nameplates.md#placing-the-plates-on-screen
+    // /doc/research/nameplates.md#placing-the-plates-on-screen
     /// </remarks>
     private void OnNamePlateUpdate(AddonEvent type, AddonArgs args) {
         var addon = (AtkUnitBase*)args.Addon.Address;
@@ -96,7 +93,7 @@ public unsafe class NpcNamePlateService(
                 var x = position.X - player.Position.X;
                 var z = position.Z - player.Position.Z;
                 var distanceSquared = (x * x) + (z * z);
-                if (distanceSquared > MaxDistanceSquared || !TryProjectToScreen(&camera->CameraBase.SceneCamera, position, out var screenPosition))
+                if (distanceSquared > MaxPlateDrawDistanceSq || !TryProjectToScreen(&camera->CameraBase.SceneCamera, position, out var screenPosition))
                     continue;
 
                 var node = _container!.GetOrCreateText(shown, _style, _textColor, _edgeColor);
@@ -151,7 +148,7 @@ public unsafe class NpcNamePlateService(
     /// see /doc/research/nameplates.md#size-fade-and-depth
     /// </remarks>
     private static float CalculateNamePlateScale(float distanceSquared) {
-        if (distanceSquared > MaxDistanceSquared)
+        if (distanceSquared > MaxPlateDrawDistanceSq)
             return 0;
         if (distanceSquared > 2304)
             return (50 - ((distanceSquared - 2304) / 196 * 50)) / 100;
@@ -159,10 +156,7 @@ public unsafe class NpcNamePlateService(
             return 1;
         return (100 - ((distanceSquared - 25) / 2279 * 50)) / 100;
     }
-
-    /// <summary>
-    /// Takes the style from the games own name text, which exists once the addon set up its plates.
-    /// </summary>
+    
     private bool TryAttach(AtkUnitBase* addon) {
         if (addon->RootNode == null)
             return false;

@@ -12,13 +12,10 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Scenarios;
 
-/// <summary>
-/// A scenario file in the scenario folder, identified by its path. A file that could not be read carries the reason in
-/// <see cref="Error"/> and placeholder meta data.
-/// </summary>
 public sealed record ScenarioFileData(string FileName, string FilePath, ScenarioFileMetaData MetaData, string? Error = null) {
     public bool IsBroken => Error != null;
 }
+
 public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, ScenarioMigrator migrator) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
@@ -72,8 +69,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         _fileSystemWatcher.EnableRaisingEvents = true;
     }
 
-    private void _fileSystemWatcherFired(FileSystemEventArgs e) {
-        // a rename to another extension still reports the new name
+    private void _fileSystemWatcherFired(FileSystemEventArgs e) {        
         if (Path.GetExtension(e.FullPath).Equals(".json", StringComparison.OrdinalIgnoreCase))
             TryReadScenarioFile(e.FullPath, raiseEvents: true);
     }
@@ -120,11 +116,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
 
         UpdateFileEntry(new ScenarioFileData(fileInfo.Name, fileInfo.FullName, fileMetaData), raiseEvents);
     }
-
-    /// <summary>
-    /// Replaces the entry of the same path. Running actors of the old entry are removed first; a broken file only
-    /// raises that removal.
-    /// </summary>
+    
     private void UpdateFileEntry(ScenarioFileData fileData, bool raiseEvents) {
         using var _ = _filesLock.EnterScope();
         var index = _currentFiles.FindIndex(x => x.FilePath.IsSamePath(fileData.FilePath));

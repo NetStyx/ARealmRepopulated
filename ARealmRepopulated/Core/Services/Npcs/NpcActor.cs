@@ -77,25 +77,9 @@ public unsafe class NpcActor(
 
     public bool IsReleased
         => _actor == null;
-
-    /// <summary>
-    /// Whether the actor settled after spawning.
-    /// </summary>
-    /// <remarks>
-    /// Apparently its possible that the idle timeline can start before the actor is actually finished bootstrapping.
-    /// That has the unfortunate side effect that an actor will not voice its emotes for example, because LoadCharacterSound
-    /// drops every sound while RenderFlags still carries a reason to hide. The game clears those during setup and marks the steps:
-    /// <code>
-    ///   // GameObject.Update
-    ///   if ((TargetableStatus &amp; 0x20) == 0 &amp;&amp; vf33())                 // model, equipment and attached objects loaded
-    ///     TargetableStatus |= 0x20; vf32();                               // clears RenderFlags bit 11
-    ///   if ((TargetableStatus &amp; 0x08) == 0 &amp;&amp; (TargetableStatus &amp; 0x70) == 0x70 &amp;&amp; ...)
-    ///     TargetableStatus |= 0x08; vf31();                               // decides RenderFlags bit 8
-    /// </code>
-    /// 0x08 is set once per object, DisableDraw only clears 0x20, so both are needed after a respawn.
-    /// see /doc/research/ready-or-not.md
-    /// </remarks>
+    
     public bool IsReady() {        
+        // see /doc/research/ready-or-not.md for more.        
         if (_actor->Timeline.TimelineSequencer.TimelineIds[0] == 3 && (_actor->TargetableStatus & ModelLoaded) == ModelLoaded) {
             _isReady = true;
         }
@@ -165,13 +149,8 @@ public unsafe class NpcActor(
         => _actor->RenderFlags == VisibilityFlags.None;
 
     /// <summary>
-    /// Where the game anchors the nameplate of a character, see GameObject.GetNamePlateWorldPosition.
-    /// </summary>
-    /// <remarks>
-    /// The game also turns the horizontal part of the offset with the rotation, which stays out until we know it is ever set on characters.
-    /// The scale part comes from the model sheet, because the game fills it in SetupRaw, which our actors never run.
-    /// see /doc/research/nameplates.md#anchor
-    /// </remarks>
+    /// Where the game anchors the nameplate of a character, see GameObject.GetNamePlateWorldPosition. More in /doc/research/nameplates.md#anchor
+    /// </summary>    
     public Vector3 GetNamePlatePosition() {
         var position = _actor->Position;
         position.Y += _actor->NameplateOffset.Y + (dataCache.GetNamePlateOffsetScale(_actor->ModelContainer.ModelCharaId) * _actor->Scale);

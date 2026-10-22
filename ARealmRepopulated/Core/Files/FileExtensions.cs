@@ -4,11 +4,7 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Files;
 
-public static class FileExtensions {
-
-    /// <summary>
-    /// Compares two paths the way the Windows file system does, ignoring case.
-    /// </summary>
+public static class FileExtensions {    
     public static bool IsSamePath(this string path, string otherPath)
         => string.Equals(path, otherPath, StringComparison.OrdinalIgnoreCase);
 
