@@ -6,7 +6,7 @@ namespace ARealmRepopulated.Core.Files;
 
 public static class FileExtensions {    
     public static bool IsSamePath(this string path, string otherPath)
-        => string.Equals(path, otherPath, StringComparison.OrdinalIgnoreCase);
+        => string.Equals(Path.GetFullPath(path), Path.GetFullPath(otherPath), StringComparison.OrdinalIgnoreCase);
 
     public static bool IsAccessible(this FileInfo fileInfo) {
         try {

@@ -1,6 +1,7 @@
 using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Components;
 using ARealmRepopulated.Core.ArrpGui.Style;
+using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Npcs;
@@ -179,7 +180,7 @@ public partial class ScenarioEditorWindow(
 
     public bool IsEditing(string filePath)
         => !string.IsNullOrWhiteSpace(_scenarioFilePath)
-            && string.Equals(Path.GetFullPath(_scenarioFilePath), Path.GetFullPath(filePath), StringComparison.OrdinalIgnoreCase);
+            && _scenarioFilePath.IsSamePath(filePath);
 
     private void InitScenarioStructures(ScenarioData scenarioData, string filePath) {
         _scenarioFilePath = filePath;
