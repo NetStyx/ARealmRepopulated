@@ -79,10 +79,11 @@ public unsafe class ScenarioOrchestrator(
     }
 
     private void ScenarioFileManager_ScenarioFileChanged(ScenarioFileData metaData) {
-        if (config.AutoLoadScenarios)
+        if (config.AutoLoadScenarios){
             LoadFile(metaData);
-        else if (metaData.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(metaData.MetaData.Location))
+        } else if (metaData.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(metaData.MetaData.Location)){
             HasPendingChanges = true;
+        }
     }
 
     private void ScenarioFileManager_ScenarioFileRemoved(ScenarioFileData metaData) {
