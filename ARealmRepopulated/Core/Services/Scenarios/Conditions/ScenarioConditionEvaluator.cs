@@ -3,24 +3,25 @@ using ARealmRepopulated.Data.Scenarios;
 namespace ARealmRepopulated.Core.Services.Scenarios.Conditions;
 
 public readonly record struct IngameConditionSnapshot(int EorzeaTime, byte Weather);
-public readonly record struct CustomConditionSnapshot(double ChanceRoll) {
-    public static CustomConditionSnapshot Deterministic { get; } = new(ChanceRoll: 0d);
-}
+public readonly record struct CustomConditionSnapshot(double ChanceRoll);
 
 public static class ScenarioConditionEvaluator {
-    public static bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot custom) {
+    public static bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot custom)
+        => AreMet(conditions, ingame, custom);
+
+    public static bool AreDeterministicConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
+        => AreMet(conditions, ingame, custom: null);
+
+    private static bool AreMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot? custom) {
         foreach (var condition in conditions) {
-            if (!condition.IsConfigured)
+            if (!condition.IsConfigured || (custom is null && condition is ScenarioChanceCondition))
                 continue;
 
-            if (IsMet(condition, ingame, custom) == condition.Negate)
+            if (IsMet(condition, ingame, custom.GetValueOrDefault()) == condition.Negate)
                 return false;
         }
         return true;
     }
-
-    public static bool AreDeterministicConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
-        => AreConditionsMet(conditions, ingame, CustomConditionSnapshot.Deterministic);
 
     private static bool IsMet(ScenarioCondition condition, IngameConditionSnapshot ingame, CustomConditionSnapshot custom) => condition switch {
         ScenarioEorzeaTimeCondition time => IsWithinHourWindow(ingame.EorzeaTime, time.StartHour, time.EndHour),
@@ -46,7 +47,7 @@ public static class ScenarioConditionEvaluator {
     // The only difference to real time is that eorzea time runs approximately 20 times faster which does not matter for the calculations here.
     public static int ToHours(long timeInSeconds)
         => WrapHour((int)(timeInSeconds / 3600));
-    
+
     public static int WrapHour(int hour)
         => ((hour % 24) + 24) % 24;
 }

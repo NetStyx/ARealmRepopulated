@@ -9,7 +9,7 @@ public class ScenarioConditionTests {
     private static readonly IngameConditionSnapshot Midnight = new(EorzeaTime: 0, Weather: 1);
 
     private static bool Evaluate(IngameConditionSnapshot ingame, params ScenarioCondition[] conditions)
-        => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, CustomConditionSnapshot.Deterministic);
+        => ScenarioConditionEvaluator.AreConditionsMet(conditions, ingame, default);
 
     [Fact]
     public void AreConditionsMet_WithoutConditions_IsMet()
@@ -114,6 +114,14 @@ public class ScenarioConditionTests {
         ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, Midnight).ShouldBeTrue();
         ScenarioConditionEvaluator.AreDeterministicConditionsMet(conditions, Midnight with { EorzeaTime = 12 }).ShouldBeFalse();
     }
+
+    [Theory]
+    [InlineData(0f, false)]
+    [InlineData(100f, false)]
+    [InlineData(0f, true)]
+    [InlineData(100f, true)]
+    public void AreDeterministicConditionsMet_LeavesChanceOut_EvenWhenInverted(float percent, bool negate)
+        => ScenarioConditionEvaluator.AreDeterministicConditionsMet([new ScenarioChanceCondition { Percent = percent, Negate = negate }], Midnight).ShouldBeTrue();
 
     [Fact]
     public void AreConditionsMet_WithSeveralChanceConditions_SharesOneRollAndActsAsTheLowestChance() {
