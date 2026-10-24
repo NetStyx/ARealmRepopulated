@@ -1,8 +1,12 @@
+using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Scenarios.Migrations;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Scenarios;
 using ARealmRepopulated.Tests.Infrastructure;
 using Shouldly;
+using System;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace ARealmRepopulated.Tests.Scenarios;
@@ -16,6 +20,7 @@ public class ScenarioMigrationTests {
     private const string V3ActorNamesFile = "v3-b9d6d283-0483-490b-b7b3-7e9d06d90f85.json";
     private const string V4ScenarioFile = "v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json";
     private const string V4HeightMultipliersFile = "v4-06e8c312-6d3f-4b2b-9fc5-850ed4bc9ffa.json";
+    private const string V5TimeWindowFile = "v5-53fbf0cd-181a-47eb-9155-fa4503fb58c5.json";
 
     [Theory]
     [InlineData("v2-1975ef01-990d-44d7-a955-c6fd4b1b3ff2.json")]
@@ -113,6 +118,19 @@ public class ScenarioMigrationTests {
 
         AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ShouldBe(before);
         dataCache.Lookups.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void ScenarioMigration_StoresTheTimeWindowAsTimeOfDay() {
+        var jsonObject = ReadScenario(V5TimeWindowFile);
+
+        new V6ScenarioMigration().Upgrade(jsonObject);
+
+        var scenario = jsonObject.Deserialize<ScenarioData>(ScenarioFileManager.ScenarioLoadSerializerOptions);
+        var time = scenario.ShouldNotBeNull().Conditions.ShouldHaveSingleItem().ShouldBeOfType<ScenarioEorzeaTimeCondition>();
+        time.Start.ShouldBe(new TimeOnly(20, 0));
+        time.End.ShouldBe(TimeOnly.MinValue);
+        jsonObject["Conditions"]![0]!.AsObject().ShouldNotContainKey("StartHour");
     }
 
     private static JsonObject ReadScenario(string fileName)

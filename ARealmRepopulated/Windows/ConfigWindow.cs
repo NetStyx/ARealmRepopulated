@@ -91,7 +91,7 @@ public class ConfigWindow(
         if (_orchestrator.Orchestrations.FirstOrDefault(o => o.FilePath.IsSamePath(file.FilePath)) is not { } orchestration)
             return null;
 
-        return orchestration.Data.Conditions.Any(c => c.IsConfigured) ? orchestration.AreConditionsMet : null;
+        return orchestration.ConditionTracker.HasConditions ? orchestration.ConditionTracker.AreMet : null;
     }
 
     private void DrawScenarioConditionBadge(bool areConditionsMet) {
@@ -175,7 +175,9 @@ public class ConfigWindow(
         }
     }
 
-    private Version? _selectedChangelogVersion;    private void InfoTab() {
+    private Version? _selectedChangelogVersion;
+
+    private void InfoTab() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         var entries = changelogService.Changelog.OrderByDescending(c => c.Version).ToList();
@@ -195,11 +197,11 @@ public class ConfigWindow(
             DrawChangelogEntry(selected);
         }
     }
-    
-    private void DrawInfoList(List<ChangelogEntry> entries, ChangelogEntry? selected, Version currentVersion) {        
+
+    private void DrawInfoList(List<ChangelogEntry> entries, ChangelogEntry? selected, Version currentVersion) {
         var guideHeading = loc["ListWnd_Info_Guide"];
         var changelogHeading = loc["ListWnd_Info_Changelog"];
-        var helpLabel = loc["ListWnd_Info_Help"];                
+        var helpLabel = loc["ListWnd_Info_Help"];
 
         using var list = ImRaii.ListBox("##infoEntries", new Vector2(100f, -1));
         if (!list.Success)
@@ -256,7 +258,7 @@ public class ConfigWindow(
 
         ArrpGuiLayout.SectionHeader(loc["ListWnd_Info_Help_Wiki"]);
         ImGui.TextWrapped(loc["ListWnd_Info_Help_Wiki_Desc"]);
-    
+
         if (pluginInterface.Manifest.RepoUrl is { Length: > 0 } repoUrl) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Book, loc["ListWnd_Info_Help_OpenWiki"])) {
@@ -369,11 +371,11 @@ public class ConfigWindow(
             ImGui.TableSetupColumn("##scenarioLocationHeader", ImGuiTableColumnFlags.WidthFixed, 150);
             ImGui.TableSetupColumn("##scenarioToolbarHeader", ImGuiTableColumnFlags.WidthFixed);
 
-            ImGui.TableSetupScrollFreeze(0, 1);            
+            ImGui.TableSetupScrollFreeze(0, 1);
             ImGui.TableNextRow();
             ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0, ImGui.GetColorU32(ImGuiCol.TableHeaderBg));
 
-            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {                
+            ArrpGuiHelper.DrawCenteredHeaderCell(0, () => {
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetTreeNodeToLabelSpacing());
                 using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpYellow, _orchestrator.HasPendingChanges)) {
                     if (ImGuiComponents.IconButton(FontAwesomeIcon.Recycle)) {
@@ -421,7 +423,7 @@ public class ConfigWindow(
                     ImGui.SetTooltip(loc["ListWnd_Scenario_Action_OpenFolder_Desc"]);
             });
 
-            var allScenarioFiles = _fileManager.GetScenarioFiles();            
+            var allScenarioFiles = _fileManager.GetScenarioFiles();
             var brokenFiles = allScenarioFiles
                 .Where(s => s.IsBroken)
                 .OrderBy(s => s.FileName)
@@ -470,7 +472,7 @@ public class ConfigWindow(
             DrawScenarioRow(file.File);
         }
     }
-    
+
     private bool DrawGroupRow(string name, List<GroupedScenarioFile> groupFiles, bool isBrokenGroup = false) {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -518,7 +520,7 @@ public class ConfigWindow(
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
         DrawRowHighlight();
-        
+
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetTreeNodeToLabelSpacing());
         if (s.IsBroken) {
             ImGui.AlignTextToFramePadding();

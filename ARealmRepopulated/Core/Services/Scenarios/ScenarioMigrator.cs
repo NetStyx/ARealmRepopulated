@@ -5,7 +5,7 @@ namespace ARealmRepopulated.Core.Services.Scenarios;
 
 public class ScenarioMigrator(IServiceProvider serviceProvider, IPluginLog log) {
 
-    public static int CurrentScenarioVersion { get; } = 5;
+    public static int CurrentScenarioVersion { get; } = 6;
 
     private readonly SortedDictionary<int, IScenarioMigration> _migrationDictionary = [];
 

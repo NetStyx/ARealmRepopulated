@@ -11,6 +11,7 @@
       <EmbeddedResource Include="Resources\ScenarioFiles\v3-b9d6d283-0483-490b-b7b3-7e9d06d90f85.json" />
       <EmbeddedResource Include="Resources\ScenarioFiles\v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json" />
       <EmbeddedResource Include="Resources\ScenarioFiles\v4-06e8c312-6d3f-4b2b-9fc5-850ed4bc9ffa.json" />
+      <EmbeddedResource Include="Resources\ScenarioFiles\v5-53fbf0cd-181a-47eb-9155-fa4503fb58c5.json" />
       <EmbeddedResource Include="Resources\CharaFiles\extended-appearance.chara" />
       <EmbeddedResource Include="Resources\CharaFiles\minimal.chara" />
       <EmbeddedResource Include="Resources\CharaFiles\missing-race.chara" />

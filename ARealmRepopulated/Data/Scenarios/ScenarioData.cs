@@ -9,6 +9,7 @@ namespace ARealmRepopulated.Data.Scenarios;
 
 public class ScenarioData : IScenarioMetaData {
     public int Version { get; set; } = ScenarioMigrator.CurrentScenarioVersion;
+    public bool Enabled { get; set; } = true;
     public string Title { get; set; } = "";
     public string Description { get; set; } = "";
 
@@ -18,10 +19,13 @@ public class ScenarioData : IScenarioMetaData {
 
     public ScenarioLocation Location { get; set; } = new();
     public List<ScenarioNpcData> Npcs { get; set; } = [];
+
     public bool Looping { get; set; } = true;
     public float LoopDelay { get; set; } = 0f;
-    public bool Enabled { get; set; } = true;
+    public ScenarioEndBehavior EndBehavior { get; set; } = ScenarioEndBehavior.AfterRun;
+
     public List<ScenarioCondition> Conditions { get; set; } = [];
+    public float ConditionRollInterval { get; set; } = 1f;
 }
 
 public class ScenarioFileMetaData : IScenarioMetaData {
@@ -44,7 +48,7 @@ public class ScenarioLocation {
 public interface IScenarioMetaData {
     int Version { get; }
     string Title { get; }
-    string Description { get; }    
+    string Description { get; }
     string Group { get; }
     ScenarioLocation Location { get; }
     bool Enabled { get; }
@@ -55,7 +59,7 @@ public static class ScenarioMetaDataExtensions {
         => (data.Group ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
-public class ScenarioNpcData {    
+public class ScenarioNpcData {
     public string Identifier { get; set; } = Guid.NewGuid().AsHexString();
     public string Name { get; set; } = "";
     public NpcNameDisplay DisplayNameSetting { get; set; } = NpcNameDisplay.Never;
@@ -105,6 +109,12 @@ public abstract class ScenarioNpcAction {
     public virtual bool CanHaveDuration => true;
     [JsonIgnore]
     public virtual bool RequiresReadyActor => false;
+}
+
+public enum ScenarioEndBehavior {
+    AfterRun,
+    Immediately,
+    Never
 }
 
 public enum NpcNameDisplay {
@@ -204,7 +214,7 @@ public class ScenarioNpcIdleAction : ScenarioNpcAction {
     public byte PoseState { get; set; } = 0;
 
     [JsonIgnore]
-    public override bool CanHaveTalk => false;    
+    public override bool CanHaveTalk => false;
     [JsonIgnore]
     public override bool RequiresReadyActor => PoseState > 0;
 

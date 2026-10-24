@@ -32,7 +32,7 @@ public partial class ScenarioEditorWindow {
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
-        
+
         var bodyPadding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, ArrpGuiSpacing.ScrollBodyPadding);
         using var list = ImRaii.Child("##arrpScenarioTabConditionsBody", new Vector2(0, 0), false, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
         bodyPadding.Dispose();
@@ -70,7 +70,7 @@ public partial class ScenarioEditorWindow {
         }
         ArrpGuiLayout.Tooltip(_conditionUiRegistry.GetHelp(condition));
     }
-    
+
     private bool DrawCondition(ScenarioCondition condition) {
         var remove = false;
 
@@ -89,12 +89,12 @@ public partial class ScenarioEditorWindow {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        if (!condition.IsConfigured) {
-            ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_Conditions_Unconfigured"]);
-            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        }
-
         _conditionUiRegistry.Draw(condition);
+
+        if (!condition.IsConfigured) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_Conditions_Unconfigured"]);
+        }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
         return remove;
@@ -109,23 +109,36 @@ public partial class ScenarioEditorWindow {
     private void DrawEorzeaTimeCondition(ScenarioEorzeaTimeCondition condition) {
         ArrpGuiForm.Draw("##arrpConditionTimeForm", form => {
 
-            form.Row(loc["ScenarioEditor_Conditions_CTime_Input_From"], () => {
-                using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth);
-                var startHour = condition.StartHour;
-                if (ImGui.SliderInt("##value", ref startHour, 0, 23, "%02d:00")) {
-                    condition.StartHour = startHour;
-                }
-            });
+            form.Row(loc["ScenarioEditor_Conditions_CTime_Input_From"],
+                () => DrawTimeOfDayInput(condition.Start, time => condition.Start = time),
+                help: loc["ScenarioEditor_Conditions_CTime_Input_FromHint"]);
 
-            form.Row(loc["ScenarioEditor_Conditions_CTime_Input_Until"], () => {
-                using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth);
-                var endHour = condition.EndHour;
-                if (ImGui.SliderInt("##value", ref endHour, 0, 23, "%02d:00")) {
-                    condition.EndHour = endHour;
-                }
-            }, help: loc["ScenarioEditor_Conditions_CTime_Input_UntilHint"]);
+            form.Row(loc["ScenarioEditor_Conditions_CTime_Input_Until"],
+                () => DrawTimeOfDayInput(condition.End, time => condition.End = time),
+                help: loc["ScenarioEditor_Conditions_CTime_Input_UntilHint"]);
         });
     }
+
+    private static void DrawTimeOfDayInput(TimeOnly time, Action<TimeOnly> onChange) {
+        var hour = time.Hour;
+        var minute = time.Minute;
+        using var width = ImRaii.ItemWidth((ImGui.CalcTextSize("00").X + ImGui.GetStyle().FramePadding.X * 2) * 2);
+
+        if (ImGui.DragInt("##hour", ref hour, 0.1f, 0, 0, "%02d")) {
+            onChange(time.AddHours(hour - time.Hour));
+        }
+
+        ImGui.SameLine();
+        ImGui.Text(":");
+        ImGui.SameLine();
+
+        if (ImGui.DragInt("##minute", ref minute, 0.25f, 0, 0, "%02d")) {
+            onChange(time.AddMinutes(minute - time.Minute));
+        }
+    }
+
+    private static string FormatTimeOfDay(TimeOnly time)
+        => $"{time.Hour:00}:{time.Minute:00}";
 
     private void DrawWeatherCondition(ScenarioWeatherCondition condition) {
         var weathers = dataCache.GetWeathersForTerritory(ScenarioObject.Location.Territory);
@@ -159,6 +172,14 @@ public partial class ScenarioEditorWindow {
                     condition.Percent = Math.Clamp(percent, 0f, 100f);
                 }
             });
+
+            form.Row(loc["ScenarioEditor_Conditions_CChance_Input_RollInterval"], () => {
+                using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth);
+                var interval = ScenarioObject.ConditionRollInterval;
+                if (ImGui.InputFloat("s.##value", ref interval, step: 1f, format: "%.0f")) {
+                    ScenarioObject.ConditionRollInterval = Math.Max(MathF.Round(interval), 1f);
+                }
+            }, loc["ScenarioEditor_Conditions_CChance_Input_RollIntervalHint"]);
         });
     }
 
@@ -176,7 +197,7 @@ public partial class ScenarioEditorWindow {
             icon: FontAwesomeIcon.Clock,
             shortName: (c) => loc["ScenarioEditor_Conditions_CTime_Short"],
             help: (c) => loc["ScenarioEditor_Conditions_CTime_Desc"],
-            summary: DescribeHourWindow,
+            summary: DescribeTimeWindow,
             draw: DrawEorzeaTimeCondition
         );
         _conditionUiRegistry.Register(
@@ -197,14 +218,14 @@ public partial class ScenarioEditorWindow {
         );
     }
 
-    private string DescribeHourWindow(ScenarioEorzeaTimeCondition condition) {
-        var window = $"{condition.StartHour:00}:00 - {condition.EndHour:00}:00";
+    private string DescribeTimeWindow(ScenarioEorzeaTimeCondition condition) {
+        var window = $"{FormatTimeOfDay(condition.Start)} - {FormatTimeOfDay(condition.End)}";
         return condition.Negate ? loc["ScenarioEditor_Conditions_CTime_SummaryNegated", window] : window;
     }
 
     private List<ScenarioCondition> ConfiguredConditions()
         => [.. ScenarioObject.Conditions.Where(c => c.IsConfigured)];
-    
+
     private string DescribeConditions(List<ScenarioCondition> conditions)
         => string.Join(", ", conditions.Select(_conditionUiRegistry.GetSummary));
 
@@ -231,7 +252,7 @@ public sealed class ConditionUiRegistry {
         public Func<ScenarioCondition, string> SummaryResolver { get; set; } = (_) => string.Empty;
     }
 
-    private readonly Dictionary<Type, ConditionTypeDisplayObject> _handlers = [];    
+    private readonly Dictionary<Type, ConditionTypeDisplayObject> _handlers = [];
     private readonly List<Type> _registrationOrder = [];
 
     public void Register<T>(Func<T> create, FontAwesomeIcon icon, Func<T, string>? shortName = null, Func<T, string>? help = null, Func<T, string>? summary = null, Action<T>? draw = null) where T : ScenarioCondition {
