@@ -198,6 +198,9 @@ public unsafe class NpcActor(
     public bool IsPlayingTimeline(ushort timelineId)
         => appearanceService.IsPlayingTimeline(_actor, timelineId);
 
+    public bool IsLoopingTimeline(ushort timelineId)
+        => dataCache.IsLoopingTimeline(timelineId);
+
     public void PlayEmote(ushort emoteid, bool interactWithLayout = false) {
         var emoteEntry = dataCache.GetEmote(emoteid);
         var keepDrawOffset = interactWithLayout || _actor->DrawOffset != _spawnOptions.DrawOffset;

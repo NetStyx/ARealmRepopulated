@@ -409,7 +409,7 @@ public partial class ScenarioEditorWindow(
         }
         ArrpGuiLayout.Tooltip(loc["ScenarioEditor_Outline_AddAction"]);
 
-        using (var popup = ImRaii.Popup(AddActionPopupId)) {
+        using (var popup = ArrpGuiLayout.Popup(AddActionPopupId)) {
             if (popup.Success)
                 DrawActionSelection();
         }
@@ -520,7 +520,7 @@ public partial class ScenarioEditorWindow(
     }
 
     private void DrawOutlineContextMenu(ScenarioNpcData npc, ScenarioNpcAction? action) {
-        using var popup = ImRaii.ContextPopup("##arrpOutlineContext");
+        using var popup = ArrpGuiLayout.ContextPopup("##arrpOutlineContext");
         if (!popup.Success)
             return;
         

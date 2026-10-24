@@ -174,6 +174,12 @@ public partial class ArrpDataCache(IPluginLog log, IDataManager dataManager) {
     public List<ActionTimeline> GetActionTimelines()
         => [.. _actionTimelineSheet];
 
+    public byte GetTimelineSlot(ushort actionTimelineId)
+        => _actionTimelineSheet.GetRowOrDefault(actionTimelineId)?.GetSlot() ?? 0;
+
+    public bool IsLoopingTimeline(ushort actionTimelineId)
+        => _actionTimelineSheet.GetRowOrDefault(actionTimelineId)?.IsLooping() ?? false;
+
     public Emote GetEmote(uint emoteId)
         => _emoteTypeSheet.GetRow(emoteId);
 
@@ -282,6 +288,13 @@ public static class EmoteExtensions {
     
     public static bool TryGetPoseType(this Emote emote, out PoseType poseType)
         => EmotePoseType.TryGetValue(emote.RowId, out poseType);
+
+    // Lumina names these ActionTimeline columns wrong: the sequencer slot is Stance (not Slot), the loop flag is Pause (not IsLoop).
+    public static byte GetSlot(this ActionTimeline timeline)
+        => timeline.Stance;
+
+    public static bool IsLooping(this ActionTimeline timeline)
+        => timeline.Pause;
 
     public static bool IsLooping(this Emote emote) {
         if (!emote.EmoteMode.IsValid)

@@ -14,7 +14,7 @@ using CsMaths = FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace ARealmRepopulated.Windows;
 
-public partial class ScenarioEditorWindow {    
+public partial class ScenarioEditorWindow {
 
     private void DrawActionSelection() {
 
@@ -39,7 +39,7 @@ public partial class ScenarioEditorWindow {
         DrawActionSelectionEntry(new ScenarioNpcSpawnAction());
         DrawActionSelectionEntry(new ScenarioNpcDespawnAction());
     }
-    
+
     private void DrawActionSelectionEntry(ScenarioNpcAction action) {
         if (ImGui.Selectable(_actionUiRegistry.GetShortName(action))) {
             AddAction(action);
@@ -161,14 +161,14 @@ public partial class ScenarioEditorWindow {
 
         if (pathAction.Points.Count == 0)
             return;
-        
+
         const int editorRows = 5;
         var style = ImGui.GetStyle();
         using (ImRaii.PushColor(ImGuiCol.ChildBg, style.Colors[(int)ImGuiCol.FrameBg]))
         using (ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, style.FrameRounding))
         using (var list = ImRaii.Child("##arrpPathActionPoints", new Vector2(0, -ImGui.GetFrameHeightWithSpacing() * editorRows), true, ImGuiWindowFlags.AlwaysVerticalScrollbar)) {
             if (list.Success) {
-                DrawPathPointList(pathAction);                
+                DrawPathPointList(pathAction);
             }
         }
 
@@ -201,7 +201,7 @@ public partial class ScenarioEditorWindow {
             pathAction.Points.Add(point);
         }
 
-        SelectedPathMovementPoint = point;        
+        SelectedPathMovementPoint = point;
     }
 
     private void DrawPathPointList(ScenarioNpcPathAction pathAction) {
@@ -247,7 +247,7 @@ public partial class ScenarioEditorWindow {
         }, () => {
             using (ImRaii.Disabled(index == 0)) {
                 if (ImGuiComponents.IconButton("##moveUp", FontAwesomeIcon.ArrowUp)) {
-                    (pathAction.Points[index - 1], pathAction.Points[index]) = (pathAction.Points[index], pathAction.Points[index - 1]);                    
+                    (pathAction.Points[index - 1], pathAction.Points[index]) = (pathAction.Points[index], pathAction.Points[index - 1]);
                 }
             }
             ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_Actions_APath_MoveUpHint"]);
@@ -255,15 +255,15 @@ public partial class ScenarioEditorWindow {
             ImGui.SameLine(0, ArrpGuiSpacing.ButtonSpacing);
             using (ImRaii.Disabled(index == pathAction.Points.Count - 1)) {
                 if (ImGuiComponents.IconButton("##moveDown", FontAwesomeIcon.ArrowDown)) {
-                    (pathAction.Points[index + 1], pathAction.Points[index]) = (pathAction.Points[index], pathAction.Points[index + 1]);                    
+                    (pathAction.Points[index + 1], pathAction.Points[index]) = (pathAction.Points[index], pathAction.Points[index + 1]);
                 }
             }
             ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_Actions_APath_MoveDownHint"]);
 
             ImGui.SameLine(0, ArrpGuiSpacing.ButtonSpacing);
             if (ImGuiComponents.IconButton("##remove", FontAwesomeIcon.Trash)) {
-                pathAction.Points.RemoveAt(index);                
-                SelectedPathMovementPoint = pathAction.Points.Count == 0 ? null : pathAction.Points[Math.Min(index, pathAction.Points.Count - 1)];                
+                pathAction.Points.RemoveAt(index);
+                SelectedPathMovementPoint = pathAction.Points.Count == 0 ? null : pathAction.Points[Math.Min(index, pathAction.Points.Count - 1)];
             }
             ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_Actions_APath_RemovePointHint"]);
         });
@@ -320,17 +320,31 @@ public partial class ScenarioEditorWindow {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
 
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped(loc[timelineAction.Duration > 0f
+                ? "ScenarioEditor_ActorData_Actions_ATimeline_WaitHintWithDuration"
+                : "ScenarioEditor_ActorData_Actions_ATimeline_WaitHint"]);
+
+        if (timelineAction.Duration == 0f && timelineAction.ActionSlots.Any(s => s.WaitUntilFinished && dataCache.IsLoopingTimeline(s.TimelineId))) {
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Actions_ATimeline_EndlessHint"]);
+        }
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
+
         using var child = ImRaii.Child("##arrpTimelineActionSlots", new Vector2(0, 0), false);
         if (!child.Success)
             return;
 
         using var padding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.TableCellPadding);
-        using var table = ImRaii.Table("##arrpTimelineActionSlotTable", 3, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.RowBg);
+        using var table = ImRaii.Table("##arrpTimelineActionSlotTable", 5, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.NoBordersInBody | ImGuiTableFlags.RowBg | ImGuiTableFlags.PadOuterX);
         if (!table.Success)
             return;
 
-        ImGui.TableSetupColumn("##arrpTimelineSlotControls", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##arrpTimelineSlotControls", ImGuiTableColumnFlags.WidthFixed, 20);
         ImGui.TableSetupColumn(loc["ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineId"], ImGuiTableColumnFlags.WidthFixed, 140);
+        ImGui.TableSetupColumn(loc["ScenarioEditor_ActorData_Actions_ATimeline_Table_Wait"], ImGuiTableColumnFlags.WidthFixed, 60);
+        ImGui.TableSetupColumn(loc["ScenarioEditor_ActorData_Actions_ATimeline_Table_Slot"], ImGuiTableColumnFlags.WidthFixed, 90);
         ImGui.TableSetupColumn(loc["ScenarioEditor_ActorData_Actions_ATimeline_Table_TimelineKey"], ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableHeadersRow();
@@ -339,6 +353,11 @@ public partial class ScenarioEditorWindow {
 
         for (var i = 0; i < timelineAction.ActionSlots.Count; i++) {
             var slot = timelineAction.ActionSlots[i];
+            var otherSlots = timelineAction.ActionSlots
+                .Where(s => s != slot && s.TimelineId != 0)
+                .Select(s => dataCache.GetTimelineSlot(s.TimelineId))
+                .ToHashSet();
+            var timelineSlot = dataCache.GetTimelineSlot(slot.TimelineId);
 
             using var id = ImRaii.PushId($"arrpTimelineSlot{i}");
 
@@ -350,7 +369,7 @@ public partial class ScenarioEditorWindow {
             ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_Actions_ATimeline_Hint_RemoveSlot"]);
 
             ImGui.TableNextColumn();
-            using (ImRaii.ItemWidth(-(ImGui.GetFrameHeight() + ImGui.GetTextLineHeight()))) {
+            using (ImRaii.ItemWidth(-(ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.X))) {
                 var slotTimeline = slot.TimelineId;
                 if (ImGui.InputUShort("##timelineId", ref slotTimeline, 0, 0)) {
                     slot.TimelineId = slotTimeline;
@@ -363,24 +382,46 @@ public partial class ScenarioEditorWindow {
                 timelinePicker.OpenPopup();
             }
 
-            if (timelinePicker.Popup(out var pickedTimeline)) {
+            if (timelinePicker.Popup(out var pickedTimeline, takenSlots: otherSlots)) {
                 slot.TimelineId = (ushort)pickedTimeline.Value.RowId;
             }
 
             ImGui.TableNextColumn();
+            using (ImRaii.Disabled(timelineAction.Duration > 0f)) {
+                var waitUntilFinished = slot.WaitUntilFinished;
+                if (ImGui.Checkbox("##wait", ref waitUntilFinished)) {
+                    slot.WaitUntilFinished = waitUntilFinished;
+                }
+            }
+
+            ImGui.TableNextColumn();
             ImGui.AlignTextToFramePadding();
+            if (slot.TimelineId != 0) {
+                ImGui.Text(timelinePicker.GetSlotName(timelineSlot));
+            }
+
+            ImGui.TableNextColumn();
+            ImGui.AlignTextToFramePadding();
+            if (slot.TimelineId != 0 && otherSlots.Contains(timelineSlot)) {
+                ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Actions_ATimeline_Hint_SlotTaken"]);
+                ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
+            }
+            if (dataCache.IsLoopingTimeline(slot.TimelineId)) {
+                ArrpGuiLayout.Badge(FontAwesomeIcon.Recycle, tooltip: loc["ScenarioEditor_ActorData_Actions_ATimeline_Hint_Looping"]);
+                ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
+            }
             ImGui.TextDisabled($"{dataCache.GetActionTimeline(slot.TimelineId).Key}");
         }
 
         if (slotToRemove != null)
             timelineAction.ActionSlots.Remove(slotToRemove);
     }
-    
+
     private void DrawSpeedSelector(string id, INpcSpeedSelection selection, float comboWidth) {
         using var pushedId = ImRaii.PushId(id);
 
         using (ImRaii.ItemWidth(comboWidth)) {
-            DrawSpeedCombo("##speed", selection.Speed, speed => {                
+            DrawSpeedCombo("##speed", selection.Speed, speed => {
                 if (speed == NpcSpeed.Custom && selection.CustomSpeed <= 0f)
                     selection.CustomSpeed = MovementMotion.DefaultCustomSpeed;
 
@@ -453,7 +494,7 @@ public sealed class NpcActionUiRegistry {
 
     public string GetHelp(ScenarioNpcAction action)
         => _handlers[action.GetType()].HelpResolver(action);
-    
+
     public string GetSummary(ScenarioNpcAction action)
         => _handlers[action.GetType()].SummaryResolver(action);
 

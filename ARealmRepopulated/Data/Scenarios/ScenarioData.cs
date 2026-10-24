@@ -224,11 +224,18 @@ public class ScenarioNpcIdleAction : ScenarioNpcAction {
 public class ScenarioNpcTimelineAction : ScenarioNpcAction {
     public List<TimelineActionSlot> ActionSlots { get; set; } = [];
 
+    [JsonIgnore]
+    public override bool RequiresReadyActor => true;
+
     public override string ToString() => $"Timeline [ID: {string.Join(",", ActionSlots.Select(x => x.TimelineId.ToString()))}; Duration: {Duration}]";
 }
 
 public class TimelineActionSlot {
     public ushort TimelineId { get; set; } = 0;
+
+    [DefaultValue(true)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool WaitUntilFinished { get; set; } = true;
 }
 
 public class ScenarioNpcSyncAction : ScenarioNpcAction {

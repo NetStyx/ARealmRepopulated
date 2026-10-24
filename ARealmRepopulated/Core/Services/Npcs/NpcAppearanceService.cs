@@ -24,7 +24,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         RunningArmed = 50,
         Sprinting = 30,
         SprintingArmed = 58
-    }        
+    }
 
     public void Apply(Character* chara, NpcAppearanceData file) {
 
@@ -83,7 +83,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         // the voice for human models comes from a selection boiled down to a byte in every other case, the sound pack of the model is used.
         chara->Vfx.VoiceId = dataCache.IsHumanModel(file.ModelCharaId)
             ? file.Voice ?? 0
-            : dataCache.GetModelSoundPack(file.ModelCharaId);        
+            : dataCache.GetModelSoundPack(file.ModelCharaId);
     }
 
     public void ApplyExtendedAppearance(Character* chara, NpcAppearanceData file) {
@@ -145,7 +145,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
             parameters->OptionColor.Y = extended.FeatureColor.Value.Y;
             parameters->OptionColor.Z = extended.FeatureColor.Value.Z;
         }
-    }    
+    }
 
     private static Human* GetHumanDrawObject(Character* chara) {
 
@@ -161,7 +161,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         var constantBuffer = human->CustomizeParameterCBuffer;
         if (constantBuffer == null)
             return null;
-        
+
         var source = constantBuffer->TryGetSourcePointer();
         if (source == null || constantBuffer->ByteSize < sizeof(CustomizeParameter))
             return null;
@@ -345,7 +345,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
         PlayEmoteInternal(character, poseEmote);
     }
-    
+
     public void HoldEmotePose(BattleChara* character, Emote emoteEntry, byte poseState) {
 
         if (!emoteEntry.TryGetPoseType(out var poseType))
@@ -393,8 +393,11 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         character->Timeline.PlayActionTimeline(timelineId);
     }
 
-    public bool IsPlayingTimeline(BattleChara* character, ushort timelineId)
-        => character->Timeline.TimelineSequencer.TimelineIds.Contains(timelineId);
+    public bool IsPlayingTimeline(BattleChara* character, ushort timelineId) {
+        var slot = dataCache.GetTimelineSlot(timelineId);
+        var timelineIds = character->Timeline.TimelineSequencer.TimelineIds;
+        return slot < timelineIds.Length && timelineIds[slot] == timelineId;
+    }
 
     public void SetMovementAnimation(BattleChara* character, Animations animation, float animationSpeed = 1f) {
 
@@ -428,7 +431,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     }
 
     private const int BaseTimelineSlot = 0;
-    
+
     public void SetBaseAnimationSpeed(BattleChara* character, float animationSpeed) {
         var timelineSpeeds = character->Timeline.TimelineSequencer.TimelineSpeeds;
         if (timelineSpeeds.Length <= BaseTimelineSlot)

@@ -113,6 +113,7 @@ public unsafe class ScenarioNpc(IPluginLog log) {
         ScenarioNpcWaitingAction => CurrentAction.IsEndless,
         ScenarioNpcEmoteAction emote => CurrentAction.IsEndless && (emote.Loop || Actor.IsLoopingEmote(emote.Emote)),
         ScenarioNpcIdleAction idle => CurrentAction.IsEndless && idle.PoseState > 0,
+        ScenarioNpcTimelineAction timeline => CurrentAction.IsEndless && timeline.ActionSlots.Any(t => t.WaitUntilFinished && Actor.IsLoopingTimeline(t.TimelineId) && Actor.IsPlayingTimeline(t.TimelineId)),
         _ => false,
     };
 
@@ -304,8 +305,8 @@ public unsafe class ScenarioNpc(IPluginLog log) {
 
         CurrentAction.CurrentDuration += (float)delta.TotalSeconds;
 
-        if (CurrentAction.IsEndless) {            
-            CurrentAction.IsFinished = !action.ActionSlots.Any(t => Actor.IsPlayingTimeline(t.TimelineId));
+        if (CurrentAction.IsEndless) {
+            CurrentAction.IsFinished = !action.ActionSlots.Any(t => t.WaitUntilFinished && Actor.IsPlayingTimeline(t.TimelineId));
         } else if (CurrentAction.IsDurationExceeded) {
             CurrentAction.IsFinished = true;
         }

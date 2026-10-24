@@ -12,6 +12,7 @@ public static class ArrpGuiColors {
     
     public static Vector4 TextColor => ImGui.GetStyle().Colors[(int)ImGuiCol.Text];    
     public static Vector4 NoteColor => ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
+    public static Vector4 PopupBorderColor => NoteColor;
     
     public static Vector4 ScrollbarGrabDisabledColor {
         get {

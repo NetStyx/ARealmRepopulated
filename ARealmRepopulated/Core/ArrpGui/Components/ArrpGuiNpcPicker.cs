@@ -22,7 +22,7 @@ public unsafe class ArrpGuiNpcPicker(IObjectTable objectTable, DebugOverlay? deb
 
         character = null;
 
-        using var npcPickerPopup = ImRaii.Popup(_npcPickerName);
+        using var npcPickerPopup = ArrpGuiLayout.Popup(_npcPickerName);
         if (!npcPickerPopup.Success)
             return false;
 
