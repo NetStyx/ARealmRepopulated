@@ -28,14 +28,12 @@ public unsafe class ScenarioOrchestrator(
     ScenarioConditionService conditionService) : IDisposable {
 
     private readonly Lock _scenarioActionLock = new();
-    private const float ProximityCheckInterval = 0.5f;
-    private const float ConditionCheckInterval = 1f;
-    private float _lastProximityCheck = 0f;
-    private float _lastConditionCheck = 0f;
+    private readonly IntervalTimer _proximityTimer = new(TimeSpan.FromSeconds(0.5));
+    private readonly IntervalTimer _conditionTimer = new(TimeSpan.FromSeconds(1));
 
     public List<Orchestration> Orchestrations { get; private set; } = [];
     public IEnumerable<Orchestration> ActiveOrchestrations => Orchestrations.Where(o => o.IsActive);
-    public event Action? OnOrchestrationStateChanged;    
+    public event Action? OnOrchestrationStateChanged;
     public bool HasPendingChanges { get; private set; }
 
     private void NpcServices_ActorDestroyed(Character* chara) {
@@ -79,9 +77,9 @@ public unsafe class ScenarioOrchestrator(
     }
 
     private void ScenarioFileManager_ScenarioFileChanged(ScenarioFileData metaData) {
-        if (config.AutoLoadScenarios){
+        if (config.AutoLoadScenarios) {
             LoadFile(metaData);
-        } else if (metaData.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(metaData.MetaData.Location)){
+        } else if (metaData.MetaData.Enabled && eventService.CurrentLocation.IsInSameLocation(metaData.MetaData.Location)) {
             HasPendingChanges = true;
         }
     }
@@ -89,7 +87,7 @@ public unsafe class ScenarioOrchestrator(
     private void ScenarioFileManager_ScenarioFileRemoved(ScenarioFileData metaData) {
         if (config.AutoLoadScenarios) {
             UnloadFile(metaData);
-        } else if (Orchestrations.Any(o => o.FilePath.IsSamePath(metaData.FilePath))){
+        } else if (Orchestrations.Any(o => o.FilePath.IsSamePath(metaData.FilePath))) {
             HasPendingChanges = true;
         }
     }
@@ -156,8 +154,8 @@ public unsafe class ScenarioOrchestrator(
                     [data.FileName, string.Join("; ", scenarioData.Conditions)]);
             }
 
-            Orchestrations.Add(new Orchestration { FilePath = data.FilePath, FileName = data.FileName, Data = scenarioData });
-            _lastConditionCheck = ConditionCheckInterval + 1f; // force a condition check on next update
+            Orchestrations.Add(new Orchestration { FilePath = data.FilePath, FileName = data.FileName, Data = scenarioData, ConditionTracker = new ScenarioConditionTracker(scenarioData) });
+            _conditionTimer.Trigger();
             OnOrchestrationStateChanged?.Invoke();
         }
     }
@@ -187,7 +185,7 @@ public unsafe class ScenarioOrchestrator(
             scenarioNpcObject.SetActions(scenarioNpc.Actions);
 
             npc.Draw();
-            
+
             scenario.Npcs.Add(scenarioNpcObject);
             scenarioNpcIndex++;
         }
@@ -243,31 +241,24 @@ public unsafe class ScenarioOrchestrator(
             return;
 
         using var lockScope = _scenarioActionLock.EnterScope();
-        
-        IngameConditionSnapshot? ingameSnapshot = null;
-        _lastConditionCheck += (float)time.TotalSeconds;
-        if (_lastConditionCheck > ConditionCheckInterval) {
-            ingameSnapshot = conditionService.TakeIngameSnapshot();
-            _lastConditionCheck = 0f;
-        }
-
-        _lastProximityCheck += (float)time.TotalSeconds;
-        if (_lastProximityCheck > ProximityCheckInterval) {
-            ActiveOrchestrations.ToList().ForEach(s => s.Scenario!.Proximity((BattleChara*)objectTable.LocalPlayer!.Address));
-            _lastProximityCheck = 0f;
-        }
 
         var removableList = new List<Orchestration>();
         var stateChanged = false;
 
-        foreach (var orchestration in Orchestrations) {
+        if (_proximityTimer.Tick(time))
+            ActiveOrchestrations.ToList().ForEach(s => s.Scenario!.Proximity((BattleChara*)objectTable.LocalPlayer!.Address));
 
-            if (ingameSnapshot is { } snapshot) {
-                orchestration.AreConditionsMet = conditionService.AreConditionsMet(orchestration.Data.Conditions, snapshot);
-                orchestration.AreDeterministicConditionsMet = conditionService.AreDeterministicConditionsMet(orchestration.Data.Conditions, snapshot);
-                if (!orchestration.IsActive && orchestration.AreConditionsMet && TryActivate(orchestration))
+        if (_conditionTimer.Tick(time)) {
+            var snapshot = conditionService.TakeSnapshot();
+            foreach (var orchestration in Orchestrations) {
+                orchestration.ConditionTracker.Evaluate(snapshot);
+                if (!orchestration.IsActive && orchestration.ConditionTracker.AreMet && TryActivate(orchestration))
                     stateChanged = true;
             }
+        }
+
+        foreach (var orchestration in Orchestrations) {
+            orchestration.ConditionTracker.Tick(time);
 
             // the scenario file was loaded, but the conditions are not met yet
             if (orchestration.Scenario is not { } scenario)
@@ -279,10 +270,10 @@ public unsafe class ScenarioOrchestrator(
                 continue;
             }
 
-            // an endless run never finishes, so it never reaches the condition check below. Chance is left out, it re-rolls every sweep.
-            if (scenario.IsEnding || (!orchestration.AreDeterministicConditionsMet && scenario.IsWaitingEndlessly)) {
+            var runState = scenario.IsWaitingEndlessly ? ScenarioRunState.WaitingEndlessly : ScenarioRunState.Running;
+            if (scenario.IsEnding || orchestration.ConditionTracker.ShouldEnd(runState)) {
                 if (!scenario.IsEnding) {
-                    pluginLog.Debug("Conditions no longer met during an endless run. Fading out actors of orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
+                    pluginLog.Debug("Conditions no longer met during the run. Fading out actors of orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
                     scenario.IsEnding = true;
                 }
 
@@ -304,18 +295,18 @@ public unsafe class ScenarioOrchestrator(
                 pluginLog.Debug("Scenario finished and not looping. Unloading orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
                 removableList.Add(orchestration);
                 continue;
-            } 
-            
+            }
+
             // the scenario is looping, so we check if the conditions are still met before we start a new run.
-            if (!orchestration.AreConditionsMet) {
+            if (orchestration.ConditionTracker.ShouldEnd(ScenarioRunState.Finished)) {
                 pluginLog.Debug("Conditions no longer met. Despawning actors of orchestration instance {InstanceName}", [scenario.ScenarioInstance.AsHexString()]);
                 Deactivate(orchestration);
                 stateChanged = true;
                 continue;
-            } 
-            
+            }
+
             // the scenario is looping and the conditions are still met, so we wait for the next run.
-            scenario.WaitForNextRun(time);            
+            scenario.WaitForNextRun(time);
         }
 
         if (removableList.Count > 0) {
@@ -375,18 +366,22 @@ public unsafe class ScenarioOrchestrator(
 public class Orchestration {
     public required string FilePath { get; set; }
     public required string FileName { get; set; }
-    public required ScenarioData Data { get; set; }    
+    public required ScenarioData Data { get; set; }
     public Scenario? Scenario { get; set; }
 
     public bool IsActive => Scenario != null;
-    
-    public bool AreConditionsMet { get; set; }
 
-    public bool AreDeterministicConditionsMet { get; set; }
+    public required ScenarioConditionTracker ConditionTracker { get; init; }
 }
 
 public static unsafe class ScenarioManagerExtensions {
     public static ScenarioNpc? GetScenarioNpcByAddress(this ScenarioOrchestrator manager, Character* actor) {
         return manager.ActiveOrchestrations.SelectMany(o => o.Scenario!.Npcs).FirstOrDefault(n => (BattleChara*)n.Actor.Address == actor);
     }
+}
+
+public enum ScenarioRunState {
+    Running,
+    WaitingEndlessly,
+    Finished
 }

@@ -41,6 +41,11 @@ public partial class ScenarioEditorWindow {
                 DrawTabBody("##arrpScenarioTabGeneralBody", DrawScenarioGeneralTab);
         }
 
+        using (var playback = ImRaii.TabItem($"{loc["ScenarioEditor_Playback_Title"]}##arrpScenarioTabPlayback", ImGuiTabItemFlags.NoTooltip)) {
+            if (playback.Success)
+                DrawTabBody("##arrpScenarioTabPlaybackBody", DrawScenarioPlaybackTab);
+        }
+
         using var conditions = ImRaii.TabItem($"{loc["ScenarioEditor_Conditions_Title"]}##arrpScenarioTabConditions", ImGuiTabItemFlags.NoTooltip);
         if (conditions.Success)
             DrawScenarioConditionsTab();
@@ -106,18 +111,43 @@ public partial class ScenarioEditorWindow {
                     }
                 }
             }, loc["ScenarioEditor_BaseData_Input_Group_Help"]);
+        });
+    }
 
-            form.CheckboxRow(loc["ScenarioEditor_BaseData_Input_Looping"], ScenarioObject.Looping, value => ScenarioObject.Looping = value);
+    private void DrawScenarioPlaybackTab() {
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped(loc["ScenarioEditor_Playback_Desc"]);
 
-            using (ImRaii.Disabled(!ScenarioObject.Looping)) {
-                form.Row(loc["ScenarioEditor_BaseData_Input_LoopingDelay"], () => {
-                    using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth);
-                    var delay = ScenarioObject.LoopDelay;
-                    if (ImGui.InputFloat("s.##value", ref delay, step: 0.1f)) {
-                        ScenarioObject.LoopDelay = Math.Max(delay, 0f);
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+        ArrpGuiForm.Draw("##arrpScenarioPlaybackForm", form => {
+            form.Row(loc["ScenarioEditor_BaseData_Input_Looping"], () => {
+                var looping = ScenarioObject.Looping;
+                if (ImGui.Checkbox("##looping", ref looping)) {
+                    ScenarioObject.Looping = looping;
+                }
+                ImGui.SameLine();
+
+                using var disabled = ImRaii.Disabled(!ScenarioObject.Looping);
+                using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth);
+                var delay = ScenarioObject.LoopDelay;
+                if (ImGui.InputFloat("s.##delay", ref delay, step: 0.1f, format: "%.1f")) {
+                    ScenarioObject.LoopDelay = Math.Max(delay, 0f);
+                }
+            }, loc["ScenarioEditor_BaseData_Input_LoopingDelay"]);
+
+            form.Row(loc["ScenarioEditor_BaseData_Input_EndBehavior"], () => {
+                using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth * 2);
+                using var combo = ImRaii.Combo("##value", DescribeEndBehavior(ScenarioObject.EndBehavior));
+                if (!combo.Success)
+                    return;
+
+                foreach (var option in Enum.GetValues<ScenarioEndBehavior>()) {
+                    if (ImGui.Selectable(DescribeEndBehavior(option), ScenarioObject.EndBehavior == option)) {
+                        ScenarioObject.EndBehavior = option;
                     }
-                });
-            }
+                }
+            }, loc["ScenarioEditor_BaseData_Input_EndBehavior_Desc"]);
         });
     }
 
@@ -219,6 +249,13 @@ public partial class ScenarioEditorWindow {
             }, loc["ScenarioEditor_ActorData_General_Input_NameDisplay_Desc"]);
         });
     }
+
+    private string DescribeEndBehavior(ScenarioEndBehavior endBehavior) => endBehavior switch {
+        ScenarioEndBehavior.AfterRun => loc["ScenarioEditor_BaseData_Input_EndBehavior_AfterRun"],
+        ScenarioEndBehavior.Immediately => loc["ScenarioEditor_BaseData_Input_EndBehavior_Immediately"],
+        ScenarioEndBehavior.Never => loc["ScenarioEditor_BaseData_Input_EndBehavior_Never"],
+        _ => endBehavior.ToString()
+    };
 
     private string DescribeNameDisplay(NpcNameDisplay display) => display switch {
         NpcNameDisplay.Never => loc["ScenarioEditor_ActorData_General_Input_NameDisplay_Never"],

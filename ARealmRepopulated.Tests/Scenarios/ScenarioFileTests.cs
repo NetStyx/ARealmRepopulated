@@ -20,6 +20,7 @@ public class ScenarioFileTests {
     [InlineData("v2-9c382d65-99c1-411a-8cb1-57d15cc74073.json")]
     [InlineData("v3-b9d6d283-0483-490b-b7b3-7e9d06d90f85.json")]
     [InlineData("v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json")]
+    [InlineData("v5-53fbf0cd-181a-47eb-9155-fa4503fb58c5.json")]
     public void OlderScenarioFile_LoadsAfterMigration(string fileName) {        
         var services = new ServiceCollection().AddSingleton<ArrpDataCache>(new TestArrpDataCache(64, 1f)).BuildServiceProvider();
         var migrator = new ScenarioMigrator(services, NullPluginLog.Instance);
@@ -42,6 +43,7 @@ public class ScenarioFileTests {
     [InlineData("v2-9c382d65-99c1-411a-8cb1-57d15cc74073.json")]
     [InlineData("v3-b9d6d283-0483-490b-b7b3-7e9d06d90f85.json")]
     [InlineData("v4-6695e0ff-11d2-4368-97c7-fb881150c0c3.json")]
+    [InlineData("v5-53fbf0cd-181a-47eb-9155-fa4503fb58c5.json")]
     public void OlderExportString_ImportsAfterMigration(string fileName) {
         var services = new ServiceCollection().AddSingleton<ArrpDataCache>(new TestArrpDataCache(64, 1f)).BuildServiceProvider();
         var migrator = new ScenarioMigrator(services, NullPluginLog.Instance);

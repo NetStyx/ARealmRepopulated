@@ -2,52 +2,33 @@ using ARealmRepopulated.Data.Scenarios;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Conditions;
 
-public readonly record struct IngameConditionSnapshot(int EorzeaTime, byte Weather);
+public readonly record struct IngameConditionSnapshot(TimeOnly TimeOfDay, byte Weather);
 public readonly record struct CustomConditionSnapshot(double ChanceRoll);
 
 public static class ScenarioConditionEvaluator {
-    public static bool AreConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot custom)
-        => AreMet(conditions, ingame, custom);
 
-    public static bool AreDeterministicConditionsMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
+    public static bool AreMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame)
         => AreMet(conditions, ingame, custom: null);
+
+    public static bool AreMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot custom)
+        => AreMet(conditions, ingame, (CustomConditionSnapshot?)custom);
 
     private static bool AreMet(IReadOnlyList<ScenarioCondition> conditions, IngameConditionSnapshot ingame, CustomConditionSnapshot? custom) {
         foreach (var condition in conditions) {
-            if (!condition.IsConfigured || (custom is null && condition is ScenarioChanceCondition))
+            if (!condition.IsConfigured || IsMet(condition, ingame, custom) is not { } isMet)
                 continue;
 
-            if (IsMet(condition, ingame, custom.GetValueOrDefault()) == condition.Negate)
+            if (isMet == condition.Negate)
                 return false;
         }
         return true;
     }
 
-    private static bool IsMet(ScenarioCondition condition, IngameConditionSnapshot ingame, CustomConditionSnapshot custom) => condition switch {
-        ScenarioEorzeaTimeCondition time => IsWithinHourWindow(ingame.EorzeaTime, time.StartHour, time.EndHour),
+    // null means the given snapshots cannot decide the condition, so it is skipped rather than inverted
+    private static bool? IsMet(ScenarioCondition condition, IngameConditionSnapshot ingame, CustomConditionSnapshot? custom) => condition switch {
+        ScenarioEorzeaTimeCondition time => EorzeaTime.IsWithinWindow(ingame.TimeOfDay, time.Start, time.End),
         ScenarioWeatherCondition weather => weather.WeatherIds.Contains(ingame.Weather),
-        ScenarioChanceCondition chance => custom.ChanceRoll < chance.Percent,
+        ScenarioChanceCondition chance => custom is { } roll ? roll.ChanceRoll < chance.Percent : null,
         _ => true
     };
-
-    public static bool IsWithinHourWindow(int hour, int startHour, int endHour) {
-        var current = WrapHour(hour);
-        var start = WrapHour(startHour);
-        var end = WrapHour(endHour);
-
-        if (start == end)
-            return true;
-
-        return start < end
-            ? current >= start && current < end
-            : current >= start || current < end;
-    }
-
-    // Eorzea time, like real time, consists of 24 hours with 3600 seconds per hour and is delivered as seconds ... so - nothing special. 
-    // The only difference to real time is that eorzea time runs approximately 20 times faster which does not matter for the calculations here.
-    public static int ToHours(long timeInSeconds)
-        => WrapHour((int)(timeInSeconds / 3600));
-
-    public static int WrapHour(int hour)
-        => ((hour % 24) + 24) % 24;
 }

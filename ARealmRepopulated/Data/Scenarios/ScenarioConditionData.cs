@@ -16,13 +16,14 @@ public abstract class ScenarioCondition {
 }
 
 public class ScenarioEorzeaTimeCondition : ScenarioCondition {
-    public int StartHour { get; set; } = 18;
-    public int EndHour { get; set; } = 6;
+    public TimeOnly Start { get; set; } = new(18, 0);
+
+    public TimeOnly End { get; set; } = new(6, 0);
 
     [JsonIgnore]
-    public override bool IsConfigured => StartHour != EndHour;
+    public override bool IsConfigured => Start != End;
 
-    public override string ToString() => $"EorzeaTime [{StartHour:00}:00-{EndHour:00}:00]";
+    public override string ToString() => $"EorzeaTime [{Start.Hour:00}:{Start.Minute:00}-{End.Hour:00}:{End.Minute:00}]";
 }
 
 public class ScenarioWeatherCondition : ScenarioCondition {

@@ -948,6 +948,12 @@
   <data name="ScenarioEditor_BaseData_General_Title" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ScenarioEditor_Playback_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Playback_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
   <data name="ScenarioEditor_Conditions_Title" xml:space="preserve">
     <value>a</value>
   </data>
@@ -1000,6 +1006,30 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_Conditions_CChance_Input_Percent" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_EndBehavior" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_EndBehavior_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_EndBehavior_Never" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_EndBehavior_AfterRun" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_BaseData_Input_EndBehavior_Immediately" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Conditions_CChance_Input_RollInterval" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Conditions_CChance_Input_RollIntervalHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Conditions_CTime_Input_FromHint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="DtrBar_WaitingScenarios" xml:space="preserve">
