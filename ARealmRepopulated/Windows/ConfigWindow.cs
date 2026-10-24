@@ -597,7 +597,7 @@ public class ConfigWindow(
 
         ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
 
-        using var modal = ImRaii.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings);
+        using var modal = ArrpGuiLayout.PopupModal(deletePopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings);
         if (modal.Success) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
             ImGui.TextWrapped(loc["ListWnd_Scenario_Popup_DeleteScenario_Desc", title]);

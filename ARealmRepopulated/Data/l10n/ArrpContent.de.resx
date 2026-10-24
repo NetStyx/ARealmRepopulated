@@ -1086,4 +1086,73 @@
   <data name="ScenarioEditor_ActorData_General_Input_NameDisplay_Always" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="ArrpGuiPicker_Timeline_SlotTaken" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Table_Slot" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Table_Wait" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_EndlessHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_SlotTaken" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot0" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot1" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot2" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot3" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot4" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot5" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot6" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot7" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot8" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot9" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot10" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot11" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot12" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot13" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_WaitHint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_WaitHintWithDuration" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_Looping" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_AllSlots" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

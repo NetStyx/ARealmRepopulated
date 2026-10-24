@@ -1097,4 +1097,73 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="ScenarioEditor_ActorData_General_Input_NameDisplay_Always" xml:space="preserve">
     <value>Always</value>
   </data>
+  <data name="ArrpGuiPicker_Timeline_SlotTaken" xml:space="preserve">
+    <value>Another timeline in this action already plays in this slot.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Table_Slot" xml:space="preserve">
+    <value>Slot</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Table_Wait" xml:space="preserve">
+    <value>Wait</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_EndlessHint" xml:space="preserve">
+    <value>A looping timeline set to Wait never finishes, so this action never ends. Give the action a duration or untick Wait for that timeline.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_SlotTaken" xml:space="preserve">
+    <value>Another timeline in this action plays in the same slot. Only the lower one in the list will play.</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot0" xml:space="preserve">
+    <value>Body</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot1" xml:space="preserve">
+    <value>Upper body</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot2" xml:space="preserve">
+    <value>Face</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot3" xml:space="preserve">
+    <value>Additive</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot4" xml:space="preserve">
+    <value>Slot 4</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot5" xml:space="preserve">
+    <value>Slot 5</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot6" xml:space="preserve">
+    <value>Face 2</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot7" xml:space="preserve">
+    <value>Lips</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot8" xml:space="preserve">
+    <value>Parts 1</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot9" xml:space="preserve">
+    <value>Parts 2</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot10" xml:space="preserve">
+    <value>Parts 3</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot11" xml:space="preserve">
+    <value>Parts 4</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot12" xml:space="preserve">
+    <value>Overlay</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_Slot13" xml:space="preserve">
+    <value>Overlay 2</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_WaitHint" xml:space="preserve">
+    <value>With Wait ticked, the action waits until that timeline has finished. Unticked, the action moves on without it, and the timeline keeps playing into the following actions.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_WaitHintWithDuration" xml:space="preserve">
+    <value>The action ends after its duration, so Wait has no effect. Timelines that are still playing carry on into the following actions.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Actions_ATimeline_Hint_Looping" xml:space="preserve">
+    <value>This timeline loops and never finishes on its own.</value>
+  </data>
+  <data name="ArrpGuiPicker_Timeline_AllSlots" xml:space="preserve">
+    <value>All slots</value>
+  </data>
 </root>

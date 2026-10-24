@@ -26,7 +26,7 @@ public partial class ScenarioEditorWindow {
             ImGui.OpenPopup(AddConditionPopupId);
         }
 
-        using (var popup = ImRaii.Popup(AddConditionPopupId)) {
+        using (var popup = ArrpGuiLayout.Popup(AddConditionPopupId)) {
             if (popup.Success)
                 DrawConditionSelection();
         }

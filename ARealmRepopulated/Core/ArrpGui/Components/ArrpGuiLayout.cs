@@ -8,7 +8,26 @@ using System.Numerics;
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
 public static class ArrpGuiLayout {
-    
+
+    // The border only needs to be pushed while the popup window begins, that is when ImGui reads it.
+    public static ImRaii.PopupDisposable Popup(string id) {
+        using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);
+        using var borderSize = ImRaii.PushStyle(ImGuiStyleVar.PopupBorderSize, 2f);
+        return ImRaii.Popup(id);
+    }
+
+    public static ImRaii.PopupDisposable ContextPopup(string id) {
+        using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);
+        using var borderSize = ImRaii.PushStyle(ImGuiStyleVar.PopupBorderSize, 1f);
+        return ImRaii.ContextPopup(id);
+    }
+
+    public static ImRaii.PopupDisposable PopupModal(string id, ImGuiWindowFlags flags) {
+        using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);
+        using var borderSize = ImRaii.PushStyle(ImGuiStyleVar.PopupBorderSize, 0f);
+        return ImRaii.PopupModal(id, flags);
+    }
+
     public static void HeaderRow(string id, Action content, Action? trailing = null) {
         using (var padding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.HeaderCellPadding))
         using (var table = ImRaii.Table(id, 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.NoBordersInBody)) {
@@ -56,14 +75,14 @@ public static class ArrpGuiLayout {
             ImGui.TextDisabled(subtitle);
         }
     }
-    
+
     public static void SectionHeader(string title) {
         ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
         ImGui.TextDisabled(title);
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
     }
-    
+
     public static void Badge(FontAwesomeIcon icon, Vector4? color = null, string? tooltip = null) {
         using (ImRaii.PushFont(UiBuilder.IconFont))
             ImGui.TextColored(color ?? ImGuiColors.DalamudWhite, icon.ToIconString());
@@ -71,7 +90,7 @@ public static class ArrpGuiLayout {
         if (!string.IsNullOrEmpty(tooltip) && ImGui.IsItemHovered())
             ImGui.SetTooltip(tooltip);
     }
-            
+
     public static void IconNote(FontAwesomeIcon icon, Vector4 color, string text) {
         var top = ImGui.GetCursorPosY();
         var glyph = icon.ToIconString();
@@ -102,7 +121,7 @@ public static class ArrpGuiLayout {
         if (!string.IsNullOrEmpty(tooltip) && ImGui.IsItemHovered())
             ImGui.SetTooltip(tooltip);
     }
-    
+
     public static void RightAlignedText(string text) {
         if (string.IsNullOrEmpty(text))
             return;

@@ -21,7 +21,7 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
 
         emoteId = 0;
 
-        using var emotePickerPopup = ImRaii.Popup(_emotePickerName);
+        using var emotePickerPopup = ArrpGuiLayout.Popup(_emotePickerName);
         if (!emotePickerPopup.Success)
             return false;
 
