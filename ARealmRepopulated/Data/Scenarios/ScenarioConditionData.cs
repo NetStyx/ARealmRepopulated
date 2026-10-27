@@ -17,7 +17,6 @@ public abstract class ScenarioCondition {
 
 public class ScenarioEorzeaTimeCondition : ScenarioCondition {
     public TimeOnly Start { get; set; } = new(18, 0);
-
     public TimeOnly End { get; set; } = new(6, 0);
 
     [JsonIgnore]
