@@ -17,7 +17,6 @@ public abstract class ScenarioCondition {
 
 public class ScenarioEorzeaTimeCondition : ScenarioCondition {
     public TimeOnly Start { get; set; } = new(18, 0);
-
     public TimeOnly End { get; set; } = new(6, 0);
 
     [JsonIgnore]
@@ -38,8 +37,10 @@ public class ScenarioWeatherCondition : ScenarioCondition {
 public class ScenarioChanceCondition : ScenarioCondition {
     public float Percent { get; set; } = 50f;
 
+    public float RollInterval { get; set; } = 1f;
+
     [JsonIgnore]
     public override bool IsConfigured => true;
 
-    public override string ToString() => $"Chance [{Percent}%]";
+    public override string ToString() => $"Chance [{Percent}% every {RollInterval}s]";
 }

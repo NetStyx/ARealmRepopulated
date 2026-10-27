@@ -91,7 +91,7 @@ public class ConfigWindow(
         if (_orchestrator.Orchestrations.FirstOrDefault(o => o.FilePath.IsSamePath(file.FilePath)) is not { } orchestration)
             return null;
 
-        return orchestration.ConditionTracker.HasConditions ? orchestration.ConditionTracker.AreMet : null;
+        return orchestration.ConditionTracker.HasConditions ? orchestration.ConditionTracker.AreConditionsMet : null;
     }
 
     private void DrawScenarioConditionBadge(bool areConditionsMet) {

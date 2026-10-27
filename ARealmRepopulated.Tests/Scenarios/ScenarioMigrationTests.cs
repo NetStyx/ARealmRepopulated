@@ -133,6 +133,27 @@ public class ScenarioMigrationTests {
         jsonObject["Conditions"]![0]!.AsObject().ShouldNotContainKey("StartHour");
     }
 
+    [Fact]
+    public void ScenarioMigration_KeepsOnlyTheFirstConditionOfEachKind() {
+        var jsonObject = JsonNode.Parse("""
+            { "Conditions": [
+                { "$condition": "EorzeaTime", "StartHour": 18, "EndHour": 6 },
+                { "$condition": "Weather", "WeatherIds": [1] },
+                { "$condition": "EorzeaTime", "StartHour": 8, "EndHour": 12 },
+                { "$condition": "Chance", "Percent": 50 },
+                { "$condition": "Chance", "Percent": 10 }
+            ] }
+            """)!.AsObject();
+
+        new V6ScenarioMigration().Upgrade(jsonObject);
+
+        var scenario = jsonObject.Deserialize<ScenarioData>(ScenarioFileManager.ScenarioLoadSerializerOptions).ShouldNotBeNull();
+        scenario.Conditions.Count.ShouldBe(3);
+        scenario.Conditions[0].ShouldBeOfType<ScenarioEorzeaTimeCondition>().Start.ShouldBe(new TimeOnly(18, 0));
+        scenario.Conditions[1].ShouldBeOfType<ScenarioWeatherCondition>();
+        scenario.Conditions[2].ShouldBeOfType<ScenarioChanceCondition>().Percent.ShouldBe(50f);
+    }
+
     private static JsonObject ReadScenario(string fileName)
         => JsonNode.Parse(TestHelper.ReadEmbeddedResource(fileName))!.AsObject();
 

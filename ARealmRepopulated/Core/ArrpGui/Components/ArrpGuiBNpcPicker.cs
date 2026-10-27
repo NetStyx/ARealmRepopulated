@@ -60,7 +60,6 @@ public class ArrpGuiBNpcPicker(ArrpDataCache dataCache, ArrpTranslation loc) {
                 _filteredBases = dataCache.GetBNpcBases(_filteredType, (b) => !string.IsNullOrWhiteSpace(b) && (string.IsNullOrEmpty(_filteredSearch) || b.Contains(_filteredSearch, StringComparison.OrdinalIgnoreCase)));
             }
 
-            // only the visible rows are drawn
             var clipper = new ImGuiListClipper();
             clipper.Begin(_filteredBases.Count);
             while (clipper.Step()) {

@@ -9,7 +9,6 @@ namespace ARealmRepopulated.Core.ArrpGui.Components;
 
 public static class ArrpGuiLayout {
 
-    // The border only needs to be pushed while the popup window begins, that is when ImGui reads it.
     public static ImRaii.PopupDisposable Popup(string id) {
         using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);
         using var borderSize = ImRaii.PushStyle(ImGuiStyleVar.PopupBorderSize, 2f);

@@ -2,8 +2,8 @@ using ARealmRepopulated.Data.Scenarios;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Conditions;
 
-public readonly record struct IngameConditionSnapshot(TimeOnly TimeOfDay, byte Weather);
-public readonly record struct CustomConditionSnapshot(double ChanceRoll);
+public readonly record struct IngameConditionSnapshot(TimeOnly EorzeaTimeOfDay, byte Weather);
+public readonly record struct CustomConditionSnapshot(double? ChanceRoll);
 
 public static class ScenarioConditionEvaluator {
 
@@ -24,11 +24,10 @@ public static class ScenarioConditionEvaluator {
         return true;
     }
 
-    // null means the given snapshots cannot decide the condition, so it is skipped rather than inverted
     private static bool? IsMet(ScenarioCondition condition, IngameConditionSnapshot ingame, CustomConditionSnapshot? custom) => condition switch {
-        ScenarioEorzeaTimeCondition time => EorzeaTime.IsWithinWindow(ingame.TimeOfDay, time.Start, time.End),
+        ScenarioEorzeaTimeCondition time => EorzeaTimeHelper.IsWithinWindow(ingame.EorzeaTimeOfDay, time.Start, time.End),
         ScenarioWeatherCondition weather => weather.WeatherIds.Contains(ingame.Weather),
-        ScenarioChanceCondition chance => custom is { } roll ? roll.ChanceRoll < chance.Percent : null,
+        ScenarioChanceCondition chance => custom?.ChanceRoll is { } roll ? roll < chance.Percent : null,
         _ => true
     };
 }

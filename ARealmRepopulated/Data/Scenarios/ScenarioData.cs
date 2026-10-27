@@ -25,7 +25,6 @@ public class ScenarioData : IScenarioMetaData {
     public ScenarioEndBehavior EndBehavior { get; set; } = ScenarioEndBehavior.AfterRun;
 
     public List<ScenarioCondition> Conditions { get; set; } = [];
-    public float ConditionRollInterval { get; set; } = 1f;
 }
 
 public class ScenarioFileMetaData : IScenarioMetaData {
