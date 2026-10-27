@@ -8,7 +8,7 @@ namespace ARealmRepopulated.Tests.Scenarios;
 
 public class ScenarioConditionTests {
 
-    private static readonly IngameConditionSnapshot Midnight = new(TimeOfDay: TimeOnly.MinValue, Weather: 1);
+    private static readonly IngameConditionSnapshot Midnight = new(EorzeaTimeOfDay: TimeOnly.MinValue, Weather: 1);
 
     private static bool Evaluate(IngameConditionSnapshot ingame, params ScenarioCondition[] conditions)
         => ScenarioConditionEvaluator.AreMet(conditions, ingame);
@@ -23,7 +23,7 @@ public class ScenarioConditionTests {
     [InlineData(18, 0, false)]
     [InlineData(7, 59, false)]
     public void IsWithinWindow_WithForwardWindow_UsesInclusiveStartAndExclusiveEnd(int hour, int minute, bool expected)
-        => EorzeaTime.IsWithinWindow(new(hour, minute), new(8, 0), new(18, 0)).ShouldBe(expected);
+        => EorzeaTimeHelper.IsWithinWindow(new(hour, minute), new(8, 0), new(18, 0)).ShouldBe(expected);
 
     [Theory]
     [InlineData(18, 30, true)]
@@ -33,7 +33,7 @@ public class ScenarioConditionTests {
     [InlineData(6, 15, false)]
     [InlineData(18, 29, false)]
     public void IsWithinWindow_WithWrappingWindow_SpansMidnight(int hour, int minute, bool expected)
-        => EorzeaTime.IsWithinWindow(new(hour, minute), new(18, 30), new(6, 15)).ShouldBe(expected);
+        => EorzeaTimeHelper.IsWithinWindow(new(hour, minute), new(18, 30), new(6, 15)).ShouldBe(expected);
 
     [Theory]
     [InlineData(0, 0)]
@@ -41,7 +41,7 @@ public class ScenarioConditionTests {
     [InlineData(12, 0)]
     [InlineData(23, 59)]
     public void IsWithinWindow_WithEqualBounds_CoversTheWholeDay(int hour, int minute)
-        => EorzeaTime.IsWithinWindow(new(hour, minute), new(9, 30), new(9, 30)).ShouldBeTrue();
+        => EorzeaTimeHelper.IsWithinWindow(new(hour, minute), new(9, 30), new(9, 30)).ShouldBeTrue();
 
     [Theory]
     [InlineData(0, 0, 0, 0)]
@@ -51,7 +51,7 @@ public class ScenarioConditionTests {
     [InlineData(24 * 3600, 0, 0, 0)]
     [InlineData(1_000_000L * 24 * 3600 + 90, 0, 1, 30)]
     public void ToTimeOfDay_FoldsTheClockIntoATimeOfDay(long timeInSeconds, int hour, int minute, int second)
-        => EorzeaTime.ToTimeOfDay(timeInSeconds).ShouldBe(new TimeOnly(hour, minute, second));
+        => EorzeaTimeHelper.ToTimeOfDay(timeInSeconds).ShouldBe(new TimeOnly(hour, minute, second));
 
     [Fact]
     public void AreMet_WithUnconfiguredWeatherCondition_IgnoresIt() {
@@ -74,7 +74,7 @@ public class ScenarioConditionTests {
         var condition = new ScenarioEorzeaTimeCondition { Start = new(18, 0), End = new(6, 0), Negate = true };
 
         Evaluate(Midnight, condition).ShouldBeFalse();
-        Evaluate(Midnight with { TimeOfDay = new(12, 0) }, condition).ShouldBeTrue();
+        Evaluate(Midnight with { EorzeaTimeOfDay = new(12, 0) }, condition).ShouldBeTrue();
     }
 
     [Theory]
@@ -94,7 +94,7 @@ public class ScenarioConditionTests {
 
         Evaluate(Midnight, time, weather).ShouldBeTrue();
         Evaluate(Midnight with { Weather = 7 }, time, weather).ShouldBeFalse();
-        Evaluate(Midnight with { TimeOfDay = new(12, 0) }, time, weather).ShouldBeFalse();
+        Evaluate(Midnight with { EorzeaTimeOfDay = new(12, 0) }, time, weather).ShouldBeFalse();
     }
 
     [Theory]
@@ -116,7 +116,7 @@ public class ScenarioConditionTests {
         ];
 
         Evaluate(Midnight, conditions).ShouldBeTrue();
-        Evaluate(Midnight with { TimeOfDay = new(12, 0) }, conditions).ShouldBeFalse();
+        Evaluate(Midnight with { EorzeaTimeOfDay = new(12, 0) }, conditions).ShouldBeFalse();
     }
 
     [Theory]
@@ -128,29 +128,18 @@ public class ScenarioConditionTests {
         => Evaluate(Midnight, new ScenarioChanceCondition { Percent = percent, Negate = negate }).ShouldBeTrue();
 
     [Fact]
-    public void AreMet_WithSeveralChanceConditions_SharesOneRollAndActsAsTheLowestChance() {
-        ScenarioCondition[] conditions = [
-            new ScenarioChanceCondition { Percent = 50f },
-            new ScenarioChanceCondition { Percent = 30f },
-        ];
-
-        ScenarioConditionEvaluator.AreMet(conditions, Midnight, new CustomConditionSnapshot(ChanceRoll: 20d)).ShouldBeTrue();
-        ScenarioConditionEvaluator.AreMet(conditions, Midnight, new CustomConditionSnapshot(ChanceRoll: 40d)).ShouldBeFalse();
-    }
-
-    [Fact]
     public void Tracker_KeepsTheRollUntilTheIntervalHasPassed() {
-        var data = new ScenarioData { Conditions = [new ScenarioChanceCondition { Percent = 50f }], ConditionRollInterval = 10f };
+        var data = new ScenarioData { Conditions = [new ScenarioChanceCondition { Percent = 50f, RollInterval = 10f }] };
         var tracker = new ScenarioConditionTracker(data);
 
         tracker.Evaluate(Midnight);
-        var held = tracker.AreMet;
+        var held = tracker.AreConditionsMet;
 
         // a tracker that re-rolled on every evaluation would flip a 50 percent chance within a few tries
         for (var i = 0; i < 1000; i++) {
             tracker.Tick(TimeSpan.FromMilliseconds(9));
             tracker.Evaluate(Midnight);
-            tracker.AreMet.ShouldBe(held);
+            tracker.AreConditionsMet.ShouldBe(held);
         }
     }
 
@@ -176,7 +165,7 @@ public class ScenarioConditionTests {
 
         tracker.Evaluate(Midnight);
 
-        tracker.AreMet.ShouldBeFalse();
+        tracker.AreConditionsMet.ShouldBeFalse();
         tracker.ShouldEnd(ScenarioRunState.WaitingEndlessly).ShouldBeFalse();
         tracker.ShouldEnd(ScenarioRunState.Finished).ShouldBeTrue();
     }

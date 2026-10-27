@@ -252,7 +252,7 @@ public unsafe class ScenarioOrchestrator(
             var snapshot = conditionService.TakeSnapshot();
             foreach (var orchestration in Orchestrations) {
                 orchestration.ConditionTracker.Evaluate(snapshot);
-                if (!orchestration.IsActive && orchestration.ConditionTracker.AreMet && TryActivate(orchestration))
+                if (!orchestration.IsActive && orchestration.ConditionTracker.AreConditionsMet && TryActivate(orchestration))
                     stateChanged = true;
             }
         }

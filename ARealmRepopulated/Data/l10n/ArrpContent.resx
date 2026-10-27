@@ -227,10 +227,10 @@ You can disable this option if you do not plan on editing the scenarios.</value>
     <value>No groups yet</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_Looping" xml:space="preserve">
-    <value>Loop scenario:</value>
+    <value>Loop / Delay</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_LoopingDelay" xml:space="preserve">
-    <value>Delay between loops: the seconds between the end of one run and the start of the next.</value>
+    <value>Enable to restart the scenario automatically after it completes. Set the delay between the end of one run and the start of the next.</value>
   </data>
   <data name="ScenarioEditor_BaseData_Action_Import_Desc" xml:space="preserve">
     <value>Import from clipboard</value>
@@ -959,16 +959,22 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>Playback</value>
   </data>
   <data name="ScenarioEditor_Playback_Desc" xml:space="preserve">
-    <value>Decide how the scenario plays and what happens when its conditions stop holding.</value>
+    <value>Decide how the scenario plays and what happens when its conditions are not met anymore.</value>
   </data>
   <data name="ScenarioEditor_Conditions_Title" xml:space="preserve">
     <value>Conditions</value>
   </data>
   <data name="ScenarioEditor_Conditions_Desc" xml:space="preserve">
-    <value>Conditions decide when this scenario is allowed to run. Its actors spawn once every condition is fulfilled and are taken away again after the current run has finished, unless you choose otherwise in the Playback tab. A scenario without conditions always runs.</value>
+    <value>Conditions decide when this scenario is allowed to run and runs if every condition is fulfilled. A scenario without conditions always runs.</value>
   </data>
   <data name="ScenarioEditor_Conditions_Add" xml:space="preserve">
     <value>Add condition</value>
+  </data>
+  <data name="ScenarioEditor_Conditions_AlreadyAdded" xml:space="preserve">
+    <value>This scenario already has this condition.</value>
+  </data>
+  <data name="ScenarioEditor_Conditions_AllAdded" xml:space="preserve">
+    <value>This scenario already has every kind of condition.</value>
   </data>
   <data name="ScenarioEditor_Conditions_Empty" xml:space="preserve">
     <value>No conditions yet. The scenario runs whenever its area is loaded.</value>
@@ -1016,10 +1022,10 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>Chance:</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_EndBehavior" xml:space="preserve">
-    <value>When conditions fail:</value>
+    <value>When conditions fail</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_EndBehavior_Desc" xml:space="preserve">
-    <value>What happens when the conditions of this scenario stop holding while it runs. Finish the current run lets the actors finish first. End immediately fades them out right away, a chance included. Keep running only uses the conditions to start the scenario and keeps it running until the area is loaded again.</value>
+    <value>Defines what happens when the conditions of this scenario are no longer met while it runs. Finish the current run lets the actors finish their actions first. End immediately fades them out right away. Keep running only uses the conditions to start the scenario and keeps it running until the area is loaded again.</value>
   </data>
   <data name="ScenarioEditor_BaseData_Input_EndBehavior_Never" xml:space="preserve">
     <value>Keep running</value>
@@ -1031,10 +1037,10 @@ Turn it off to keep the actor at exactly the position you set for it. This would
     <value>End immediately</value>
   </data>
   <data name="ScenarioEditor_Conditions_CChance_Input_RollInterval" xml:space="preserve">
-    <value>Roll every:</value>
+    <value>Roll every</value>
   </data>
   <data name="ScenarioEditor_Conditions_CChance_Input_RollIntervalHint" xml:space="preserve">
-    <value>How long a roll holds before the chance is rolled again. All chance conditions of this scenario share it. A longer interval keeps the actors there, or away, for longer stretches.</value>
+    <value>How long a roll is valid before the chance is rolled again. A longer interval keeps the scenario loaded, or unloaded, for longer stretches.</value>
   </data>
   <data name="ScenarioEditor_Conditions_CTime_Input_FromHint" xml:space="preserve">
     <value>Drag the hours or minutes left or right to change them, or double-click to type. Minutes carry over into the hour.</value>

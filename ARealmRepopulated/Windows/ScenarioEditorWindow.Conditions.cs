@@ -22,9 +22,14 @@ public partial class ScenarioEditorWindow {
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, loc["ScenarioEditor_Conditions_Add"])) {
-            ImGui.OpenPopup(AddConditionPopupId);
+        var hasEveryKind = _conditionUiRegistry.CreateAll().All(HasConditionOfKind);
+        using (ImRaii.Disabled(hasEveryKind)) {
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Plus, loc["ScenarioEditor_Conditions_Add"])) {
+                ImGui.OpenPopup(AddConditionPopupId);
+            }
         }
+        if (hasEveryKind)
+            ArrpGuiLayout.Tooltip(loc["ScenarioEditor_Conditions_AllAdded"]);
 
         using (var popup = ArrpGuiLayout.Popup(AddConditionPopupId)) {
             if (popup.Success)
@@ -65,11 +70,17 @@ public partial class ScenarioEditorWindow {
     }
 
     private void DrawConditionSelectionEntry(ScenarioCondition condition) {
-        if (ImGui.Selectable(_conditionUiRegistry.GetShortName(condition))) {
-            ScenarioObject.Conditions.Add(condition);
+        var isAdded = HasConditionOfKind(condition);
+        using (ImRaii.Disabled(isAdded)) {
+            if (ImGui.Selectable(_conditionUiRegistry.GetShortName(condition))) {
+                ScenarioObject.Conditions.Add(condition);
+            }
         }
-        ArrpGuiLayout.Tooltip(_conditionUiRegistry.GetHelp(condition));
+        ArrpGuiLayout.Tooltip(isAdded ? loc["ScenarioEditor_Conditions_AlreadyAdded"] : _conditionUiRegistry.GetHelp(condition));
     }
+
+    private bool HasConditionOfKind(ScenarioCondition condition)
+        => ScenarioObject.Conditions.Any(c => c.GetType() == condition.GetType());
 
     private bool DrawCondition(ScenarioCondition condition) {
         var remove = false;
@@ -175,9 +186,9 @@ public partial class ScenarioEditorWindow {
 
             form.Row(loc["ScenarioEditor_Conditions_CChance_Input_RollInterval"], () => {
                 using var width = ImRaii.ItemWidth(ArrpGuiSpacing.NumericInputWidth);
-                var interval = ScenarioObject.ConditionRollInterval;
+                var interval = condition.RollInterval;
                 if (ImGui.InputFloat("s.##value", ref interval, step: 1f, format: "%.0f")) {
-                    ScenarioObject.ConditionRollInterval = Math.Max(MathF.Round(interval), 1f);
+                    condition.RollInterval = Math.Max(MathF.Round(interval), 1f);
                 }
             }, loc["ScenarioEditor_Conditions_CChance_Input_RollIntervalHint"]);
         });

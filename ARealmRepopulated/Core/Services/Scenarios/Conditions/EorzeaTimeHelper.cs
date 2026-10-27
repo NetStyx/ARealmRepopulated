@@ -1,6 +1,6 @@
 namespace ARealmRepopulated.Core.Services.Scenarios.Conditions;
 
-public static class EorzeaTime {
+public static class EorzeaTimeHelper {
 
     // Eorzea time, like real time, consists of 24 hours with 60 minutes of 60 seconds and is delivered as seconds ... so - nothing special.
     // The only difference to real time is that eorzea time runs approximately 20 times faster which does not matter for the calculations here.

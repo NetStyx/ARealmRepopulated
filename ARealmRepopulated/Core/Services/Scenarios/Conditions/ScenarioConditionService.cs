@@ -10,7 +10,7 @@ public unsafe class ScenarioConditionService {
         var envManager = EnvManager.Instance();
 
         return new(
-            framework != null ? EorzeaTime.ToTimeOfDay(framework->ClientTime.EorzeaTime) : TimeOnly.MinValue,
+            framework != null ? EorzeaTimeHelper.ToTimeOfDay(framework->ClientTime.EorzeaTime) : TimeOnly.MinValue,
             envManager != null ? envManager->ActiveWeather : (byte)0);
     }
 }
