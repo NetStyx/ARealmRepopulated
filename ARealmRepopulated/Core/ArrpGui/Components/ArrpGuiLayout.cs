@@ -7,7 +7,27 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
+public readonly record struct ArrpGuiTab(string Label, Action Draw);
+
 public static class ArrpGuiLayout {
+
+    public static void Tabs(string id, ArrpGuiTab[] tabs, int opensOn) {
+        using var tabBar = ImRaii.TabBar(id);
+        if (!tabBar.Success)
+            return;
+
+        for (var tabIndex = 0; tabIndex < tabs.Length; tabIndex++) {
+
+            var tabFlags = tabIndex == opensOn && ImGui.IsWindowAppearing()
+                ? ImGuiTabItemFlags.SetSelected
+                : ImGuiTabItemFlags.None;
+
+            using var tab = ImRaii.TabItem($"{tabs[tabIndex].Label}###tab{tabIndex}", tabFlags);
+            if (tab.Success) {
+                tabs[tabIndex].Draw();
+            }
+        }
+    }
 
     public static ImRaii.PopupDisposable Popup(string id) {
         using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);

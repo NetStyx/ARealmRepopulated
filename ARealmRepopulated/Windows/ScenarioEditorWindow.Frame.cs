@@ -33,12 +33,18 @@ public partial class ScenarioEditorWindow(
     DebugOverlay debugOverlay,
     ScenarioFileManager scenarioFileManager,
     NpcAppearanceService appearanceService,
+    NpcAppearanceRandomizer appearanceRandomizer,
     NpcAppearanceDataParser appearanceDataParser,
-    ArrpDataCache dataCache,
+    ArrpAnimationData animationData,
+    ArrpModelData modelData,
+    ArrpTerritoryData territoryData,
     ArrpCharacterCreationData characterCreationData,
     ArrpEventService eventService,
-    ArrpGuiBNpcPicker bnpcPresetPicker,
+    NpcActorPreview appearancePreview,
     ArrpGuiEmotePicker emotePicker,
+    ArrpGuiEquipmentEditor equipmentEditor,
+    ArrpGuiModelEditor modelEditor,
+    ArrpGuiNpcListPicker npcListPicker,
     ArrpGuiNpcPicker npcPicker,
     ArrpGuiTimelinePicker timelinePicker,
     ScenarioConditionService conditionService,
@@ -48,7 +54,7 @@ public partial class ScenarioEditorWindow(
     IDalamudPluginInterface pluginInterface,
     ITargetManager _targetManager) : ADalamudWindow($"Scenario Editor###ARealmRepopulatedScenarioConfigWindow") {
 
-    private const string AddActionPopupId = "##arrpScenarioEditorAddAction";    
+    private const string AddActionPopupId = "##arrpScenarioEditorAddAction";
     private const float OutlineDefaultWidth = 250f;
 
     private const ImGuiTreeNodeFlags OutlineLeafFlags = ImGuiTreeNodeFlags.Leaf
@@ -58,9 +64,9 @@ public partial class ScenarioEditorWindow(
 
     private string _scenarioFilePath = string.Empty;
     private readonly NpcActionUiRegistry _actionUiRegistry = new();
-    private readonly ConditionUiRegistry _conditionUiRegistry = new();    
+    private readonly ConditionUiRegistry _conditionUiRegistry = new();
     private readonly HashSet<string> _collapsedActors = [];
-            
+
     private static float FooterHeight
         => ImGui.GetStyle().ItemSpacing.Y + 1f + ImGui.GetFrameHeightWithSpacing() + (ArrpGuiSpacing.FooterCellPadding.Y * 2f);
 
@@ -92,7 +98,9 @@ public partial class ScenarioEditorWindow(
         this.TitleBarButtons.Add(new TitleBarButton { Icon = FontAwesomeIcon.InfoCircle, ShowTooltip = DrawFrameTooltip });
         this.OnWindowClosed += () => {
             debugOverlay.RemoveEditor(this);
+            appearancePreview.Hide();
         };
+        this.OnWindowSafeToRemove += appearancePreview.Dispose;
 
         _actionUiRegistry.Register<ScenarioNpcWaitingAction>(
             shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AWaiting_Short"],
@@ -109,7 +117,7 @@ public partial class ScenarioEditorWindow(
         _actionUiRegistry.Register<ScenarioNpcEmoteAction>(
             shortName: (a) => loc["ScenarioEditor_ActorData_Actions_AEmote_Short"],
             help: (a) => loc["ScenarioEditor_ActorData_Actions_AEmote_Desc"],
-            summary: (a) => a.Emote == 0 ? string.Empty : dataCache.GetEmote(a.Emote).Name.ToString(),
+            summary: (a) => a.Emote == 0 ? string.Empty : animationData.GetEmote(a.Emote).Name.ToString(),
             draw: DrawEmoteAction
         );
         _actionUiRegistry.Register<ScenarioNpcSpawnAction>(
@@ -188,11 +196,11 @@ public partial class ScenarioEditorWindow(
         _collapsedActors.Clear();
 
         ResetSelectedNpc(ScenarioObject.Npcs.FirstOrDefault());
-        
+
         debugOverlay.AddEditor(this);
         IsOpen = true;
     }
-    
+
 
     private void DrawFrameTooltip() {
         using var tooltip = ImRaii.Tooltip();
@@ -228,8 +236,14 @@ public partial class ScenarioEditorWindow(
         DrawHeaderBar();
         DrawBody();
         DrawFooter();
+
+        if (_showAppearancePreview && SelectedScenarioNpc != null && SelectedScenarioNpcAction == null && !IsRemoteAppearanceManagement(SelectedScenarioNpc)) {
+            appearancePreview.Show(SelectedScenarioNpc.Appearance);
+        } else {
+            appearancePreview.Hide();
+        }
     }
-    
+
     private void DrawHeaderBar() {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
@@ -261,7 +275,7 @@ public partial class ScenarioEditorWindow(
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
     }
-    
+
     private static void DrawHeaderSegment(string text, FontAwesomeIcon? icon = null, bool muted = true, string? iconTooltip = null) {
         ImGui.SameLine(0, ArrpGuiSpacing.SegmentSpacing);
         ImGui.TextDisabled("|");
@@ -279,7 +293,7 @@ public partial class ScenarioEditorWindow(
         }
     }
 
-    private void DrawBody() {        
+    private void DrawBody() {
         using var body = ImRaii.Child("##arrpScenarioEditorBody", new Vector2(0, -FooterHeight), true);
         if (!body.Success)
             return;
@@ -293,7 +307,7 @@ public partial class ScenarioEditorWindow(
         ImGui.TableSetupColumn("##arrpBodyOutline", ImGuiTableColumnFlags.WidthFixed, OutlineDefaultWidth);
         ImGui.TableSetupColumn("##arrpBodyInspector", ImGuiTableColumnFlags.WidthStretch);
 
-        ImGui.TableNextRow();        
+        ImGui.TableNextRow();
         ImGui.TableNextColumn();
         using (var outline = ImRaii.Child("##arrpScenarioEditorOutline", Vector2.Zero, false)) {
             if (outline.Success)
@@ -308,7 +322,7 @@ public partial class ScenarioEditorWindow(
     }
 
     private void DrawFooter() {
-        ImGui.Separator();        
+        ImGui.Separator();
         using var padding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.FooterCellPadding);
         using var table = ImRaii.Table("##arrpScenarioEditorFooter", 4, ImGuiTableFlags.NoSavedSettings);
         if (!table.Success)
@@ -379,19 +393,19 @@ public partial class ScenarioEditorWindow(
             return;
 
         DrawOutlineScenarioNode();
-        
+
         if (ScenarioObject.Npcs.Count == 0) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             using (ImRaii.Disabled())
                 ImGui.TextWrapped(loc["ScenarioEditor_Outline_Empty"]);
             return;
         }
-        
+
         foreach (var actor in ScenarioObject.Npcs.ToList()) {
             DrawOutlineActorNode(actor);
         }
     }
-    
+
     private void DrawOutlineToolbar()
         => ArrpGuiLayout.HeaderRow("##arrpOutlineToolbar", DrawOutlineToolbarActions);
 
@@ -438,14 +452,14 @@ public partial class ScenarioEditorWindow(
 
     private void DrawOutlineScenarioNode() {
         using var id = ImRaii.PushId("arrpOutlineScenarioRoot");
-        
+
         if (ImGui.Selectable($"{ScenarioTitle()}##outlineNode", SelectedScenarioNpc == null)) {
             ResetSelectedNpc();
         }
         ArrpGuiLayout.Tooltip(loc["ScenarioEditor_Outline_ScenarioNodeHint"]);
     }
 
-    private void DrawOutlineActorNode(ScenarioNpcData npc) {        
+    private void DrawOutlineActorNode(ScenarioNpcData npc) {
         using var id = ImRaii.PushId(npc.Identifier);
 
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.SpanAvailWidth;
@@ -499,7 +513,7 @@ public partial class ScenarioEditorWindow(
         var flags = OutlineLeafFlags;
         if (SelectedScenarioNpcAction == action)
             flags |= ImGuiTreeNodeFlags.Selected;
-        
+
         using (ImRaii.PushColor(ImGuiCol.Text, color)) {
             ImGui.TreeNodeEx("##outlineNode", flags, label);
         }
@@ -523,7 +537,7 @@ public partial class ScenarioEditorWindow(
         using var popup = ArrpGuiLayout.ContextPopup("##arrpOutlineContext");
         if (!popup.Success)
             return;
-        
+
         if (action == null) {
             if (SelectedScenarioNpc != npc || SelectedScenarioNpcAction != null)
                 ResetSelectedNpc(npc);
@@ -568,8 +582,8 @@ public partial class ScenarioEditorWindow(
 
     private void ResetSelectedAction(ScenarioNpcData npc, ScenarioNpcAction? newAction = null) {
         SelectedScenarioNpc = npc;
-        SelectedScenarioNpcAction = newAction;        
-        SelectedPathMovementPoint = (newAction as ScenarioNpcPathAction)?.Points.LastOrDefault();        
+        SelectedScenarioNpcAction = newAction;
+        SelectedPathMovementPoint = (newAction as ScenarioNpcPathAction)?.Points.LastOrDefault();
     }
 
     private void AddActor() {
@@ -670,7 +684,7 @@ public partial class ScenarioEditorWindow(
         actions.Remove(SelectedScenarioNpcAction);
         ResetSelectedAction(SelectedScenarioNpc, NeighbourOf(actions, index));
     }
-    
+
     private static T? NeighbourOf<T>(List<T> items, int removedIndex) where T : class
         => items.Count == 0 ? null : items[Math.Min(removedIndex, items.Count - 1)];
 
@@ -699,8 +713,7 @@ public partial class ScenarioEditorWindow(
         if (ScenarioObject.Location.Territory == 0)
             return loc["ScenarioEditor_Header_NoTerritory"];
 
-        var territoryName = dataCache.GetTerritoryType((ushort)ScenarioObject.Location.Territory).PlaceName.Value.Name.ToString();
-        return string.IsNullOrWhiteSpace(territoryName) ? ScenarioObject.Location.Territory.ToString() : territoryName;
+        return territoryData.GetPlaceName(ScenarioObject.Location.Territory);
     }
 
     private string DescribeSpeed(NpcSpeed speed) => speed switch {
@@ -717,7 +730,7 @@ public partial class ScenarioEditorWindow(
 
     private static string FormatSeconds(float seconds)
         => $"{seconds:0.0}s";
-    
+
     private string Pluralize(int count, string singularKey, string pluralKey)
         => count == 1 ? loc[singularKey] : loc[pluralKey, count];
 

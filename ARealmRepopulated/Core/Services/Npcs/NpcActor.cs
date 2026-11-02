@@ -16,7 +16,8 @@ namespace ARealmRepopulated.Core.Services.Npcs;
 
 public unsafe class NpcActor(
     IFramework framework,
-    ArrpDataCache dataCache,
+    ArrpAnimationData animationData,
+    ArrpModelData modelData,
     LayoutWorldService envService,
     NpcAppearanceService appearanceService,
     ChatBubbleService cbs) {
@@ -153,7 +154,7 @@ public unsafe class NpcActor(
     /// </summary>    
     public Vector3 GetNamePlatePosition() {
         var position = _actor->Position;
-        position.Y += _actor->NameplateOffset.Y + (dataCache.GetNamePlateOffsetScale(_actor->ModelContainer.ModelCharaId) * _actor->Scale);
+        position.Y += _actor->NameplateOffset.Y + (modelData.GetNamePlateOffsetScale(_actor->ModelContainer.ModelCharaId) * _actor->Scale);
         return position;
     }
 
@@ -199,15 +200,15 @@ public unsafe class NpcActor(
         => appearanceService.IsPlayingTimeline(_actor, timelineId);
 
     public bool IsLoopingTimeline(ushort timelineId)
-        => dataCache.IsLoopingTimeline(timelineId);
+        => animationData.IsLoopingTimeline(timelineId);
 
     public void PlayEmote(ushort emoteid, bool interactWithLayout = false) {
-        var emoteEntry = dataCache.GetEmote(emoteid);
+        var emoteEntry = animationData.GetEmote(emoteid);
         var keepDrawOffset = interactWithLayout || _actor->DrawOffset != _spawnOptions.DrawOffset;
 
         if (interactWithLayout && emoteEntry.InteractsWithLayout(out var layoutInteraction)) {
             if (layoutInteraction.LayoutInteractionEmoteId != emoteEntry.RowId)
-                emoteEntry = dataCache.GetEmote(layoutInteraction.LayoutInteractionEmoteId);
+                emoteEntry = animationData.GetEmote(layoutInteraction.LayoutInteractionEmoteId);
 
             if (envService.CheckSnapableLayout((Character*)_actor, 2f, layoutInteraction.LayoutObjectTarget, out var snapResult)) {
 
@@ -244,18 +245,18 @@ public unsafe class NpcActor(
         => appearanceService.SetPose(_actor, poseType, poseState);
 
     public void HoldEmotePose(ushort emoteid, byte poseState)
-        => appearanceService.HoldEmotePose(_actor, dataCache.GetEmote(emoteid), poseState);
+        => appearanceService.HoldEmotePose(_actor, animationData.GetEmote(emoteid), poseState);
 
     public bool IsPlayingEmote(ushort emoteid)
         => appearanceService.IsPlayingEmote(_actor, emoteid);
 
     public bool IsPlayingEmote(ushort emoteid, byte poseState) {
-        var poseEmote = dataCache.GetPoseStateEmote(emoteid, poseState);
+        var poseEmote = animationData.GetPoseStateEmote(emoteid, poseState);
         return IsPlayingEmote(emoteid) || (poseEmote != 0 && IsPlayingEmote(poseEmote));
     }
 
     public bool IsLoopingEmote(ushort emoteid)
-        => dataCache.GetEmote(emoteid).IsLooping();
+        => animationData.GetEmote(emoteid).IsLooping();
 
     public void SetMovementAnimation(Animations animation, float animationSpeed = 1f)
         => appearanceService.SetMovementAnimation(_actor, animation, animationSpeed);

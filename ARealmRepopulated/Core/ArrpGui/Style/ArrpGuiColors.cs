@@ -27,4 +27,7 @@ public static class ArrpGuiColors {
 public static class ArrpGuiColorConverter {
     public static Vector4 FromRgb(this Vector4 rgba)
         => new(rgba.X / 255f, rgba.Y / 255f, rgba.Z / 255f, rgba.W / 255f);
+
+    public static Vector4 FromRgb(this uint rgb)
+        => new Vector4((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, 255).FromRgb();
 }

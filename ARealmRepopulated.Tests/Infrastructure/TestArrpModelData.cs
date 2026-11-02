@@ -5,9 +5,9 @@ using System.Collections.Generic;
 namespace ARealmRepopulated.Tests.Infrastructure;
 
 /// <summary>
-/// Test implementation of <see cref="ArrpDataCache"/>.
+/// Test implementation of <see cref="ArrpModelData"/>.
 /// </summary>
-internal class TestArrpDataCache(byte height, float scaleFactor) : ArrpDataCache(null!, null!) {
+internal class TestArrpModelData(byte height, float scaleFactor) : ArrpModelData(null!, null!) {
 
     public List<(int ModelCharaId, NpcTribe Tribe, NpcSex Sex, NpcBodyType BodyType, float ModelScale)> Lookups { get; } = [];
 

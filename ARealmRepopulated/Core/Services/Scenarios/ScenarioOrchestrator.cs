@@ -133,7 +133,7 @@ public unsafe class ScenarioOrchestrator(
             return;
         }
 
-        if (!eventService.IsTerritoryReady || eventService.IsBetweenZones || objectTable.LocalPlayer == null) {
+        if (!eventService.CanSpawnActors) {
             pluginLog.Debug("Skipping load of scenario {FileName}: Territory is not ready", [data.FileName]);
             return;
         }

@@ -94,7 +94,7 @@ public partial class ScenarioEditorWindow {
     }
 
     private void DrawEmoteAction(ScenarioNpcEmoteAction emoteAction) {
-        var emoteRow = dataCache.GetEmote(emoteAction.Emote);
+        var emoteRow = animationData.GetEmote(emoteAction.Emote);
 
         ArrpGuiForm.Draw("##arrpEmoteActionForm", form => {
 
@@ -325,7 +325,7 @@ public partial class ScenarioEditorWindow {
                 ? "ScenarioEditor_ActorData_Actions_ATimeline_WaitHintWithDuration"
                 : "ScenarioEditor_ActorData_Actions_ATimeline_WaitHint"]);
 
-        if (timelineAction.Duration == 0f && timelineAction.ActionSlots.Any(s => s.WaitUntilFinished && dataCache.IsLoopingTimeline(s.TimelineId))) {
+        if (timelineAction.Duration == 0f && timelineAction.ActionSlots.Any(s => s.WaitUntilFinished && animationData.IsLoopingTimeline(s.TimelineId))) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Actions_ATimeline_EndlessHint"]);
         }
@@ -355,9 +355,9 @@ public partial class ScenarioEditorWindow {
             var slot = timelineAction.ActionSlots[i];
             var otherSlots = timelineAction.ActionSlots
                 .Where(s => s != slot && s.TimelineId != 0)
-                .Select(s => dataCache.GetTimelineSlot(s.TimelineId))
+                .Select(s => animationData.GetTimelineSlot(s.TimelineId))
                 .ToHashSet();
-            var timelineSlot = dataCache.GetTimelineSlot(slot.TimelineId);
+            var timelineSlot = animationData.GetTimelineSlot(slot.TimelineId);
 
             using var id = ImRaii.PushId($"arrpTimelineSlot{i}");
 
@@ -406,11 +406,11 @@ public partial class ScenarioEditorWindow {
                 ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Actions_ATimeline_Hint_SlotTaken"]);
                 ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
             }
-            if (dataCache.IsLoopingTimeline(slot.TimelineId)) {
+            if (animationData.IsLoopingTimeline(slot.TimelineId)) {
                 ArrpGuiLayout.Badge(FontAwesomeIcon.Recycle, tooltip: loc["ScenarioEditor_ActorData_Actions_ATimeline_Hint_Looping"]);
                 ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
             }
-            ImGui.TextDisabled($"{dataCache.GetActionTimeline(slot.TimelineId).Key}");
+            ImGui.TextDisabled($"{animationData.GetActionTimeline(slot.TimelineId).Key}");
         }
 
         if (slotToRemove != null)
@@ -455,7 +455,7 @@ public partial class ScenarioEditorWindow {
     }
 
     private void DrawPoseStateRow(ArrpGuiForm form, PoseType poseType, string label, string hint, byte value, Action<byte> onChange) {
-        var poseStateCount = dataCache.GetPoseStateCount(poseType);
+        var poseStateCount = animationData.GetPoseStateCount(poseType);
         if (poseStateCount <= 1)
             return;
 

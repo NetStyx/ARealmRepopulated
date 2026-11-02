@@ -16,7 +16,7 @@ public class PoseStateTests {
     [InlineData("emote/j_pose03_loop", PoseType.GroundSit, 3, TestDisplayName = "GroundSitPose03")]
     [InlineData("emote/l_pose02_loop", PoseType.Doze, 2, TestDisplayName = "DozePose02")]
     public void TryParsePoseTimeline_BodyPose_ReturnsPoseTypeAndIndex(string timelineKey, PoseType expectedPoseType, int expectedIndex) {
-        ArrpDataCache.TryParsePoseTimeline(timelineKey, out var poseType, out var poseIndex).ShouldBeTrue();
+        ArrpAnimationData.TryParsePoseTimeline(timelineKey, out var poseType, out var poseIndex).ShouldBeTrue();
         poseType.ShouldBe(expectedPoseType);
         poseIndex.ShouldBe(expectedIndex);
     }
@@ -30,14 +30,14 @@ public class PoseStateTests {
     [InlineData("ornament_sp/m6001/onm_pose03_loop", PoseType.Umbrella, 3, TestDisplayName = "UmbrellaPose03")]
     [InlineData("ornament_sp/m6016/onm_pose01_loop", PoseType.Accessory, 1, TestDisplayName = "AccessoryPose01")]
     public void TryParsePoseTimeline_OrnamentPose_ReturnsPoseTypeAndIndex(string timelineKey, PoseType expectedPoseType, int expectedIndex) {
-        ArrpDataCache.TryParsePoseTimeline(timelineKey, out var poseType, out var poseIndex).ShouldBeTrue();
+        ArrpAnimationData.TryParsePoseTimeline(timelineKey, out var poseType, out var poseIndex).ShouldBeTrue();
         poseType.ShouldBe(expectedPoseType);
         poseIndex.ShouldBe(expectedIndex);
     }
 
     [Fact]
     public void TryParsePoseTimeline_UnknownOrnamentModel_ReturnsFalse() {
-        ArrpDataCache.TryParsePoseTimeline("ornament_sp/m9999/onm_pose01_loop", out _, out _).ShouldBeFalse();
+        ArrpAnimationData.TryParsePoseTimeline("ornament_sp/m9999/onm_pose01_loop", out _, out _).ShouldBeFalse();
     }
 
     #endregion
@@ -53,7 +53,7 @@ public class PoseStateTests {
     [InlineData("emote/pose00_loop", TestDisplayName = "DefaultPoseHasNoEmote")]
     [InlineData("emote/normal_pose01_loop", TestDisplayName = "PrefixIsNotASingleLetter")]
     public void TryParsePoseTimeline_NotAPoseVariant_ReturnsFalse(string timelineKey) {
-        ArrpDataCache.TryParsePoseTimeline(timelineKey, out _, out _).ShouldBeFalse();
+        ArrpAnimationData.TryParsePoseTimeline(timelineKey, out _, out _).ShouldBeFalse();
     }
 
     #endregion

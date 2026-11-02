@@ -10,7 +10,7 @@ namespace ARealmRepopulated.Core.Services.Scenarios.Migrations;
 /// just because the game does the calculation that way. Now i have to resoncile this somehow. 
 /// </summary>
 [ScenarioMigration(Version = 5, Description = "Turn the height multiplier back into the Height")]
-public class V5ScenarioMigration(ArrpDataCache dataCache) : IScenarioMigration {
+public class V5ScenarioMigration(ArrpModelData modelData) : IScenarioMigration {
 
     private const string HeightMultiplierKey = "HeightMultiplier";
 
@@ -30,7 +30,7 @@ public class V5ScenarioMigration(ArrpDataCache dataCache) : IScenarioMigration {
                 || appearance["BodyType"].GetEnumOrNull<NpcBodyType>(defaultWhenMissing: true) is not { } bodyType)
                 continue;
             
-            if (dataCache.ReverseModelScale(appearance["ModelCharaId"].GetIntOrNull() ?? 0, tribe, sex, bodyType, multiplier) is not { } components)
+            if (modelData.ReverseModelScale(appearance["ModelCharaId"].GetIntOrNull() ?? 0, tribe, sex, bodyType, multiplier) is not { } components)
                 continue;
             
             appearance["Height"] = components.Height;

@@ -154,7 +154,10 @@ public partial class ScenarioEditorWindow {
     private void DrawActorInspector(ScenarioNpcData npc) {        
         ArrpGuiLayout.PanelHeader("##arrpActorPanelHeader", FontAwesomeIcon.User, ActorLabel(npc),
             Pluralize(npc.Actions.Count, "ScenarioEditor_Inspector_Actor_SubtitleOne", "ScenarioEditor_Inspector_Actor_Subtitle"),
-            trailing: () => DrawDeleteAction("##arrpActorDelete", "ScenarioEditor_Inspector_Actor_Delete"),
+            trailing: () => {
+                DrawAppearancePreviewToggle(npc);
+                DrawDeleteAction("##arrpActorDelete", "ScenarioEditor_Inspector_Actor_Delete");
+            },
             titleSuffix: npc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName) ? () => DrawActorNameSuffix(actorName) : null);
 
         using var tabBar = ImRaii.TabBar("##arrpActorInspectorTabs");
@@ -283,8 +286,6 @@ public partial class ScenarioEditorWindow {
                 DrawGizmoTargetToggle("##gizmoPosition", ScenarioEditorGizmoTarget.Position);
             });
 
-            form.LabeledCheckboxRow(loc["ScenarioEditor_ActorData_General_Input_SnapToSurface"], npc.SnapToSurface, value => npc.SnapToSurface = value, loc["ScenarioEditor_ActorData_General_Input_SnapToSurface_Desc"]);
-
             form.Row(loc["ScenarioEditor_ActorData_General_Input_Rotation"], () => {
                 var rotation = npc.Rotation;
                 if (ImGui.InputFloat("##value", ref rotation)) {
@@ -312,6 +313,8 @@ public partial class ScenarioEditorWindow {
 
                 DrawGizmoTargetToggle("##gizmoDrawOffset", ScenarioEditorGizmoTarget.DrawOffset);
             }, loc["ScenarioEditor_ActorData_General_Input_DrawOffset_Desc"]);
+
+            form.LabeledCheckboxRow(loc["ScenarioEditor_ActorData_General_Input_SnapToSurface"], npc.SnapToSurface, value => npc.SnapToSurface = value, loc["ScenarioEditor_ActorData_General_Input_SnapToSurface_Desc"]);
         });
     }
 

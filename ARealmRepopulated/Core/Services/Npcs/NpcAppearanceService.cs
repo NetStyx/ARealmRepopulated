@@ -7,12 +7,13 @@ using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.FFXIV.Shader;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
 
 namespace ARealmRepopulated.Core.Services.Npcs;
 
-public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog log, ArrpDataCache dataCache) {
+public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog log, ArrpAnimationData animationData, ArrpModelData modelData, ArrpNpcData npcData, ArrpCharacterCreationData creationData) {
 
     public enum Animations : ushort {
         None = 0,
@@ -28,12 +29,15 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
     public void Apply(Character* chara, NpcAppearanceData file) {
 
-        chara->ModelContainer.ModelCharaId = file.ModelCharaId;
-        chara->ModelContainer.ModelSkeletonId = file.ModelSkeletonId;
+        var bodyType = GetSafeBodyType(file);
+        var modelCharaId = GetSafeModelCharaId(file, bodyType);
+
+        chara->ModelContainer.ModelCharaId = modelCharaId;
+        chara->ModelContainer.ModelSkeletonId = GetSafeSkeletonId(file, modelCharaId);
 
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Race] = (byte)file.Race;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Sex] = (byte)file.Sex;
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = (byte)file.BodyType;
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BodyType] = (byte)bodyType;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Height] = file.Height.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Tribe] = (byte)file.Tribe;
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Face] = file.Face.GetValueOrDefault();
@@ -50,10 +54,10 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.EyeShape] = file.EyeShape.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Nose] = file.Nose.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Jaw] = file.Jaw.GetValueOrDefault();
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Lipstick] = file.Lipstick.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Mouth] = file.Mouth.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.LipColorFurPattern] = file.LipColorFurPattern.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.MuscleMass] = file.MuscleMass.GetValueOrDefault();
-        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.TailShape] = file.TailShape.GetValueOrDefault();
+        chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.TailShape] = GetSafeTailShape(file, bodyType);
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.BustSize] = file.BustSize.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaint] = file.FacePaint.GetValueOrDefault();
         chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.FacePaintColor] = file.FacePaintColor.GetValueOrDefault();
@@ -79,11 +83,42 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
         chara->DrawData.HideWeapons(file.HideWeapons);
         chara->DrawData.HideHeadgear(0, file.HideHeadgear);
+        chara->DrawData.HideVieraEars(file.HideVieraEars);
+        chara->DrawData.SetVisor(file.CloseVisor);
 
         // the voice for human models comes from a selection boiled down to a byte in every other case, the sound pack of the model is used.
-        chara->Vfx.VoiceId = dataCache.IsHumanModel(file.ModelCharaId)
+        chara->Vfx.VoiceId = modelData.IsHumanModel(file.ModelCharaId)
             ? file.Voice ?? 0
-            : dataCache.GetModelSoundPack(file.ModelCharaId);
+            : modelData.GetModelSoundPack(file.ModelCharaId);
+    }
+
+    /// <summary>
+    /// Checks that the appearance data match the possible ingame representation. If we dont, it might crash the game.
+    /// </summary>    
+    private NpcBodyType GetSafeBodyType(NpcAppearanceData file) {
+        var needsCheck = file.BodyType != NpcBodyType.Unknown && modelData.IsHumanModel(file.ModelCharaId);
+        var clanFitsRace = creationData.GetClan(file.Tribe, file.Sex)?.Race == file.Race;
+        return needsCheck && !(clanFitsRace && npcData.IsBodyTypeAvailable(file.Tribe, file.Sex, file.BodyType)) ? NpcBodyType.Normal : file.BodyType;
+    }
+
+    private int GetSafeModelCharaId(NpcAppearanceData file, NpcBodyType bodyType)
+        => !modelData.IsHumanModel(file.ModelCharaId) || npcData.HasAnimationsFor(file.ModelCharaId, file.Tribe, file.Sex, bodyType) ? file.ModelCharaId : 0;
+
+    // The game sets 20000 + the model code on humans, a read of a live actor keeps that. Anything lower on a human is a leftover.
+    private int GetSafeSkeletonId(NpcAppearanceData file, int modelCharaId)
+        => !modelData.IsHumanModel(modelCharaId) ? modelData.GetModelSkeletonId(modelCharaId)
+            : modelCharaId == file.ModelCharaId && file.ModelSkeletonId >= 20000 ? file.ModelSkeletonId
+            : 0;
+
+    // The game derives the model code of a human (Human.RaceSexId, the c0101 in its file paths) in Human.SetupIdsAndVfxScale:
+    //   var code = BaseCode(tribe, bodyType) + sex * 100;
+    //   if (race == Hyur) code += tailShape & 0x80 ? 9000 : 0;
+    // Young Hyur npcs use that bit for models of their own, c9104 and c9204. On any other body type it gives a code without
+    // equipment data (c9101), and the model setup crashes on it. The game turns an unknown race into a Hyur first.
+    // This is as cursed as it gets. 
+    private static byte GetSafeTailShape(NpcAppearanceData file, NpcBodyType bodyType) {
+        var tailShape = file.TailShape.GetValueOrDefault();
+        return file.Race is NpcRace.Hyur or NpcRace.Unknown && bodyType != NpcBodyType.Young ? NpcAppearanceData.StripYoungNpcRaceBit(tailShape) : tailShape;
     }
 
     public void ApplyExtendedAppearance(Character* chara, NpcAppearanceData file) {
@@ -122,7 +157,12 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
             parameters->MainColor.Z = extended.HairColor.Value.Z;
         }
 
-        if (extended.HairHighlight.HasValue) {
+        // Without highlights the game uses the hair color for both, otherwise the old color stays on the strands.
+        if (!file.IsOptionEnabled(CustomizeIndex.Highlights)) {
+            parameters->MeshColor.X = parameters->MainColor.X;
+            parameters->MeshColor.Y = parameters->MainColor.Y;
+            parameters->MeshColor.Z = parameters->MainColor.Z;
+        } else if (extended.HairHighlight.HasValue) {
             parameters->MeshColor.X = extended.HairHighlight.Value.X;
             parameters->MeshColor.Y = extended.HairHighlight.Value.Y;
             parameters->MeshColor.Z = extended.HairHighlight.Value.Z;
@@ -195,7 +235,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.EyeShape = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.EyeShape];
         file.Nose = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Nose];
         file.Jaw = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Jaw];
-        file.Lipstick = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Lipstick];
+        file.Mouth = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.Mouth];
         file.LipColorFurPattern = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.LipColorFurPattern];
         file.MuscleMass = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.MuscleMass];
         file.TailShape = chara->DrawData.CustomizeData.Data[(int)CustomizeIndex.TailShape];
@@ -205,6 +245,8 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
 
         file.HideWeapons = chara->DrawData.IsWeaponHidden;
         file.HideHeadgear = chara->DrawData.IsHatHidden;
+        file.CloseVisor = chara->DrawData.IsVisorToggled;
+        file.HideVieraEars = chara->DrawData.VieraEarsHidden;
 
         file.Glasses = chara->DrawData.GlassesIds[0];
         file.Voice = (byte?)chara->Vfx.VoiceId.InRangeOrDefault<ushort>(1, byte.MaxValue);
@@ -245,6 +287,14 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         };
     }
 
+    public void Read(NpcLookup npc, NpcAppearanceData file) {
+        if (npc.EventNpc is { } eventNpc) {
+            Read(eventNpc, file);
+        } else if (npc.BattleNpc is { } battleNpc) {
+            Read(battleNpc, file);
+        }
+    }
+
     public void Read(BNpcBase npcBase, NpcAppearanceData file) {
 
         file.Scale = npcBase.Scale;
@@ -252,7 +302,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         // need to figure out how the modelchara type relates to .. everything ... and where i get the skeleton from
         if (npcBase.ModelChara.IsValid && npcBase.ModelChara.RowId != 0 && npcBase.ModelChara.Value is var modelChara) {
             file.ModelCharaId = (int)modelChara.RowId;
-            file.ModelSkeletonId = modelChara.Model;
+            file.ModelSkeletonId = modelData.GetModelSkeletonId((int)modelChara.RowId);
         }
 
         if (npcBase.BNpcCustomize.IsValid && npcBase.BNpcCustomize.RowId != 0 && npcBase.BNpcCustomize.Value is var customize) {
@@ -265,18 +315,18 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
             file.HairStyle = customize.HairStyle;
             file.Highlights = customize.HairHighlight;
             file.SkinColor = customize.SkinColor;
-            file.EyeColorRight = customize.EyeColor;
+            file.EyeColorRight = customize.EyeHeterochromia;
             file.HairColor = customize.HairColor;
             file.HighlightsColor = customize.HairHighlightColor;
             file.FacialFeatures = customize.FacialFeature;
             file.TattooColor = customize.FacialFeatureColor;
             file.Eyebrows = customize.Eyebrows;
-            file.EyeColorLeft = customize.EyeHeterochromia;
+            file.EyeColorLeft = customize.EyeColor;
             file.EyeShape = customize.EyeShape;
             file.Nose = customize.Nose;
             file.Jaw = customize.Jaw;
-            file.Lipstick = customize.LipColor;
-            file.LipColorFurPattern = customize.FacePaintColor;
+            file.Mouth = customize.Mouth;
+            file.LipColorFurPattern = customize.LipColor;
             file.MuscleMass = customize.BustOrTone1;
             file.TailShape = customize.ExtraFeature1;
             file.BustSize = customize.ExtraFeature2OrBust;
@@ -285,30 +335,101 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         }
 
         if (npcBase.NpcEquip.IsValid && npcBase.NpcEquip.RowId != 0 && npcBase.NpcEquip.Value is var equip) {
-            file.MainHand = new WeaponModel(equip.ModelMainHand) { Stain0 = (byte)equip.DyeMainHand.RowId, Stain1 = (byte)equip.Dye2MainHand.RowId };
-            if (equip.ModelOffHand > 0) {
-                file.OffHand = new WeaponModel(equip.ModelOffHand) { Stain0 = (byte)equip.DyeOffHand.RowId, Stain1 = (byte)equip.Dye2OffHand.RowId };
-            }
-
-            file.HeadGear = new EquipmentModel(equip.ModelHead) { Stain0 = (byte)equip.DyeHead.RowId, Stain1 = (byte)equip.Dye2Head.RowId };
-            file.Body = new EquipmentModel(equip.ModelBody) { Stain0 = (byte)equip.DyeBody.RowId, Stain1 = (byte)equip.Dye2Body.RowId };
-            file.Hands = new EquipmentModel(equip.ModelHands) { Stain0 = (byte)equip.DyeHands.RowId, Stain1 = (byte)equip.Dye2Hands.RowId };
-            file.Legs = new EquipmentModel(equip.ModelLegs) { Stain0 = (byte)equip.DyeLegs.RowId, Stain1 = (byte)equip.Dye2Legs.RowId };
-            file.Feet = new EquipmentModel(equip.ModelFeet) { Stain0 = (byte)equip.DyeFeet.RowId, Stain1 = (byte)equip.Dye2Feet.RowId };
-            file.Ears = new EquipmentModel(equip.ModelEars) { Stain0 = (byte)equip.DyeEars.RowId, Stain1 = (byte)equip.Dye2Ears.RowId };
-            file.Neck = new EquipmentModel(equip.ModelNeck) { Stain0 = (byte)equip.DyeNeck.RowId, Stain1 = (byte)equip.Dye2Neck.RowId };
-            file.Wrists = new EquipmentModel(equip.ModelWrists) { Stain0 = (byte)equip.DyeWrists.RowId, Stain1 = (byte)equip.Dye2Wrists.RowId };
-            file.LeftRing = new EquipmentModel(equip.ModelLeftRing) { Stain0 = (byte)equip.DyeLeftRing.RowId, Stain1 = (byte)equip.Dye2LeftRing.RowId };
-            file.RightRing = new EquipmentModel(equip.ModelRightRing) { Stain0 = (byte)equip.DyeRightRing.RowId, Stain1 = (byte)equip.Dye2RightRing.RowId };
-
-            if (equip.ModelHead > 0) {
-                file.HideHeadgear = false;
-            }
-
-            if (equip.ModelMainHand > 0) {
-                file.HideWeapons = false;
-            }
+            Read(equip, file);
+            file.Glasses = (ushort)equip.Glasses[0].RowId;
+            HideEmptySlots(file);
         }
+    }
+
+    private static void Read(NpcEquip equip, NpcAppearanceData file) {
+        file.MainHand = ReadWeapon(equip.ModelMainHand, equip.DyeMainHand, equip.Dye2MainHand);
+        file.OffHand = ReadWeapon(equip.ModelOffHand, equip.DyeOffHand, equip.Dye2OffHand);
+        file.HeadGear = ReadGear(equip.ModelHead, equip.DyeHead, equip.Dye2Head);
+        file.Body = ReadGear(equip.ModelBody, equip.DyeBody, equip.Dye2Body);
+        file.Hands = ReadGear(equip.ModelHands, equip.DyeHands, equip.Dye2Hands);
+        file.Legs = ReadGear(equip.ModelLegs, equip.DyeLegs, equip.Dye2Legs);
+        file.Feet = ReadGear(equip.ModelFeet, equip.DyeFeet, equip.Dye2Feet);
+        file.Ears = ReadGear(equip.ModelEars, equip.DyeEars, equip.Dye2Ears);
+        file.Neck = ReadGear(equip.ModelNeck, equip.DyeNeck, equip.Dye2Neck);
+        file.Wrists = ReadGear(equip.ModelWrists, equip.DyeWrists, equip.Dye2Wrists);
+        file.LeftRing = ReadGear(equip.ModelLeftRing, equip.DyeLeftRing, equip.Dye2LeftRing);
+        file.RightRing = ReadGear(equip.ModelRightRing, equip.DyeRightRing, equip.Dye2RightRing);
+        file.CloseVisor = equip.Visor;
+        file.HideVieraEars = equip.VisorToggled;
+    }
+
+    // sheets clear a slot with uint.MaxValue.
+    private static EquipmentModel ReadGear(uint modelKey, RowRef<Stain> dye, RowRef<Stain> dye2)
+        => modelKey == uint.MaxValue ? new EquipmentModel() : new EquipmentModel(modelKey) { Stain0 = (byte)dye.RowId, Stain1 = (byte)dye2.RowId };
+
+    private static WeaponModel? ReadWeapon(ulong modelKey, RowRef<Stain> dye, RowRef<Stain> dye2)
+        => modelKey is 0 or uint.MaxValue ? null : new WeaponModel(modelKey) { Stain0 = (byte)dye.RowId, Stain1 = (byte)dye2.RowId };
+
+    private static void HideEmptySlots(NpcAppearanceData file) {
+        file.HideWeapons = file.MainHand == null;
+        file.HideHeadgear = file.HeadGear is null or { ModelId: 0 };
+    }
+
+    public void Read(ENpcBase npc, NpcAppearanceData file) {
+
+        file.Scale = npc.Scale > 0 ? npc.Scale : NpcAppearanceData.ScaleDefault;
+
+        file.ModelCharaId = (int)npc.ModelChara.RowId;
+        file.ModelSkeletonId = modelData.GetModelSkeletonId(file.ModelCharaId);
+
+        file.Race = (NpcRace)npc.Race.RowId;
+        file.Sex = (NpcSex)npc.Gender;
+        file.BodyType = (NpcBodyType)npc.BodyType;
+        file.Height = npc.Height;
+        file.Tribe = (NpcTribe)npc.Tribe.RowId;
+        file.Face = npc.Face;
+        file.HairStyle = npc.HairStyle;
+        file.Highlights = npc.HairHighlight;
+        file.SkinColor = npc.SkinColor;
+        file.EyeColorRight = npc.EyeHeterochromia;
+        file.HairColor = npc.HairColor;
+        file.HighlightsColor = npc.HairHighlightColor;
+        file.FacialFeatures = npc.FacialFeature;
+        file.TattooColor = npc.FacialFeatureColor;
+        file.Eyebrows = npc.Eyebrows;
+        file.EyeColorLeft = npc.EyeColor;
+        file.EyeShape = npc.EyeShape;
+        file.Nose = npc.Nose;
+        file.Jaw = npc.Jaw;
+        file.Mouth = npc.Mouth;
+        file.LipColorFurPattern = npc.LipColor;
+        file.MuscleMass = npc.BustOrTone1;
+        file.TailShape = npc.ExtraFeature1;
+        file.BustSize = npc.ExtraFeature2OrBust;
+        file.FacePaint = npc.FacePaint;
+        file.FacePaintColor = npc.FacePaintColor;
+
+        // facewear comes from the npc alone, the sheets have no name for this column yet
+        file.Glasses = npc.Unknown_70_1;
+
+        // The NpcEquip row is only the base. The game walks through each slot and priorizes the npc equip. If that is zero it takes the slot value itself.
+        // VisorToggled and NotRewriteHeight are the same flag, the game uses it to hide the ears of Viera.
+        if (npc.NpcEquip.RowId != 0 && npc.NpcEquip.ValueNullable is { } equip) {
+            Read(equip, file);
+        } else {
+            file.CloseVisor = npc.Visor;
+            file.HideVieraEars = npc.NotRewriteHeight;
+        }
+
+        file.MainHand = npc.ModelMainHand != 0 ? ReadWeapon(npc.ModelMainHand, npc.DyeMainHand, npc.Dye2MainHand) : file.MainHand;
+        file.OffHand = npc.ModelOffHand != 0 ? ReadWeapon(npc.ModelOffHand, npc.DyeOffHand, npc.Dye2OffHand) : file.OffHand;
+        file.HeadGear = npc.ModelHead != 0 ? ReadGear(npc.ModelHead, npc.DyeHead, npc.Dye2Head) : file.HeadGear;
+        file.Body = npc.ModelBody != 0 ? ReadGear(npc.ModelBody, npc.DyeBody, npc.Dye2Body) : file.Body;
+        file.Hands = npc.ModelHands != 0 ? ReadGear(npc.ModelHands, npc.DyeHands, npc.Dye2Hands) : file.Hands;
+        file.Legs = npc.ModelLegs != 0 ? ReadGear(npc.ModelLegs, npc.DyeLegs, npc.Dye2Legs) : file.Legs;
+        file.Feet = npc.ModelFeet != 0 ? ReadGear(npc.ModelFeet, npc.DyeFeet, npc.Dye2Feet) : file.Feet;
+        file.Ears = npc.ModelEars != 0 ? ReadGear(npc.ModelEars, npc.DyeEars, npc.Dye2Ears) : file.Ears;
+        file.Neck = npc.ModelNeck != 0 ? ReadGear(npc.ModelNeck, npc.DyeNeck, npc.Dye2Neck) : file.Neck;
+        file.Wrists = npc.ModelWrists != 0 ? ReadGear(npc.ModelWrists, npc.DyeWrists, npc.Dye2Wrists) : file.Wrists;
+        file.LeftRing = npc.ModelLeftRing != 0 ? ReadGear(npc.ModelLeftRing, npc.DyeLeftRing, npc.Dye2LeftRing) : file.LeftRing;
+        file.RightRing = npc.ModelRightRing != 0 ? ReadGear(npc.ModelRightRing, npc.DyeRightRing, npc.Dye2RightRing) : file.RightRing;
+
+        HideEmptySlots(file);
     }
 
     private static void PlayEmoteInternal(BattleChara* character, uint emoteId) {
@@ -332,12 +453,12 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     // copies the behavior of /cpose ... but with a specific pose index to pick, rather then the next on in the cycle.
     public void SetPose(BattleChara* character, PoseType poseType, byte poseState) {
 
-        poseState = dataCache.ClampPoseState(poseType, poseState);
+        poseState = animationData.ClampPoseState(poseType, poseState);
 
         character->EmoteController.CurrentPoseType = poseType;
         character->EmoteController.CPoseState = poseState;
 
-        var poseEmote = dataCache.GetPoseStateEmote(poseType, poseState);
+        var poseEmote = animationData.GetPoseStateEmote(poseType, poseState);
         if (poseEmote == 0)
             return;
 
@@ -351,7 +472,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         if (!emoteEntry.TryGetPoseType(out var poseType))
             return;
 
-        var poseEmote = dataCache.GetPoseStateEmote(poseType, poseState);
+        var poseEmote = animationData.GetPoseStateEmote(poseType, poseState);
         if (poseEmote == 0 || IsPlayingEmote(character, poseEmote) || !HasEnteredEmotePose(character, emoteEntry))
             return;
 
@@ -377,7 +498,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         => TryGetPostureMode(emoteEntry, out var postureMode) && character->Mode == postureMode;
 
     public bool IsCancelEmote(BattleChara* character, Emote targetEmote) {
-        var currentEmote = dataCache.GetEmote(character->EmoteController.EmoteId);
+        var currentEmote = animationData.GetEmote(character->EmoteController.EmoteId);
         return currentEmote.HasCancelEmote && currentEmote.EmoteMode.Value.EndEmote.RowId == targetEmote.RowId;
     }
 
@@ -394,7 +515,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     }
 
     public bool IsPlayingTimeline(BattleChara* character, ushort timelineId) {
-        var slot = dataCache.GetTimelineSlot(timelineId);
+        var slot = animationData.GetTimelineSlot(timelineId);
         var timelineIds = character->Timeline.TimelineSequencer.TimelineIds;
         return slot < timelineIds.Length && timelineIds[slot] == timelineId;
     }

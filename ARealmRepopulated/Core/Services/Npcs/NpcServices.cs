@@ -28,7 +28,7 @@ namespace ARealmRepopulated.Core.Services.Npcs;
 ///     NpcServices.DespawnNpc          removes the actor from the service, deletes the game object, raises OnActorDestroyed.
 /// </code>
 /// </remarks>
-public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, IGameInteropProvider interopProvider, ArrpDataCache dataCache) : IDisposable {
+public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable objectTable, IPluginLog log, IGameInteropProvider interopProvider, ArrpModelData modelData) : IDisposable {
 
     public List<NpcActor> Actors { get; private set; } = [];
 
@@ -226,7 +226,7 @@ public unsafe class NpcServices(IServiceProvider serviceProvider, IObjectTable o
                 return false;
 
             // non-human models hold their sound pack in VoiceId, and the game plays no emote voice for those either
-            if (!dataCache.IsHumanModel(owner->ModelContainer.ModelCharaId))
+            if (!modelData.IsHumanModel(owner->ModelContainer.ModelCharaId))
                 return false;
             
             // finally, we should only care for our actors. Remember: this locks.

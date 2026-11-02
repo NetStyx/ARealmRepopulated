@@ -13,10 +13,16 @@ public static class ArrpGuiHelper {
         draw();
     }
 
-    public static IServiceCollection AddGuiPickers(this IServiceCollection services) {
+    public static IServiceCollection AddGuiComponents(this IServiceCollection services) {
         services
-            .AddSingleton<ArrpGuiBNpcPicker>()
+            .AddSingleton<ArrpGuiColorPicker>()
+            .AddSingleton<ArrpGuiDyePicker>()
             .AddSingleton<ArrpGuiEmotePicker>()
+            .AddSingleton<ArrpGuiEquipmentEditor>()
+            .AddSingleton<ArrpGuiGameIcon>()
+            .AddSingleton<ArrpGuiItemPicker>()
+            .AddSingleton<ArrpGuiModelEditor>()
+            .AddSingleton<ArrpGuiNpcListPicker>()
             .AddSingleton<ArrpGuiNpcPicker>()
             .AddSingleton<ArrpGuiTimelinePicker>();
         return services;
