@@ -104,13 +104,13 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
     private int GetSafeModelCharaId(NpcAppearanceData file, NpcBodyType bodyType)
         => !modelData.IsHumanModel(file.ModelCharaId) || npcData.HasAnimationsFor(file.ModelCharaId, file.Tribe, file.Sex, bodyType) ? file.ModelCharaId : 0;
 
-    // The game sets 20000 + the model code on humans, a read of a live actor keeps that. Anything lower on a human is a leftover.
+    // The game sets 20000 + the model code on humans. Anything lower on a human is a leftover.
     private int GetSafeSkeletonId(NpcAppearanceData file, int modelCharaId)
         => !modelData.IsHumanModel(modelCharaId) ? modelData.GetModelSkeletonId(modelCharaId)
             : modelCharaId == file.ModelCharaId && file.ModelSkeletonId >= 20000 ? file.ModelSkeletonId
             : 0;
 
-    // The game derives the model code of a human (Human.RaceSexId, the c0101 in its file paths) in Human.SetupIdsAndVfxScale:
+    // The game derives the model code of a human (Human.RaceSexId, the c0101 in its file paths, see ItemModelData for a complete list) in Human.SetupIdsAndVfxScale:
     //   var code = BaseCode(tribe, bodyType) + sex * 100;
     //   if (race == Hyur) code += tailShape & 0x80 ? 9000 : 0;
     // Young Hyur npcs use that bit for models of their own, c9104 and c9204. On any other body type it gives a code without
@@ -157,7 +157,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
             parameters->MainColor.Z = extended.HairColor.Value.Z;
         }
 
-        // Without highlights the game uses the hair color for both, otherwise the old color stays on the strands.
+        // Without highlights the game uses the hair color for both
         if (!file.IsOptionEnabled(CustomizeIndex.Highlights)) {
             parameters->MeshColor.X = parameters->MainColor.X;
             parameters->MeshColor.Y = parameters->MainColor.Y;
@@ -404,7 +404,7 @@ public unsafe class NpcAppearanceService(IObjectTable objectTable, IPluginLog lo
         file.FacePaint = npc.FacePaint;
         file.FacePaintColor = npc.FacePaintColor;
 
-        // facewear comes from the npc alone, the sheets have no name for this column yet
+        // facewear seems to be not named yet
         file.Glasses = npc.Unknown_70_1;
 
         // The NpcEquip row is only the base. The game walks through each slot and priorizes the npc equip. If that is zero it takes the slot value itself.

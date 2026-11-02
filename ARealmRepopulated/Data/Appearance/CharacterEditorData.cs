@@ -68,7 +68,7 @@ public class CharacterEditorClan {
     /// Sweeps invalid values from the appearance.
     /// No more headless actors.
     /// </summary>
-    public void FitOptions(NpcAppearanceData appearance, CharacterBodyTypeLooks? looks) {
+    public void ClampOptions(NpcAppearanceData appearance, CharacterBodyTypeLooks? looks) {
         foreach (var menu in Menus.Where(m => m.Customize is CustomizeIndex.Face or CustomizeIndex.HairStyle or CustomizeIndex.TailShape)) {
             var options = menu.GetBodyTypes(looks);
             var value = appearance.GetOption(menu.Customize);
@@ -113,7 +113,7 @@ public class CharacterEditorMenu {
         return AsIndexedOptions(values.Append(current).Distinct().Where(v => v != 0 && options.All(o => o.Value != v)).Order());
     }
 
-    // There are no icons for the values of npcs, so these get numbers.
+    // There are no icons for the values of npcs. numbers it is.
     private static CharacterEditorOption[] AsIndexedOptions(IEnumerable<byte> values)
         => [.. values.Select(v => new CharacterEditorOption(v, 0))];
 }
@@ -129,7 +129,7 @@ public record CharacterBodyTypeLooks(NpcBodyType BodyType, byte[] Faces, byte[] 
     };
 }
 
-// Color is what the game renders, Swatch what the character creator shows for it.
+// Color is what the game renders. Swatch what the character creator shows for it.
 public readonly record struct CharacterEditorColor(byte Value, Vector4 Color, Vector4 Swatch);
 
 public record CharacterEditorColorPalette(CharacterEditorColor[] Colors);

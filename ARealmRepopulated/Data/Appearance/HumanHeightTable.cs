@@ -45,7 +45,6 @@ public class HumanHeightTable {
         return new ModelScaleComponents(height, scaleFactor);
     }
 
-    // What the games 'SetupCustomizeColors' puts next to the skin color. The other races scale their tail or ears with this range instead.
     public float GetMuscleTone(NpcRace race, NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte muscleMass) {
         if (race is not (NpcRace.Hyur or NpcRace.Roegadyn))
             return 1f;

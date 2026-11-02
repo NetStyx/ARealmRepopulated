@@ -4,9 +4,8 @@ using System.Numerics;
 namespace ARealmRepopulated.Data.Appearance;
 
 /// <summary>
-/// human.cmp stores the palettes of each clan. The layout here is copied from the games 'SetupCustomizeColors' (which is unfortunately not defined in cs),
-/// the swatches from the color addons of the character creator.
-/// See /doc/research/character-editor.md.
+/// human.cmp stores, beside the heights (see <see cref="HumanHeightTable"/>), the color palettes of each clan. Offsets and values are copied from 'SetupCustomizeColors' (which also is not defined in cs :P),
+/// the swatches from the color addons of the character creator. /doc/research/character-editor.md shows the way to reach the functions.
 /// </summary>
 public class HumanColorTable {
 
@@ -48,7 +47,7 @@ public class HumanColorTable {
             : [Read(location, 0, LargePaletteSize)];
     }
 
-    // The game takes any value, and npcs use plenty that no palette lists.
+    // The game takes any value and exploits this for a lot of npcs
     public CharacterEditorColor GetColor(CustomizeIndex index, NpcTribe tribe, NpcSex gender, byte value)
         => ReadColor(Locate(index, tribe, gender), value);
 

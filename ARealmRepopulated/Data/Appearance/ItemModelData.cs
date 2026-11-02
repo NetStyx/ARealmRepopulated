@@ -33,22 +33,22 @@ public class ItemModelData {
 
     public static readonly ItemModelData Empty = new();
 
-    // Every code the game can put into a gear path. Builds in Human.SetupIdsAndVfxScale.
-    //
+    // Reconstruction of every code the game can put into a gear path. The specific path is build in Human.SetupIdsAndVfxScale.
+    // Example:
     //   c0101e0085_top.mdl
     //   c------------------- Character
-    //    01----------------- Race and sex. An odd number is male, the number after it female: 01 Midlander, 03 Highlander,
+    //    01----------------- Race and sex. An odd number is male following by female: 01 Midlander (Male), 02 Midlander (Female), 03 Highlander,
     //      ||                05 Elezen, 07 Miqote, 09 Roegadyn, 11 Lalafell, 13 Au Ra, 15 Hrothgar, 17 Viera. Only Hyur
     //      ||                has a pair per clan, the two clans of any other race share one. 91 to 94 are the Hyur pairs
     //      ||                with 9000 added, which Young Hyur npcs use (see NpcAppearanceService.GetSafeTailShape).
     //      01--------------- Body. 01 for 'Normal' and 'Old' alike, 04 for 'Young'. 02 and 05 belong to the body types 2 and 5,
     //        |||||           which no event npc uses and which have no skeleton in the game data, so they are only here
     //        |||||           to not miss a path.
-    //        e0085---------- Gear id, with an a instead of the e on accessories (GetModelPaths)
+    //        e0085---------- Gear id, with an a instead of the e for accessories (GetModelPaths)
     //             _top------ Slot (GetModelSuffix)
     //
     // The code derived here is for the first 4 digits (cXXXX). As a heads up: the game does not possess files for every combination. If it encounters
-    // a code that does not exist, it will load the file of another code instead. It never looks for the file itself: each code has a table, its eqdp
+    // a code that does not exist it will load the file of another code instead. There is no black magic for a change as each code has a table, its eqdp
     // file, that says per gear id and slot whether the code has a model of its own. Without one the game tries a single substitute:
     //   Adult: 0201 for women and 0101 for men, except Lalafell women 1101 and Hrothgar men 0901
     //   Young: 0104, except Roegadyn men 0901, Lalafell 1101 and Au Ra 1301
@@ -89,8 +89,11 @@ public class ItemModelData {
         => new(0, (ushort)modelKey, (ushort)(modelKey >> 16));
 
     /// <summary>
-    /// The paths the game can load this model from, it builds them in Human.ResolveMdlPath and Weapon.ResolveMdlPath.
+    /// The paths the game can load this model from.
     /// </summary>
+    /// <remarks>
+    /// Thanks Human.ResolveMdlPath / Weapon.ResolveMdlPath
+    /// </remarks>
     public static IEnumerable<string> GetModelPaths(ItemSlots slot, ItemModelParts parts) {
         if (slot.IsWeapon())
             return [$"chara/weapon/w{parts.ModelSet:D4}/obj/body/b{parts.ModelBase:D4}/model/w{parts.ModelSet:D4}b{parts.ModelBase:D4}.mdl"];

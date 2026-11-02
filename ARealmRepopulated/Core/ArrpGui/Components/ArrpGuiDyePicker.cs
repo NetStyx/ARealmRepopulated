@@ -2,7 +2,6 @@ using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Utility.Raii;
 using Lumina.Excel.Sheets;
 using System.Numerics;
 
@@ -12,23 +11,19 @@ public class ArrpGuiDyePicker(ArrpItemData itemData, ArrpTranslation loc) {
 
     private const string PopupName = "##ArrpDyePicker";
 
-    public bool Draw(string id, ref byte stain) {
-        using var scope = ImRaii.PushId(id);
+    public void OpenPopup() {
+        ImGui.OpenPopup(PopupName);
+    }
 
-        var stainRow = itemData.GetStain(stain);
-        if (ImGui.ColorButton("##dye", GetColor(stainRow), ImGuiColorEditFlags.NoTooltip)) {
-            ImGui.OpenPopup(PopupName);
-        }
-        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
-            ImGui.SetTooltip(stain == 0 || stainRow == null ? loc["ArrpGuiPicker_Dye_None"] : stainRow.Value.Name.ToString());
-        }
+    public bool Popup(out byte stain) {
+
+        stain = 0;
 
         using var popup = ArrpGuiLayout.Popup(PopupName);
         if (!popup.Success)
             return false;
 
         if (ImGui.Selectable(loc["ArrpGuiPicker_Dye_None"])) {
-            stain = 0;
             ImGui.CloseCurrentPopup();
             return true;
         }
@@ -53,7 +48,7 @@ public class ArrpGuiDyePicker(ArrpItemData itemData, ArrpTranslation loc) {
         return changed;
     }
 
-    private static Vector4 GetColor(Stain? stain) {
+    public static Vector4 GetColor(Stain? stain) {
         if (stain is not { } row || row.RowId == 0)
             return Vector4.Zero;
 

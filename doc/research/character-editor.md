@@ -2,20 +2,20 @@
 
 Sooo initially, the intended way of using the plugin was to go around the world, gather npc models and use the build in "copy" function to display them at a location of your choice. That was perfectly fine until it wasnt because doing real customization fell short. While `otter` known modding plugins alliviated these issues, it just does not sit quite right with me that i need to point my users away if they want to have such basic functionallity. At the very least my users should have the ability to comfortably cloth their actors. "How hard can it be?" -.-
 
-Every excerpt in this note is cleaned up decompilation of build 2026.10.16. Names in angle brackets are ours, ClientStructs has no name for that code. The comment on top of an excerpt shows the way there from something it does name.
+Every excerpt in this note was extracted from build 2026.10.16. Names in angle are stand in function names because cs has no name for that code.
 
 ## Equipment, dyes and glasses
 
-Lukily for us, everything needed is already provided by dalamud and the game. Equipable item data in `Item`, `NpcEquip` and `ENpcBase` stand in to source the items which you see on npcs but can not be aquired by players. Whats left is a lot of imgui code and items which have no name or icon .. aaaaaand done. Dyes are found in the `Stain` sheet, application was already possible through the Stain0 / Stain1 properties in EquipmentModelId and WeaponModelId. Glasses have special handling with an additional sheet (drumrolls .... `Glasses`!) but also nothing complicated. I assume they plan to do more with that sort of decoration.
+Lukily for us, everything needed is already provided by dalamud and the game sheets. Equipable item data in `Item`, `NpcEquip` and `ENpcBase` stand in to source the items which you see on npcs but can not be aquired by players. Whats left is a lot of imgui code and items which have no name or icon .. aaaaaand done. Dyes are found in the `Stain` sheet, application was already possible through the Stain0 / Stain1 properties in EquipmentModelId and WeaponModelId. Glasses have special handling with an additional sheet (drumrolls .... `Glasses`!) but also nothing complicated. I assume they plan to do more with that sort of decoration.
 
 Then came the edge cases.
 
 ### Empty slots
 
-Ids 0 and 1 seemed empty but that assumption was plainly wrong. Only a key (Set, Base, Variant) of all zeros is considered empty. `DrawDataContainer.LoadWeapon` creates no weapon for it, and `CharaView.UnequipGear` and `DrawDataContainer.HideHeadgear` write it for gear. For every other key `Human.ResolveMdlPath` and `Weapon.ResolveMdlPath` build a path. A key without a file shows nothing, in fact 2.555 npcs rows put id 1 on the head and 497 on the hands. With that in mind:
+Ids 0 and 1 seemed empty but thats plainly wrong. Only a key (Set, Base, Variant) of all zeros is considered empty. `DrawDataContainer.LoadWeapon` creates no weapon for it, and `CharaView.UnequipGear` and `DrawDataContainer.HideHeadgear` write it for gear. For every other key `Human.ResolveMdlPath` and `Weapon.ResolveMdlPath` build a path. A key without a file shows nothing, so much so that in fact 2.555 npcs rows put id 1 on the head and 497 on the hands. With that in mind:
 - Id 0 loads `e0000`, so id 0 with a variant looks the same as no gear at all.
-- Id 1 is real gear. 180 named items use it. It has models for body, legs, feet and accessories.
-- `0xFFFFFFFF` only exists in the sheets. `CharacterSetupContainer.SetupEventNpc` turns it into an empty slot, per slot and for both hands as well:
+- Id 1 is real gear (180 items use it). It has models for body, legs, feet and accessories.
+- `0xFFFFFFFF` only exists in the sheets. `CharacterSetupContainer.SetupEventNpc` turns it into an empty slot:
 
 ```c
 // CharacterSetupContainer.SetupEventNpc(uint npcId)
@@ -30,11 +30,11 @@ else
   model = { equip->Model[slot], equip->Dye[slot], equip->Dye2[slot] };
 ```
 
-So we list a model without an item only if a file exists for it, under any code `Human.SetupIdsAndVfxScale` can build. That hides the keys which lead nowhere and brings back the 40 npc models with id 1 that were hidden before.
+So we list a model without an item only if a file exists for it, under any code `Human.SetupIdsAndVfxScale` can build. That hides the keys which lead nowhere and brings back the 40 npc models with id 1.
 
 ### Sephirots Paired fists
 
-Main hands of the sets 1601 to 1650 carry no weapon in their off hand, which is why their `ModelSub` has no variant and no `w88xx` file exists. All 61 items of these sets hold a gear key there, `id | variant << 16`which belong to the gloves:
+Main hands of the sets 1601 to 1650 carry no weapon in their off hand, which is why their `ModelSub` has no variant and no `w88xx` file exists. All 61 items of these sets hold a gear key there, `id | variant << 16` which belong to the mnk weapons:
 
 ```c
 // DrawDataContainer.LoadWeapon(WeaponSlot slot, WeaponModelId weaponData, ...)
@@ -54,7 +54,7 @@ if (slot == Hands && mainHand.Id is 1601 to 1650) {
 }
 ```
 
-So the dyes of the **off hand** colors the gloves, and the setting for the Handsequipment of the editor has no effect in game while such a weapon is in the main hand.
+So the dyes for the **off hand** colors the gloves, and the setting for the hands slot of the editor has no effect in game while such a weapon is in the main hand.
 
 ### Dyes
 
@@ -109,7 +109,7 @@ Equipment handling finished. Yay. Onwards to detailing the character itself.
 The goal: Be able to edit the npc as if you were modeling it in the character editor. The problem: ... how -_-
 Reading the customization and labeling it correctly was easy because it just sits nicely in the customize struct, and the exact colors sit in the `CustomizeParameter` data behind `Human.CustomizeParameterCBuffer`. Mapping those to the guardrails given by the game when you need to actually care for correct boundaries is more convuluted. The games own character editor is a good starting point. A quick look through the sheets reval that `CharaMakeType` exposes almost everything we need through `Menu`s, as the game calls it. It has one row per clan and gender, and its `CharaMakeStruct` lists every menu of the creator. `Customize` is the byte of the customize struct the menu writes to, `SubMenuType` says whether it is a list, icons, a color or a slider, `SubMenuNum` is the number of entries, `InitVal` the default value, and `Menu` points to its label in `Lobby`. 
 
-With this in mind we can read all of this once at startup and keeping a compiled object per clan and gender. The sheet is not entirely honest about what goes where though. Option values sit in `SubMenuGraphic`, except for hairstyles and face paint, which use the `FeatureID` of their `CharaMakeCustomize` row. Facial features and tattoos share one byte as a bitmask, and five on/off switches hide in bit 7 of a byte: highlights, legacy tattoo, small iris, lipstick and the face paint flip. The sheet even points Iris Size at the left eye color, and highlights have no menu at all. All of that came out of sheet dumps and ClientStructs, the code behind the creator menus was never read. For the guardrails, tracing `Human.SetupFromCharacterData` and `Human.UpdateDrawData` did the trick. `Human.SetupFromCharacterData` starts with `CustomizeData.Normalize`, and `Human.UpdateDrawData` gets there as soon as race, sex, body type and the tribe of a Hyur match, otherwise it returns false. That is where the guardrail is applied: it copies the data onto the draw object and repairs whatever is invalid. 
+With this we can read all of this once at startup and keeping a compiled object per clan and gender. The sheet is not entirely honest about what goes where though. Option values sit in `SubMenuGraphic`, except for hairstyles and face paint, which use the `FeatureID` of their `CharaMakeCustomize` row. Facial features and tattoos share one byte as a bitmask, and five on/off switches hide in bit 7 of a byte: highlights, legacy tattoo, small iris, lipstick and the face paint flip. The sheet even points Iris Size at the left eye color, and highlights have no menu at all. All of that came out of sheet dumps and cs, the code behind the creator menus was never read. For the guardrails, tracing `Human.SetupFromCharacterData` and `Human.UpdateDrawData` did the trick. `Human.SetupFromCharacterData` starts with `CustomizeData.Normalize`, and `Human.UpdateDrawData` gets there as soon as race, sex, body type and the tribe of a Hyur match, otherwise it returns false. That is where the guardrail is applied: it copies the data onto the draw object and repairs whatever is invalid. 
 
 ```c
 // Human.SetupFromCharacterData(DrawData* data)
@@ -145,7 +145,7 @@ bool CustomizeData.Normalize(CustomizeData* this, CustomizeData* source) {
 ```
 Race, sex, tribe and body type get fixed, muscle tone and bust size stay in range, the tail shape is repaired per race, and a height above 100 becomes 255 (which is the only value above 100 that counts as valid). Eyebrows, eye shape, nose, jaw and mouth are checked against the limits table per clan, gender and body type. Face and hairstyle skip that table, which is how npcs get away with values the creator does not offer. They only get repaired when they make no sense at all: 0 becomes 1, and a Hrothgar woman gets face 5 at least. From that copy, `Human.SetupIdsAndVfxScale` derives the model code and the face, hair and tail ids, `<GetHumanModelScale>` the height (see `/doc/research/model-scale.md`) and `<SetupCustomizeColors>` the colors along with the lipstick, highlights and flip switches, while its caller picks the textures for face paint and the legacy tattoo.
 
-A small caveat: `Normalize` never checks whether a model exists. A young rava passes the checks without complaint and takes the client down when trying to load such a model. So for the body types old and young we only offer what the games own npcs use.
+A small caveat: `Normalize` never checks whether a model exists. A young rava passes the checks without complaint and takes the client down when trying to load such a model. So for the body types old and young we need to check ourself and offer what the games own npcs use.
 
 With this setup applied, time to display it - best case scenario in a preview so the users do not need to hit apply all the time. That means that we need to see the changed appearance while editing it. ARRP is strictyl seperating the scenario file from its running instance so altering the npc of the already running scenario directly was out of the question. Not that it would have make much sense either when you want to test appearance its rather inconvenient that the npc runs away from you. So the preview needed an actor of its own, and the obvious question was whether the game already has one for us. Ever right clicked a character and hit examine? Yeah, lets try that.
 
@@ -169,7 +169,7 @@ A bit of seperation and cleanup here and there aaaaand it works - now quickly in
 
 ## Colors, swatches and paletts
 
-Everything in this section was read from build 2026.10.16. Strap in, deep dive into our favorite `chara/xls/charaMake/human.cmp` which, of course, has no header. `CharacterUtility.LoadDataFiles` loads it once into `HumanParameterResourceHandle`, and every reader seemingly uses fixed offsets into it. Because why abastract things nicely away. Who does that, right?
+Strap in, deep dive into our favorite `chara/xls/charaMake/human.cmp` which, of course, still has no header. `CharacterUtility.LoadDataFiles` loads it once into `HumanParameterResourceHandle`, and every reader seemingly uses fixed offsets into it. Because why abastract things nicely away. Who does that, right?
 
 | Offset | Size | Content |
 | --- | --- | --- |
@@ -199,9 +199,9 @@ The file holds every palette twice, once for rendering and once for the swatches
 | Skin | `SkinColor` | 18 + clan * 5 | value | 21 + clan * 5 | value | Unnamed color addon vf75 |
 | Hair, fur | `HairColor` | 19 + clan * 5 | value * 2 | 22 + clan * 5 | value | `AddonCharaMakeFeatureColorHair` vf75 |
 
-- Each clan has 5 pages: skin, 2 pages of hair, the skin swatches and the hair swatches. Hair takes 2 pages because each of its 256 values holds 2 colors. Curious: Only the first one is read with no known reader for the  second. Huh.
+- Each clan has 5 pages: skin, 2 pages of hair, the skin swatches and the hair swatches. Hair takes 2 pages because each of its 256 values holds 2 colors. Curious: Only the first one is read with no known reader for the second. Huh.
 - Pages 5 to 8 and 14 to 17 also have no known reader.
-- vf75, vf76 and vf77 are the slots at `+0x258`, `+0x260` and `+0x268` of the vtable of an addon.
+- vf75, vf76 and vf77 are the slots at `+0x258`, `+0x260` and `+0x268` of the addon vtable.
 - The unnamed color addons derives from `AddonCharaMakeFeatureColor`. It picks the page by creator menu: `0xCA` for skin, and `0x416`, `0x6D0`, `0x6D1`, `0x6D4`, `0x6D6` or `0x6DC` for tattoos. Any other menu gets black. It can be found by starting at `AddonCharaMakeFeatureColorLip.ctor` and inspecting the callers for the base constructor where, among the callers, are the functions which create the addons. It allocates `0x368` bytes for face paint, `0x370` for lips and `0x350` for itself.
 
 ### Rendered colors
@@ -232,7 +232,7 @@ cs documents the face paint values on `LeftColor` and `RightColor` which are wri
 
 - Swatches are the raw red, green and blue of the creator page. They are not squared, and alpha is forced to `0xFF`.
 - A swatch has the same index as its value, including hair, which has no second color on its swatch page.
-- `SubMenuNum` in `CharaMakeType` holds the number of swatches: 192 for skin, eyes, hair and tattoos, 96 for lips and face paint. The addons take the length of their list from the menu data they are handed, the field behind that was not traced.
+- `SubMenuNum` in `CharaMakeType` holds the number of swatches: 192 for skin, eyes, hair and tattoos, 96 for lips and face paint. The addons take the length of their list from the menu data they are handed.
 - Highlights have no menu. `AddonCharaMakeFeatureColorHair` shows them next to the hair.
 - Lips and face paint have a second palette. Their addons add `0x80` to the cell while it is selected, so it covers the values 128 to 223. It repeats the colors of the first palette. On the rendered pages only the alpha is lower.
 
@@ -267,7 +267,7 @@ All of them are linear between min and max over a customize byte from 0 to 100. 
 With that every part of the character editor sufficently layed out and can be implemented. Bread and butter was extracted from `<SetupCustomizeColors>` 
 
 ```c
-// our names, the layouts come from the reads further down
+// the layouts come from the reads further down
 struct Color {
   byte R, G, B, A;
 };
@@ -280,7 +280,7 @@ struct SizeEntry {
   float3 BustMin, BustMax;
 };
 
-// no function in the game, <SetupCustomizeColors> writes this out inline for every color
+// <SetupCustomizeColors> writes this out inline for every color
 float4 <ToShader>(Color color) {
   float r = color.R / 255.0;
   float g = color.G / 255.0;

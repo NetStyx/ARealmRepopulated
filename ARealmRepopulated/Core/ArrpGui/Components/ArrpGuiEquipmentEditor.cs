@@ -9,7 +9,7 @@ using System.Numerics;
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
 /// <summary>
-/// Provides the UI for editing the gear, weapons, dyes and facewear.
+/// Provides the UI for editing the equipment of our actors.
 /// </summary>
 public class ArrpGuiEquipmentEditor(
     ArrpItemData itemData,
@@ -136,7 +136,21 @@ public class ArrpGuiEquipmentEditor(
 
     private bool DrawDye(string id, ref byte stain) {
         ImGui.SameLine();
-        return dyePicker.Draw(id, ref stain);
+        using var scope = ImRaii.PushId(id);
+
+        var stainRow = itemData.GetStain(stain);
+        if (ImGui.ColorButton("##dye", ArrpGuiDyePicker.GetColor(stainRow), ImGuiColorEditFlags.NoTooltip)) {
+            dyePicker.OpenPopup();
+        }
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled)) {
+            ImGui.SetTooltip(stain == 0 || stainRow == null ? loc["ArrpGuiPicker_Dye_None"] : stainRow.Value.Name.ToString());
+        }
+
+        if (!dyePicker.Popup(out var picked))
+            return false;
+
+        stain = picked;
+        return true;
     }
 
     private Item? FindItem(ItemSlots slot, ushort set, ushort modelBase, ushort variant) {

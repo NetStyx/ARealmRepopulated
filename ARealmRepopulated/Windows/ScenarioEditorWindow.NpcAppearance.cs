@@ -21,8 +21,8 @@ public partial class ScenarioEditorWindow {
     private ScenarioNpcData? _actorNameOwner = null;
     private bool _actorNameUsePrefix = true;
     private bool _showAppearancePreview = false;
-    private AppearanceRollLocks _rollLocks = AppearanceRollLocks.None;
-    private bool _rollFromResidents = true;
+    private AppearanceMixLocks _mixLocks = AppearanceMixLocks.None;
+    private bool _mixFromResidents = true;
 
     private static string ComposeActorName(bool usePrefix, string identifier)
         => string.IsNullOrWhiteSpace(identifier) ? ""
@@ -31,7 +31,7 @@ public partial class ScenarioEditorWindow {
 
     private static bool IsRemoteAppearanceManagement(ScenarioNpcData npc)
         => npc.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
-    
+
     private static void SetStableActorName(ScenarioNpcData npc, string name) {
         npc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, name);
         if (string.IsNullOrWhiteSpace(name))
@@ -47,7 +47,7 @@ public partial class ScenarioEditorWindow {
         ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
         ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Appearance_ManagedExternally"]);
     }
-    
+
     private unsafe void DrawNpcAppearanceSources() {
         if (SelectedScenarioNpc == null)
             return;
@@ -167,7 +167,7 @@ public partial class ScenarioEditorWindow {
 
         if (!isExternal) {
             ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Setup_Generate"]);
-            DrawAppearanceRoll(SelectedScenarioNpc);
+            DrawAppearanceRandomizer(SelectedScenarioNpc);
         }
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -175,7 +175,7 @@ public partial class ScenarioEditorWindow {
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         var appearance = SelectedScenarioNpc.Appearance;
-        ArrpGuiForm.Draw("##npcAppearanceEditorSetupForm", form => {            
+        ArrpGuiForm.Draw("##npcAppearanceEditorSetupForm", form => {
             if (!isExternal) {
                 DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CRaceTribeGender"], $"{appearance.Race} / {appearance.Tribe} / {appearance.Sex}");
                 DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CModelSkeleton"], $"{appearance.ModelCharaId} / {appearance.ModelSkeletonId}");
@@ -222,7 +222,7 @@ public partial class ScenarioEditorWindow {
         if (voice == null) {
             return loc["ScenarioEditor_ActorData_Appearance_Voice_None"];
         }
-        
+
         var index = Array.IndexOf(voices, voice.Value);
         return index >= 0
             ? loc["ScenarioEditor_ActorData_Appearance_Voice_Entry", index + 1]
@@ -243,53 +243,53 @@ public partial class ScenarioEditorWindow {
         equipmentEditor.Draw(SelectedScenarioNpc.Appearance);
     }
 
-    private void DrawAppearanceRoll(ScenarioNpcData npc) {
+    private void DrawAppearanceRandomizer(ScenarioNpcData npc) {
         ArrpGuiForm.Draw("##npcAppearanceEditorRandomizeForm", form => {
             form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_Randomize_Source"], () => {
                 var locationName = territoryData.GetPlaceName(eventService.CurrentLocation.TerritoryType);
                 var allNpcs = loc["ScenarioEditor_ActorData_Appearance_Randomize_Source_All"];
 
-                using var combo = ImRaii.Combo("##npcAppearanceEditorRandomizeSource", _rollFromResidents ? locationName : allNpcs);
+                using var combo = ImRaii.Combo("##npcAppearanceEditorRandomizeSource", _mixFromResidents ? locationName : allNpcs);
                 if (!combo.Success)
                     return;
 
-                if (ImGui.Selectable(locationName, _rollFromResidents)) {
-                    _rollFromResidents = true;
+                if (ImGui.Selectable(locationName, _mixFromResidents)) {
+                    _mixFromResidents = true;
                 }
 
-                if (ImGui.Selectable(allNpcs, !_rollFromResidents)) {
-                    _rollFromResidents = false;
+                if (ImGui.Selectable(allNpcs, !_mixFromResidents)) {
+                    _mixFromResidents = false;
                 }
             }, loc["ScenarioEditor_ActorData_Appearance_Randomize_Source_Desc"]);
 
             if (characterCreationData.IsCustomizable(npc.Appearance)) {
                 form.Row(loc["ScenarioEditor_ActorData_Appearance_Randomize_Lock"], () => {
-                    var clanFollowsLocks = AppearanceRoller.KeepsClan(_rollLocks & ~AppearanceRollLocks.Clan);
+                    var clanFollowsLocks = NpcAppearanceMixer.KeepsClan(_mixLocks & ~AppearanceMixLocks.Clan);
                     using (ImRaii.Disabled(clanFollowsLocks))
-                        DrawRollLock(AppearanceRollLocks.Clan, clanFollowsLocks);
+                        DrawMixLock(AppearanceMixLocks.Clan, clanFollowsLocks);
 
-                    foreach (var rollLock in (AppearanceRollLocks[])[AppearanceRollLocks.Hair, AppearanceRollLocks.Face, AppearanceRollLocks.Body, AppearanceRollLocks.Outfit]) {
+                    foreach (var mixLock in (AppearanceMixLocks[])[AppearanceMixLocks.Hair, AppearanceMixLocks.Face, AppearanceMixLocks.Body, AppearanceMixLocks.Outfit]) {
                         ImGui.SameLine();
-                        DrawRollLock(rollLock);
+                        DrawMixLock(mixLock);
                     }
                 });
             }
 
             form.Row(string.Empty, () => {
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Dice, loc["ScenarioEditor_ActorData_Appearance_Randomize"])) {
-                    var options = new AppearanceRandomizationOptions(_rollLocks, _rollFromResidents ? eventService.CurrentLocation.TerritoryType : null);
-                    if (appearanceRandomizer.Randomize(npc.Appearance, options) is { } rolled) {
-                        npc.Appearance = rolled;
+                    var options = new AppearanceRandomizationOptions(_mixLocks, _mixFromResidents ? eventService.CurrentLocation.TerritoryType : null);
+                    if (appearanceRandomizer.Randomize(npc.Appearance, options) is { } mixed) {
+                        npc.Appearance = mixed;
                     }
                 }
             });
         });
     }
 
-    private void DrawRollLock(AppearanceRollLocks rollLock, bool forced = false) {
-        var isLocked = forced || _rollLocks.HasFlag(rollLock);
-        if (ImGui.Checkbox(loc[$"ScenarioEditor_ActorData_Appearance_Randomize_Lock_{rollLock}"], ref isLocked)) {
-            _rollLocks = isLocked ? _rollLocks | rollLock : _rollLocks & ~rollLock;
+    private void DrawMixLock(AppearanceMixLocks mixLock, bool forced = false) {
+        var isLocked = forced || _mixLocks.HasFlag(mixLock);
+        if (ImGui.Checkbox(loc[$"ScenarioEditor_ActorData_Appearance_Randomize_Lock_{mixLock}"], ref isLocked)) {
+            _mixLocks = isLocked ? _mixLocks | mixLock : _mixLocks & ~mixLock;
         }
     }
 

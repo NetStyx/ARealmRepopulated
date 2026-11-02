@@ -93,11 +93,10 @@ public record NpcAppearanceData {
     public const float ScaleSoftMin = 0.10f;
     public const float ScaleSoftMax = 5.00f;
 
-    // Set on a Hyur, this bit of the tail byte adds 9000 to the model code. See UsesYoungNpcRace.
+    // If this bit is set on the tail byte of a Hyur, it adds 9000 to the model code (insert vegeta.png). See UsesYoungNpcRace.
     private const int YoungNpcRaceBit = 0x80;
 
-    // Some customize bytes use bit 7 to switch their option on or off, the lower bits hold the option itself.
-    // highlights, legacy tattoo, small iris, lipstick, flipped face paint
+    // Some customize bytes use bit 7 to switch their option on or off. Small iris and lipstick for example.
     private const int CustomizationEnabledBit = 0x80;
 
     public static readonly JsonSerializerOptions SerializerOptions = new() {
@@ -290,7 +289,6 @@ public record NpcAppearanceData {
         }
     }
 
-    // The gear can be shared because it cannot change, the exact colors can.
     public NpcAppearanceData Copy()
         => this with { ExtendedAppearance = ExtendedAppearance is { } extended ? extended with { } : null };
 

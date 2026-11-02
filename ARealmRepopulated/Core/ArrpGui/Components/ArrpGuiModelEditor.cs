@@ -9,7 +9,7 @@ using System.Numerics;
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
 /// <summary>
-/// Edits what the games character creator offers. Aligned to the games own character editor.
+/// Edits what the games character creator offers.
 /// </summary>
 public class ArrpGuiModelEditor(
     ArrpNpcData npcData,
@@ -131,7 +131,7 @@ public class ArrpGuiModelEditor(
     private void SetBodyType(NpcAppearanceData appearance, CharacterEditorClan clan, NpcBodyType bodyType) {
         appearance.ResetModel();
         appearance.BodyType = bodyType;
-        clan.FitOptions(appearance, npcData.GetBodyTypeLooks(appearance));
+        clan.ClampOptions(appearance, npcData.GetBodyTypeLooks(appearance));
     }
 
     private void DrawMenuRow(ArrpGuiForm form, NpcAppearanceData appearance, CharacterEditorClan clan, CharacterEditorMenu menu, CharacterEditorMenu? attachedColor) {
@@ -232,7 +232,7 @@ public class ArrpGuiModelEditor(
         var looks = npcData.GetBodyTypeLooks(appearance);
         var options = menu.GetBodyTypes(looks);
         var selected = options.FirstOrDefault(o => o.Value == current);
-        if (gameIcon.DrawOption("##current", selected with { Value = current }, size)) {
+        if (DrawOption("##current", selected with { Value = current }, size)) {
             ImGui.OpenPopup(IconPopup);
         }
 
@@ -256,10 +256,25 @@ public class ArrpGuiModelEditor(
     }
 
     private void DrawIconOptions(NpcAppearanceData appearance, CharacterEditorMenu menu, CharacterEditorOption[] options, Vector2 size) {
-        if (gameIcon.DrawGrid(options, 6, size) is { } picked) {
-            appearance.SetOption(menu.Customize, picked);
-            ImGui.CloseCurrentPopup();
+        for (var i = 0; i < options.Length; i++) {
+            var option = options[i];
+            if (DrawOption($"##option{option.Value}", option, size)) {
+                appearance.SetOption(menu.Customize, option.Value);
+                ImGui.CloseCurrentPopup();
+            }
+            if ((i + 1) % 6 != 0 && i + 1 < options.Length) {
+                ImGui.SameLine();
+            }
         }
+    }
+
+    private bool DrawOption(string id, CharacterEditorOption option, Vector2 size) {
+        if (option is not { Value: 0, Icon: 0 })
+            return gameIcon.DrawButton(id, option.Icon, option.Value.ToString(), size);
+
+        var clicked = gameIcon.DrawButton(id, 0, string.Empty, size);
+        gameIcon.DrawNoneMark(size);
+        return clicked;
     }
 
     private static void DrawOptionCheckbox(NpcAppearanceData appearance, CustomizeIndex index, string label) {
@@ -286,18 +301,23 @@ public class ArrpGuiModelEditor(
         var exact = appearance.ExtendedAppearance?.GetColor(index);
         var color = exact is { } exactColor ? new Vector4(exactColor.X, exactColor.Y, exactColor.Z, 1f) : paletteColor.Color;
 
-        var tooltip = exact.HasValue ? $"{name}\n{loc["ScenarioEditor_ActorData_Appearance_ExactColor"]}" : name;
+        if (ImGui.ColorButton("##color", exact.HasValue ? color : paletteColor.Swatch, ImGuiColorEditFlags.NoTooltip | ImGuiColorEditFlags.NoAlpha)) {
+            colorPicker.OpenPopup();
+        }
+        if (ImGui.IsItemHovered()) {
+            ImGui.SetTooltip(exact.HasValue ? $"{name}\n{loc["ScenarioEditor_ActorData_Appearance_ExactColor"]}" : name);
+        }
+
         string[]? paletteLabels = index is CustomizeIndex.LipColorFurPattern or CustomizeIndex.FacePaintColor
             ? [loc["ScenarioEditor_ActorData_Appearance_Palette_Strong"], loc["ScenarioEditor_ActorData_Appearance_Palette_Light"]]
             : null;
-        var pick = colorPicker.Draw(tooltip, exact.HasValue ? color : paletteColor.Swatch, new Vector3(color.X, color.Y, color.Z), value, palettes, paletteLabels, NpcExtendedAppearance.SupportsColor(index), () => DrawColorExtras(appearance, index));
 
-        if (pick?.PaletteValue is { } paletteValue) {
-            appearance.SetOption(index, paletteValue);
-        } else if (pick?.ExactColor is { } pickedColor) {
-
-            // without the file there is no opacity to start from
-            appearance.SetExactColor(index, pickedColor, paletteColor.Color.W > 0f ? paletteColor.Color.W : 1f);
+        if (colorPicker.Popup(new Vector3(color.X, color.Y, color.Z), value, palettes, paletteLabels, NpcExtendedAppearance.SupportsColor(index), out var pick, () => DrawColorExtras(appearance, index))) {
+            if (pick.PaletteValue is { } paletteValue) {
+                appearance.SetOption(index, paletteValue);
+            } else if (pick.ExactColor is { } pickedColor) {
+                appearance.SetExactColor(index, pickedColor, paletteColor.Color.W > 0f ? paletteColor.Color.W : 1f);
+            }
         }
     }
 
@@ -305,7 +325,7 @@ public class ArrpGuiModelEditor(
         var extended = appearance.ExtendedAppearance;
         if (index == CustomizeIndex.LipColorFurPattern && extended?.MouthColor is { } mouth) {
             var opacity = mouth.W;
-            if (ArrpGuiColorPicker.DrawExtraSlider(loc["ScenarioEditor_ActorData_Appearance_ExactColor_LipOpacity"], ref opacity, 1f)) {
+            if (DrawColorExtraSlider(loc["ScenarioEditor_ActorData_Appearance_ExactColor_LipOpacity"], ref opacity, 1f)) {
                 mouth.W = opacity;
                 extended.MouthColor = mouth;
             }
@@ -316,11 +336,16 @@ public class ArrpGuiModelEditor(
             var muscleTone = extended?.MuscleTone
                 ?? humanCmp.Heights?.GetMuscleTone(appearance.Race, appearance.Tribe, appearance.Sex, appearance.BodyType, appearance.GetOption(CustomizeIndex.MuscleMass))
                 ?? 1f;
-            if (ArrpGuiColorPicker.DrawExtraSlider(loc["ScenarioEditor_ActorData_Appearance_ExactColor_MuscleTone"], ref muscleTone, 2.5f)) {
+            if (DrawColorExtraSlider(loc["ScenarioEditor_ActorData_Appearance_ExactColor_MuscleTone"], ref muscleTone, 2.5f)) {
                 appearance.ExtendedAppearance ??= new NpcExtendedAppearance();
                 appearance.ExtendedAppearance.MuscleTone = muscleTone;
             }
         }
+    }
+
+    private static bool DrawColorExtraSlider(string label, ref float value, float max) {
+        ImGui.TextUnformatted(label);
+        return ImGui.SliderFloat($"##{label}", ref value, 0f, max, "%.2f");
     }
 
     private void DrawFacialFeatures(NpcAppearanceData appearance, CharacterEditorClan clan, CharacterEditorMenu menu) {

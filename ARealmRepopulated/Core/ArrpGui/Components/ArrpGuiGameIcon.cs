@@ -1,4 +1,3 @@
-using ARealmRepopulated.Data.Appearance;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility.Raii;
@@ -32,21 +31,6 @@ public class ArrpGuiGameIcon(ITextureProvider textureProvider) {
         return ImGui.Button($"{label}##emptySlot", size + (ImGui.GetStyle().FramePadding * 2));
     }
 
-    /// <summary>
-    /// An option as seen in the character creator. The value 0 without an icon is its "none" choice, like "no face paint".
-    /// </summary>
-    public bool DrawOption(string id, CharacterEditorOption option, Vector2 size) {
-        if (option is not { Value: 0, Icon: 0 })
-            return DrawButton(id, option.Icon, option.Value.ToString(), size);
-
-        var clicked = DrawButton(id, 0, string.Empty, size);
-        DrawNoneMark(size);
-        return clicked;
-    }
-
-    /// <summary>
-    /// Puts an empty ring on top of the widget drawn right before this call, marking it as the "none" choice.    
-    /// </summary>
     public void DrawNoneMark(Vector2 size) {
         var center = (ImGui.GetItemRectMin() + ImGui.GetItemRectMax()) / 2;
         var extent = size * 0.3f;
@@ -66,24 +50,6 @@ public class ArrpGuiGameIcon(ITextureProvider textureProvider) {
         }
 
         return clicked;
-    }
-
-    /// <summary>
-    /// Returns the value of the option that was clicked.
-    /// </summary>
-    public byte? DrawGrid(CharacterEditorOption[] options, int columns, Vector2 size) {
-        byte? picked = null;
-        for (var i = 0; i < options.Length; i++) {
-            var option = options[i];
-            if (DrawOption($"##option{option.Value}", option, size)) {
-                picked = option.Value;
-            }
-            if ((i + 1) % columns != 0 && i + 1 < options.Length) {
-                ImGui.SameLine();
-            }
-        }
-
-        return picked;
     }
 
     private ImTextureID GetIconTexture(uint icon)

@@ -18,17 +18,17 @@ public class ArrpGuiColorPicker(ArrpTranslation loc) {
 
     private static float ExactColorWidth => ImGui.GetFrameHeight() * 10;
 
-    public ArrpGuiColorPick? Draw(string tooltip, Vector4 shownColor, Vector3 exactColor, byte currentPaletteValue, CharacterEditorColorPalette[] palettes, string[]? paletteLabels, bool allowsExactColor, Action? additionalControls = null) {
-        if (ImGui.ColorButton("##color", shownColor, ImGuiColorEditFlags.NoTooltip | ImGuiColorEditFlags.NoAlpha)) {
-            ImGui.OpenPopup(PopupName);
-        }
-        if (ImGui.IsItemHovered()) {
-            ImGui.SetTooltip(tooltip);
-        }
+    public void OpenPopup() {
+        ImGui.OpenPopup(PopupName);
+    }
+
+    public bool Popup(Vector3 exactColor, byte currentPaletteValue, CharacterEditorColorPalette[] palettes, string[]? paletteLabels, bool allowsExactColor, out ArrpGuiColorPick pick, Action? additionalControls = null) {
+
+        pick = default;
 
         using var popup = ArrpGuiLayout.Popup(PopupName);
         if (!popup.Success)
-            return null;
+            return false;
 
         byte? paletteValue = null;
         using (ImRaii.Group()) {
@@ -46,12 +46,13 @@ public class ArrpGuiColorPicker(ArrpTranslation loc) {
         }
 
         if (paletteValue.HasValue) {
+            pick = new ArrpGuiColorPick(paletteValue, null);
             ImGui.CloseCurrentPopup();
-            return new ArrpGuiColorPick(paletteValue, null);
+            return true;
         }
 
         if (!allowsExactColor)
-            return null;
+            return false;
 
         ImGui.SameLine(0f, ArrpGuiSpacing.ButtonGroupSpacing);
         using var group = ImRaii.Group();
@@ -60,22 +61,20 @@ public class ArrpGuiColorPicker(ArrpTranslation loc) {
             ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeight()));
         }
 
-        var picked = exactColor;
         ImGui.SetNextItemWidth(ExactColorWidth);
+
+        var picked = exactColor;
         var changed = ImGui.ColorPicker3("##exact", ref picked, ImGuiColorEditFlags.NoSidePreview | ImGuiColorEditFlags.NoSmallPreview | ImGuiColorEditFlags.NoAlpha);
 
-        additionalControls?.Invoke();
+        using (ImRaii.ItemWidth(ExactColorWidth)) {
+            additionalControls?.Invoke();
+        }
 
-        return changed ? new ArrpGuiColorPick(null, picked) : null;
-    }
+        if (changed) {
+            pick = new ArrpGuiColorPick(null, picked);
+        }
 
-    /// <summary>
-    /// A slider for <c>drawExtras</c>, as wide as the color picker above it.
-    /// </summary>
-    public static bool DrawExtraSlider(string label, ref float value, float max) {
-        ImGui.TextUnformatted(label);
-        ImGui.SetNextItemWidth(ExactColorWidth);
-        return ImGui.SliderFloat($"##{label}", ref value, 0f, max, "%.2f");
+        return changed;
     }
 
     private static byte? DrawSwatches(CharacterEditorColor[] colors) {

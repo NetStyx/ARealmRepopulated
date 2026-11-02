@@ -79,8 +79,7 @@ public class ArrpGuiItemPicker(ArrpItemData itemData, ArrpGuiGameIcon gameIcon, 
 
         var chosen = false;
 
-        {
-            using var table = ImRaii.Table("##ArrpItemPickerTable", 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY, new Vector2(ImGui.GetFrameHeight() * 24, rowHeight * 8));
+        using (var table = ImRaii.Table("##ArrpItemPickerTable", 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.ScrollY, new Vector2(ImGui.GetFrameHeight() * 24, rowHeight * 8))) {
             if (!table.Success)
                 return false;
 
@@ -93,7 +92,7 @@ public class ArrpGuiItemPicker(ArrpItemData itemData, ArrpGuiGameIcon gameIcon, 
                 chosen = true;
             }
 
-            // items can share a model, the first one is the one the slot shows
+            // items can share a model so we simply showing the first one
             var current = _filteredEntries.FindIndex(e => e.Pick.ModelKey == currentKey);
             if (opening && current >= 0) {
                 ImGui.SetScrollY(current * rowHeight);
