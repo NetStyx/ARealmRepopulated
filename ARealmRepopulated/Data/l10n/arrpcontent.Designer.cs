@@ -1852,15 +1852,6 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An exact color from outside the palette. Picking a palette color replaces it..
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_ExactColor {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ExactColor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Legacy mark.
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_LegacyTattoo {
@@ -1886,7 +1877,16 @@ namespace ARealmRepopulated.Data.l10n {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_HideVieraEars", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only works with headgear made for it. Any other headgear decides on its own whether the ears show..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Nothing.
         /// </summary>

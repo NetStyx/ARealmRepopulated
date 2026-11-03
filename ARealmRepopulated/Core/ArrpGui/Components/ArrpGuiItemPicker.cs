@@ -92,7 +92,6 @@ public class ArrpGuiItemPicker(ArrpItemData itemData, ArrpGuiGameIcon gameIcon, 
                 chosen = true;
             }
 
-            // items can share a model so we simply showing the first one
             var current = _filteredEntries.FindIndex(e => e.Pick.ModelKey == currentKey);
             if (opening && current >= 0) {
                 ImGui.SetScrollY(current * rowHeight);

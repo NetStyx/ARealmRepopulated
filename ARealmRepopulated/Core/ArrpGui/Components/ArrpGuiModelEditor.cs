@@ -305,7 +305,7 @@ public class ArrpGuiModelEditor(
             colorPicker.OpenPopup();
         }
         if (ImGui.IsItemHovered()) {
-            ImGui.SetTooltip(exact.HasValue ? $"{name}\n{loc["ScenarioEditor_ActorData_Appearance_ExactColor"]}" : name);
+            ImGui.SetTooltip(name);
         }
 
         string[]? paletteLabels = index is CustomizeIndex.LipColorFurPattern or CustomizeIndex.FacePaintColor

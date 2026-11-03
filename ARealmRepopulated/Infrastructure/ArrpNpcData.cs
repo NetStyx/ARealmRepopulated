@@ -94,8 +94,7 @@ public class ArrpNpcData(ArrpModelData modelData, IDataManager dataManager) {
     public List<NpcLookup> GetNpcs()
         => _npcs ??= [.. GetEventNpcs().Concat(GetBattleNpcs()).OrderBy(n => n.Name, StringComparer.OrdinalIgnoreCase)];
 
-    // The same person shows up once per quest stage, so only a different look gets its own entry. About half the people
-    // are flagged invisible in the sheet, which says nothing about their look, so they stay in here.
+    // Eventnpc show only when its their turn during the quest. They still are there, but invisible .. which says nothing about their appearance meaning we gather them all and unifying them by name, model and equip.
     private IEnumerable<NpcLookup> GetEventNpcs()
         => _enpcBaseSheet
             .Where(n => HasHumanLook(n) || IsModelENpc(n))
@@ -106,13 +105,33 @@ public class ArrpNpcData(ArrpModelData modelData, IDataManager dataManager) {
     private bool IsModelENpc(ENpcBase npc)
         => npc.Race.RowId == 0 && npc.Invisibility == 0 && npc.ModelChara.ValueNullable is { Type: not 1, Model: > 0 };
 
-    private IEnumerable<NpcLookup> GetBattleNpcs()
-        => BNpcLinkParser.Instance.NameIdToBaseIds.Keys.ToList()
-            .Select(_bnpcNameSheet.GetRowOrDefault)
-            .Where(n => n != null && n.Value.RowId != 0 && !string.IsNullOrWhiteSpace(n.Value.Singular.ToString()))
-            .SelectMany(n => BNpcLinkParser.Instance.GetBasesFromName(n!.Value.RowId).Select(id => (Name: n.Value.Singular.ToString(), Base: _bnpcBaseSheet.GetRowOrDefault(id).GetValueOrDefault())))
-            .Where(b =>
-                (b.Base.ModelChara.Value.Type == 1 || b.Base.ModelChara.Value.Model > 0)
-                && (b.Base.BNpcCustomize.RowId > 0 || b.Base.NpcEquip.RowId > 0 || b.Base.ModelChara.RowId > 0))
-            .Select(b => new NpcLookup(b.Name, b.Base.RowId, b.Base.ModelChara.RowId, b.Base.ModelChara.Value.Type) { BattleNpc = b.Base });
+    private IEnumerable<NpcLookup> GetBattleNpcs() {
+        foreach (var (nameId, baseIds) in BNpcLinkParser.Instance.NameIdToBaseIds) {
+            if (nameId == 0)
+                continue;
+
+            if (_bnpcNameSheet.GetRowOrDefault(nameId) is not { } nameRow)
+                continue;
+
+            var name = nameRow.Singular.ToString();
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            foreach (var baseId in baseIds) {
+                if (_bnpcBaseSheet.GetRowOrDefault(baseId) is not { } bnpcBase)
+                    continue;
+
+                if (bnpcBase.ModelChara.ValueNullable is not { } model)
+                    continue;
+
+                if (model.Type != 1 && model.Model == 0)
+                    continue;
+
+                if (bnpcBase.BNpcCustomize.RowId == 0 && bnpcBase.NpcEquip.RowId == 0 && bnpcBase.ModelChara.RowId == 0)
+                    continue;
+
+                yield return new NpcLookup(name, bnpcBase.RowId, bnpcBase.ModelChara.RowId, model.Type) { BattleNpc = bnpcBase };
+            }
+        }
+    }
 }

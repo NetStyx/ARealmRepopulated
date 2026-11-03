@@ -38,12 +38,35 @@ public class ArrpGuiEquipmentEditor(
 
             DrawGlassesRow(form, appearance);
 
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_CWeaponsHidden"], appearance.HideWeapons, hide => appearance.HideWeapons = hide);
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"], appearance.HideHeadgear, hide => appearance.HideHeadgear = hide);
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_CloseVisor"], appearance.CloseVisor, close => appearance.CloseVisor = close);
-            if (appearance.Race == NpcRace.Viera) {
-                form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_HideVieraEars"], appearance.HideVieraEars, hide => appearance.HideVieraEars = hide);
-            }
+            form.Row(string.Empty, () => {
+                using var table = ImRaii.Table("##equipmentToggles", 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.SizingStretchSame | ImGuiTableFlags.NoPadOuterX);
+                if (!table.Success)
+                    return;
+
+                var hideWeapons = appearance.HideWeapons;
+                ImGui.TableNextColumn();
+                if (ImGui.Checkbox(loc["ScenarioEditor_ActorData_Appearance_CWeaponsHidden"], ref hideWeapons))
+                    appearance.HideWeapons = hideWeapons;
+
+                var hideHeadgear = appearance.HideHeadgear;
+                ImGui.TableNextColumn();
+                if (ImGui.Checkbox(loc["ScenarioEditor_ActorData_Appearance_CHeadgearHidden"], ref hideHeadgear))
+                    appearance.HideHeadgear = hideHeadgear;
+
+                var closeVisor = appearance.CloseVisor;
+                ImGui.TableNextColumn();
+                if (ImGui.Checkbox(loc["ScenarioEditor_ActorData_Appearance_CloseVisor"], ref closeVisor))
+                    appearance.CloseVisor = closeVisor;
+
+                if (appearance.Race != NpcRace.Viera)
+                    return;
+
+                var hideEars = appearance.HideVieraEars;
+                ImGui.TableNextColumn();
+                if (ImGui.Checkbox(loc["ScenarioEditor_ActorData_Appearance_HideVieraEars"], ref hideEars))
+                    appearance.HideVieraEars = hideEars;
+                ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc"]);
+            });
         });
     }
 

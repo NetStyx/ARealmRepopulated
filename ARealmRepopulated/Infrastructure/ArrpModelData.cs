@@ -6,7 +6,7 @@ using Lumina.Excel.Sheets;
 namespace ARealmRepopulated.Infrastructure;
 
 /// <summary>
-/// Data and calculations related to a character model
+/// Data related to a character model
 /// </summary>
 public class ArrpModelData(ArrpHumanCmpFile humanCmp, IDataManager dataManager) {
     private ExcelSheet<ModelChara> _modelCharaSheet = null!;
@@ -28,7 +28,8 @@ public class ArrpModelData(ArrpHumanCmpFile humanCmp, IDataManager dataManager) 
     public ushort GetModelSoundPack(int modelCharaId)
         => _modelCharaSheet.GetRowOrDefault((uint)modelCharaId)?.SEPack ?? 0;
 
-    // Humans get theirs from the race instead, which is up to the customize data.
+    // Humans (type 1) fall through on purpose. Their skeleton comes from tribe, sex and body type in the customize data, 
+    // which the game turns into 20000 + model code when it builds the character. The game checks if the skeleton is 0 and takes over for us. How nice of it.
     public int GetModelSkeletonId(int modelCharaId) {
         var model = _modelCharaSheet.GetRowOrDefault((uint)modelCharaId);
         return model?.Type switch {

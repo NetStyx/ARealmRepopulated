@@ -1160,9 +1160,6 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="ScenarioEditor_ActorData_Appearance_EyeColor_Right" xml:space="preserve">
     <value>Right eye</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_ExactColor" xml:space="preserve">
-    <value>An exact color from outside the palette. Picking a palette color replaces it.</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Appearance_LegacyTattoo" xml:space="preserve">
     <value>Legacy mark</value>
   </data>
@@ -1171,6 +1168,9 @@ This might impact performance. Ensure that the actions are valid for the actor o
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_HideVieraEars" xml:space="preserve">
     <value>Hide ears</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc" xml:space="preserve">
+    <value>Only works with headgear made for it. Any other headgear decides on its own whether the ears show.</value>
   </data>
   <data name="ArrpGuiPicker_Item_None" xml:space="preserve">
     <value>Nothing</value>

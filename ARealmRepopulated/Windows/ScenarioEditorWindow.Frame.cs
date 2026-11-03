@@ -201,7 +201,6 @@ public partial class ScenarioEditorWindow(
         IsOpen = true;
     }
 
-
     private void DrawFrameTooltip() {
         using var tooltip = ImRaii.Tooltip();
         using var table = ImRaii.Table("##ScenarioEditFrameTooltipTable", 1, ImGuiTableFlags.NoSavedSettings);

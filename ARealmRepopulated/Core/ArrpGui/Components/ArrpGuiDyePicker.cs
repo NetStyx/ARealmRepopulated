@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
-public class ArrpGuiDyePicker(ArrpItemData itemData, ArrpTranslation loc) {
+public class ArrpGuiDyePicker(ArrpItemData itemData, ArrpGuiGameIcon gameIcon, ArrpTranslation loc) {
 
     private const string PopupName = "##ArrpDyePicker";
 
@@ -23,13 +23,20 @@ public class ArrpGuiDyePicker(ArrpItemData itemData, ArrpTranslation loc) {
         if (!popup.Success)
             return false;
 
-        if (ImGui.Selectable(loc["ArrpGuiPicker_Dye_None"])) {
+        var swatchSize = new Vector2(ImGui.GetFrameHeight());
+        var changed = false;
+
+        if (ImGui.Button("##stainNone", swatchSize)) {
+            changed = true;
             ImGui.CloseCurrentPopup();
-            return true;
         }
+        gameIcon.DrawNoneMark(swatchSize);
+        if (ImGui.IsItemHovered()) {
+            ImGui.SetTooltip(loc["ArrpGuiPicker_Dye_None"]);
+        }
+        ImGui.SameLine();
 
         var stains = itemData.GetStains();
-        var changed = false;
         for (var i = 0; i < stains.Count; i++) {
             var entry = stains[i];
             if (ImGui.ColorButton($"##stain{entry.RowId}", GetColor(entry), ImGuiColorEditFlags.NoTooltip)) {
@@ -40,7 +47,8 @@ public class ArrpGuiDyePicker(ArrpItemData itemData, ArrpTranslation loc) {
             if (ImGui.IsItemHovered()) {
                 ImGui.SetTooltip(entry.Name.ToString());
             }
-            if ((i + 1) % 10 != 0) {
+            // The no dye swatch takes the first cell of the grid.
+            if ((i + 2) % 10 != 0) {
                 ImGui.SameLine();
             }
         }

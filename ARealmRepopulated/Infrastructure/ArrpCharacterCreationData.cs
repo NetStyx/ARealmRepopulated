@@ -97,7 +97,7 @@ public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager data
         return menus;
     }
 
-    // Hair and face paint keep a row of CharaMakeCustomize per option, the other menus list the icon and the value right in the sheet.
+    // Hair and face paint keep a row of CharaMakeCustomize per option. The other menus list the icon and the value right in the sheet.
     private CharacterEditorOption ReadOption(CharaMakeType.CharaMakeStructStruct entry, int index) {
         var parameter = entry.SubMenuParam[index];
         if ((CustomizeIndex)entry.Customize is CustomizeIndex.HairStyle or CustomizeIndex.FacePaint) {
@@ -116,7 +116,7 @@ public partial class ArrpCharacterCreationData(IPluginLog log, IDataManager data
     public CharacterEditorClan? GetClan(NpcTribe tribe, NpcSex gender)
         => _characterEditorData.Clans.FirstOrDefault(x => x.Tribe == tribe && x.Gender == gender);
 
-    // Monsters and other models without a clan have none of the options of the character editor.
+    // Monsters and other models without a clan have no customization.
     public bool IsCustomizable(NpcAppearanceData appearance)
         => modelData.IsHumanModel(appearance.ModelCharaId) && appearance.Tribe != NpcTribe.Unknown;
 

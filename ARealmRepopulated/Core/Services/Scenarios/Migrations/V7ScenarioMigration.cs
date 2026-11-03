@@ -2,7 +2,7 @@ using System.Text.Json.Nodes;
 
 namespace ARealmRepopulated.Core.Services.Scenarios.Migrations;
 
-[ScenarioMigration(Version = 7, Description = "Store the customize byte of the mouth as Mouth instead of Lipstick, which is only its flag")]
+[ScenarioMigration(Version = 7, Description = "Store the customize byte of the mouth as Mouth instead of Lipstick, because Lipstick is actually only part of the Mouth byte. ")]
 public class V7ScenarioMigration : IScenarioMigration {
 
     public void Upgrade(JsonObject jsonObject) {
