@@ -9,7 +9,7 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
-public class ArrpGuiTimelinePicker(ArrpDataCache dataCache, ArrpTranslation loc) {
+public class ArrpGuiTimelinePicker(ArrpAnimationData animationData, ArrpTranslation loc) {
 
     private string _timelinePickerName = "TimelinePicker";
     private string _timelineSearch = string.Empty;
@@ -38,7 +38,7 @@ public class ArrpGuiTimelinePicker(ArrpDataCache dataCache, ArrpTranslation loc)
         if (!timelinePickerPopup.Success)
             return false;
 
-        _slots ??= [.. dataCache.GetActionTimelines().Where(t => !t.Key.IsEmpty).Select(t => t.GetSlot()).Distinct().Order()];
+        _slots ??= [.. animationData.GetActionTimelines().Where(t => !t.Key.IsEmpty).Select(t => t.GetSlot()).Distinct().Order()];
         string[] slotOptions = [loc["ArrpGuiPicker_Timeline_AllSlots"], .. _slots.Select(GetSlotName)];
 
         ImGui.SetNextItemWidth(120);
@@ -68,7 +68,7 @@ public class ArrpGuiTimelinePicker(ArrpDataCache dataCache, ArrpTranslation loc)
             _filteredSearch = _timelineSearch;
             _filteredSlot = _slotFilter;
 
-            var timelineList = dataCache.GetActionTimelines().Where(t => !t.Key.IsEmpty);
+            var timelineList = animationData.GetActionTimelines().Where(t => !t.Key.IsEmpty);
             if (_filteredSlot > 0)
                 timelineList = timelineList.Where(t => t.GetSlot() == _slots[_filteredSlot - 1]);
 

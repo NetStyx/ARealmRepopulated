@@ -21,9 +21,43 @@ public enum ItemSlots {
     Weapons = MainHand | OffHand
 }
 
+public readonly record struct ItemModelParts(ushort ModelSet, ushort ModelBase, ushort ModelVariant) : IComparable<ItemModelParts> {
+
+    public bool IsEmpty => ModelSet == 0 && ModelBase == 0;
+
+    public int CompareTo(ItemModelParts other)
+        => (ModelSet, ModelBase, ModelVariant).CompareTo((other.ModelSet, other.ModelBase, other.ModelVariant));
+}
+
 public class ItemModelData {
 
     public static readonly ItemModelData Empty = new();
+
+    // Reconstruction of every code the game can put into a gear path. The specific path is build in Human.SetupIdsAndVfxScale.
+    // Example:
+    //   c0101e0085_top.mdl
+    //   c------------------- Character
+    //    01----------------- Race and sex. An odd number is male following by female: 01 Midlander (Male), 02 Midlander (Female), 03 Highlander,
+    //      ||                05 Elezen, 07 Miqote, 09 Roegadyn, 11 Lalafell, 13 Au Ra, 15 Hrothgar, 17 Viera. Only Hyur
+    //      ||                has a pair per clan, the two clans of any other race share one. 91 to 94 are the Hyur pairs
+    //      ||                with 9000 added, which Young Hyur npcs use (see NpcAppearanceService.GetSafeTailShape).
+    //      01--------------- Body. 01 for 'Normal' and 'Old' alike, 04 for 'Young'. 02 and 05 belong to the body types 2 and 5,
+    //        |||||           which no event npc uses and which have no skeleton in the game data, so they are only here
+    //        |||||           to not miss a path.
+    //        e0085---------- Gear id, with an a instead of the e for accessories (GetModelPaths)
+    //             _top------ Slot (GetModelSuffix)
+    //
+    // The code derived here is for the first 4 digits (cXXXX). As a heads up: the game does not possess files for every combination. If it encounters
+    // a code that does not exist it will load the file of another code instead. There is no black magic for a change as each code has a table, its eqdp
+    // file, that says per gear id and slot whether the code has a model of its own. Without one the game tries a single substitute:
+    //   Adult: 0201 for women and 0101 for men, except Lalafell women 1101 and Hrothgar men 0901
+    //   Young: 0104, except Roegadyn men 0901, Lalafell 1101 and Au Ra 1301
+    // If the substitute has no model either, it ends at 0101 (CharacterUtility.GetEqpDataForAdults and GetEqpDataForChildren).
+    private static readonly int[] ModelCodes = [.. Enumerable
+            .Range(1, 18)
+            .Concat([91, 92, 93, 94])
+            .SelectMany(race => ((int[])[1, 2, 4, 5])
+            .Select(body => (race * 100) + body))];
 
     public ulong Value { get; set; }
     public ItemSlots Slot { get; set; }
@@ -45,19 +79,45 @@ public class ItemModelData {
         return result;
     }
 
-    public static (ushort ModelSet, ushort ModelBase, ushort ModelVariant) DecodeModel(ulong value) {
-        ulong modelSet, modelBase, modelVariant;
-        if (((value >> 32) & 0xFFFF) == 0) {
-            modelSet = 0;
-            modelBase = value & 0xFFFF;
-            modelVariant = (value >> 16) & 0xFFFF;
-        } else {
-            modelSet = value & 0xFFFF;
-            modelBase = (value >> 16) & 0xFFFF;
-            modelVariant = (value >> 32) & 0xFFFF;
-        }
-        return ((ushort)modelSet, (ushort)modelBase, (ushort)modelVariant);
+    public static ItemModelParts DecodeModel(ItemSlots slot, ulong modelKey)
+        => slot.IsWeapon() ? DecodeWeapon(modelKey) : DecodeEquipment(modelKey);
+
+    public static ItemModelParts DecodeWeapon(ulong modelKey)
+        => new((ushort)modelKey, (ushort)(modelKey >> 16), (ushort)(modelKey >> 32));
+
+    public static ItemModelParts DecodeEquipment(ulong modelKey)
+        => new(0, (ushort)modelKey, (ushort)(modelKey >> 16));
+
+    /// <summary>
+    /// The paths the game can load this model from.
+    /// </summary>
+    /// <remarks>
+    /// Thanks Human.ResolveMdlPath / Weapon.ResolveMdlPath
+    /// </remarks>
+    public static IEnumerable<string> GetModelPaths(ItemSlots slot, ItemModelParts parts) {
+        if (slot.IsWeapon())
+            return [$"chara/weapon/w{parts.ModelSet:D4}/obj/body/b{parts.ModelBase:D4}/model/w{parts.ModelSet:D4}b{parts.ModelBase:D4}.mdl"];
+
+        var id = parts.ModelBase;
+        var suffix = GetModelSuffix(slot);
+        return ModelCodes.Select(code => slot.IsAccessory()
+            ? $"chara/accessory/a{id:D4}/model/c{code:D4}a{id:D4}_{suffix}.mdl"
+            : $"chara/equipment/e{id:D4}/model/c{code:D4}e{id:D4}_{suffix}.mdl");
     }
+
+    private static string GetModelSuffix(ItemSlots slot) => slot switch {
+        ItemSlots.Head => "met",
+        ItemSlots.Body => "top",
+        ItemSlots.Hands => "glv",
+        ItemSlots.Legs => "dwn",
+        ItemSlots.Feet => "sho",
+        ItemSlots.Ears => "ear",
+        ItemSlots.Neck => "nek",
+        ItemSlots.Wrists => "wrs",
+        ItemSlots.RightRing => "rir",
+        ItemSlots.LeftRing => "ril",
+        _ => string.Empty
+    };
 
     private static bool IsInCategory(Item i, Func<dynamic, int> categorySelector)
         => categorySelector(i.EquipSlotCategory.Value) == 1;
@@ -84,4 +144,12 @@ public class ItemModelData {
 public static class LumiaItemExtension {
     public static bool IsSlottableAs(this Item item, ItemSlots slot)
         => ItemModelData.Slottable(slot, item);
+}
+
+public static class ItemSlotExtensions {
+    public static bool IsWeapon(this ItemSlots slot)
+        => slot is ItemSlots.MainHand or ItemSlots.OffHand or ItemSlots.Weapons;
+
+    public static bool IsAccessory(this ItemSlots slot)
+        => slot is ItemSlots.Ears or ItemSlots.Neck or ItemSlots.Wrists or ItemSlots.RightRing or ItemSlots.LeftRing;
 }

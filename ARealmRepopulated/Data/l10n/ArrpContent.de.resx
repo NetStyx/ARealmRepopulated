@@ -501,66 +501,6 @@
   <data name="ScenarioEditor_ActorData_Appearance_Voice_Other" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHeight" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CFace" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHairstyle" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHighlights" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CSkinColor" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CEyeColorRight" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHairColor" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CHighlightsColor" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CFacialFeatures" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CFacialFeaturesColor" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CEyebrows" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CEyeColorLeft" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CEyeShape" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CNose" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CJaw" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CLipstick" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CLipColorFurPattern" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CMuscleMass" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CTailShape" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_CBustSize" xml:space="preserve">
-    <value>a</value>
-  </data>
   <data name="ScenarioEditor_ActorData_Appearance_EMainHand" xml:space="preserve">
     <value>a</value>
   </data>
@@ -598,18 +538,6 @@
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_EGlasses" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_EExtended" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Present" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Absent" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="ScenarioEditor_ActorData_Appearance_EExtended_Hint" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_General_Input_NameRandom" xml:space="preserve">
@@ -771,13 +699,16 @@
   <data name="ScenarioEditor_ActorData_Appearance_ManagedExternally" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickPreset" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_Generate" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_PickAllNpcs" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source" xml:space="preserve">
+  <data name="ArrpGuiPicker_Npc_SourceDisclaimer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_SourceDisclaimer_Source" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_CScale" xml:space="preserve">
@@ -1159,6 +1090,207 @@
     <value>a</value>
   </data>
   <data name="ArrpGuiPicker_Timeline_AllSlots" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ShowPreview" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ShowPreview_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_NoCustomize" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Clan" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Clan_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Gender" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Gender_Male" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Gender_Female" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_BodyType" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_BodyType_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_BodyType_Normal" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_BodyType_Old" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_BodyType_Young" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_FacePaintFlip" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Lipstick" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Highlights" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_SmallIris" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EyeColor_Left" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_EyeColor_Right" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_LegacyTattoo" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_CloseVisor" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_HideVieraEars" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Item_None" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Item_ModelDisclaimer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Item_Source_Items" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Item_Source_NpcGear" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Dye_None" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Source" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Source_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Source_All" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Clan" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Hair" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Face" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Body" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Outfit" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Identity" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Body" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Hair" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Face" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Eyes" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Mouth" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Markings" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Options_Standard" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Options_Special" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Palette_Strong" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Palette_Light" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Palette_Numbered" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ExactColor_PaletteHeader" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ExactColor_PickerHeader" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ExactColor_LipOpacity" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_ExactColor_MuscleTone" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Source" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Filter_All" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Source_Event" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Source_Battle" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Search" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Type_Human" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Type_Demihuman" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Type_Monster" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Type_Statics" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Type_Parts" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Column_Name" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Column_BaseId" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ArrpGuiPicker_Npc_Column_ModelId" xml:space="preserve">
     <value>a</value>
   </data>
 </root>

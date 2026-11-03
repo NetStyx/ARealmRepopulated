@@ -41,7 +41,7 @@ public class ConfigWindow(
     WindowSystem windowSystem,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
-    ArrpDataCache dataCache) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
+    ArrpTerritoryData territoryData) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
 
     protected override void SetWindowOptions() {
         Size = new Vector2(750, 630);
@@ -555,15 +555,15 @@ public class ConfigWindow(
 
         ImGui.TableNextColumn();
         if (!s.IsBroken) {
-            var territoryData = dataCache.GetTerritoryType((ushort)s.MetaData.Location.Territory);
+            var territory = territoryData.GetTerritoryType((ushort)s.MetaData.Location.Territory);
             if (ImGuiComponents.IconButton("##scenarioMapButton", FontAwesomeIcon.MapMarker)) {
                 unsafe {
-                    AgentMap.Instance()->OpenMap(territoryData.Map.Value.RowId, territoryData.RowId);
+                    AgentMap.Instance()->OpenMap(territory.Map.Value.RowId, territory.RowId);
                 }
             }
             ImGui.SameLine(0, 10);
             using (ImRaii.PushColor(ImGuiCol.Text, ArrpGuiColors.ArrpGreen, eventService.CurrentLocation.IsInSameLocation(s.MetaData.Location))) {
-                var placeName = territoryData.PlaceName.Value.Name.ToString();
+                var placeName = territoryData.GetPlaceName(s.MetaData.Location.Territory);
                 if (placeName.Length <= 15) {
                     ImGui.Text(placeName);
                 } else {

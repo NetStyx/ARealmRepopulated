@@ -58,22 +58,22 @@ public class ScenarioMigrationTests {
     public void ScenarioMigration_TurnsTheHeightMultiplierIntoTheHeight() {
         var jsonObject = ReadScenario(V4ScenarioFile);
 
-        var dataCache = new TestArrpDataCache(64, 1f);
-        new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
+        var modelData = new TestArrpModelData(64, 1f);
+        new V5ScenarioMigration(modelData).Upgrade(jsonObject);
 
         var appearances = AppearancesOf(jsonObject);
         appearances.ShouldAllBe(a => !a.ContainsKey("HeightMultiplier"));
         appearances.Select(a => a["Height"]!.GetValue<byte>()).ShouldBe([(byte)100, (byte)64, (byte)100]);
         appearances.Select(a => a["Scale"]!.GetValue<float>()).ShouldBe([1f, 2f, 1f]);
 
-        dataCache.Lookups.ShouldBe([(0, NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Normal, 2f)]);
+        modelData.Lookups.ShouldBe([(0, NpcTribe.Midlander, NpcSex.Female, NpcBodyType.Normal, 2f)]);
     }
 
     [Fact]
     public void ScenarioMigration_BeyondTheHeightRange_FoldsTheRestIntoTheScale() {
         var jsonObject = ReadScenario(V4ScenarioFile);
 
-        new V5ScenarioMigration(new TestArrpDataCache(100, 4f)).Upgrade(jsonObject);
+        new V5ScenarioMigration(new TestArrpModelData(100, 4f)).Upgrade(jsonObject);
 
         var appearance = AppearanceOf(NpcNamed(jsonObject, "Trick"));
         appearance["Height"]!.GetValue<byte>().ShouldBe((byte)100);
@@ -84,10 +84,10 @@ public class ScenarioMigrationTests {
     public void ScenarioMigration_WithNumericCustomize_ReadsTheIds() {
         var jsonObject = ReadScenario(V4HeightMultipliersFile);
 
-        var dataCache = new TestArrpDataCache(64, 1f);
-        new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
+        var modelData = new TestArrpModelData(64, 1f);
+        new V5ScenarioMigration(modelData).Upgrade(jsonObject);
 
-        dataCache.Lookups.ShouldContain((0, NpcTribe.Xaela, NpcSex.Male, NpcBodyType.Young, 2f));
+        modelData.Lookups.ShouldContain((0, NpcTribe.Xaela, NpcSex.Male, NpcBodyType.Young, 2f));
         AppearanceOf(NpcNamed(jsonObject, "NumericCustomize"))["Height"]!.GetValue<byte>().ShouldBe((byte)64);
     }
 
@@ -98,7 +98,7 @@ public class ScenarioMigrationTests {
         var jsonObject = ReadScenario(V4HeightMultipliersFile);
         var heightBefore = AppearanceOf(NpcNamed(jsonObject, npcName))["Height"]?.ToJsonString();
 
-        new V5ScenarioMigration(new TestArrpDataCache(64, 1f)).Upgrade(jsonObject);
+        new V5ScenarioMigration(new TestArrpModelData(64, 1f)).Upgrade(jsonObject);
 
         var appearance = AppearanceOf(NpcNamed(jsonObject, npcName));
         appearance.ContainsKey("HeightMultiplier").ShouldBeFalse();
@@ -113,11 +113,11 @@ public class ScenarioMigrationTests {
         new V4ScenarioMigration().Upgrade(jsonObject);
         var before = AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ToArray();
 
-        var dataCache = new TestArrpDataCache(64, 1f);
-        new V5ScenarioMigration(dataCache).Upgrade(jsonObject);
+        var modelData = new TestArrpModelData(64, 1f);
+        new V5ScenarioMigration(modelData).Upgrade(jsonObject);
 
         AppearancesOf(jsonObject).Select(a => a.ToJsonString()).ShouldBe(before);
-        dataCache.Lookups.ShouldBeEmpty();
+        modelData.Lookups.ShouldBeEmpty();
     }
 
     [Fact]
@@ -152,6 +152,18 @@ public class ScenarioMigrationTests {
         scenario.Conditions[0].ShouldBeOfType<ScenarioEorzeaTimeCondition>().Start.ShouldBe(new TimeOnly(18, 0));
         scenario.Conditions[1].ShouldBeOfType<ScenarioWeatherCondition>();
         scenario.Conditions[2].ShouldBeOfType<ScenarioChanceCondition>().Percent.ShouldBe(50f);
+    }
+
+    [Fact]
+    public void ScenarioMigration_MovesLipstickToMouth() {
+        var jsonObject = ReadScenario(V5TimeWindowFile);
+        var before = AppearancesOf(jsonObject).Select(a => a["Lipstick"]!.GetValue<byte>()).ToArray();
+
+        new V7ScenarioMigration().Upgrade(jsonObject);
+
+        AppearancesOf(jsonObject).ShouldAllBe(a => !a.ContainsKey("Lipstick"));
+        var scenario = jsonObject.Deserialize<ScenarioData>(ScenarioFileManager.ScenarioLoadSerializerOptions).ShouldNotBeNull();
+        scenario.Npcs.Select(n => n.Appearance.Mouth.GetValueOrDefault()).ShouldBe(before);
     }
 
     private static JsonObject ReadScenario(string fileName)

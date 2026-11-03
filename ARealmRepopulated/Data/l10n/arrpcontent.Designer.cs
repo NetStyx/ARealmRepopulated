@@ -61,20 +61,20 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This list is sourced by the community and might contain inaccuracies or missing entries..
+        ///   Looks up a localized string similar to The battle NPCs are sourced by the community and might contain inaccuracies or missing entries..
         /// </summary>
-        public static string ArrpGuiPicker_BNpcPreset_SourceDisclaimer {
+        public static string ArrpGuiPicker_Npc_SourceDisclaimer {
             get {
-                return ResourceManager.GetString("ArrpGuiPicker_BNpcPreset_SourceDisclaimer", resourceCulture);
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_SourceDisclaimer", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to https://github.com/Critical-Impact/LuminaSupplemental.
         /// </summary>
-        public static string ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source {
+        public static string ArrpGuiPicker_Npc_SourceDisclaimer_Source {
             get {
-                return ResourceManager.GetString("ArrpGuiPicker_BNpcPreset_SourceDisclaimer_Source", resourceCulture);
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_SourceDisclaimer_Source", resourceCulture);
             }
         }
         
@@ -970,78 +970,6 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bust size.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CBustSize {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CBustSize", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Eyebrows.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CEyebrows {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CEyebrows", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Eye Color Left.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CEyeColorLeft {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CEyeColorLeft", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Eye Color Right.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CEyeColorRight {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CEyeColorRight", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Eye Shape.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CEyeShape {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CEyeShape", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Face.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CFace {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CFace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Facial Features.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CFacialFeatures {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CFacialFeatures", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Facial Features Color.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CFacialFeaturesColor {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CFacialFeaturesColor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Gender.
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_CGender {
@@ -1051,101 +979,11 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Haircolor.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CHairColor {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CHairColor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Hairstyle.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CHairstyle {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CHairstyle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Hide Headgear.
         /// </summary>
         public static string ScenarioEditor_ActorData_Appearance_CHeadgearHidden {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CHeadgearHidden", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Height.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CHeight {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CHeight", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Highlights.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CHighlights {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CHighlights", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Highlights Color.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CHighlightsColor {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CHighlightsColor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Jaw.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CJaw {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CJaw", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lip Color / Fur Pattern.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CLipColorFurPattern {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CLipColorFurPattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Lipstick.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CLipstick {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CLipstick", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to MuscleMass.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CMuscleMass {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CMuscleMass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nose.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CNose {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CNose", resourceCulture);
             }
         }
         
@@ -1182,24 +1020,6 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_ActorData_Appearance_CSkeleton {
             get {
                 return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CSkeleton", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SkinColor.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CSkinColor {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CSkinColor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tail shape.
-        /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_CTailShape {
-            get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CTailShape", resourceCulture);
             }
         }
         
@@ -1537,11 +1357,11 @@ namespace ARealmRepopulated.Data.l10n {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Pick from preset.
+        ///   Looks up a localized string similar to Pick from all NPCs.
         /// </summary>
-        public static string ScenarioEditor_ActorData_Appearance_Setup_PickPreset {
+        public static string ScenarioEditor_ActorData_Appearance_Setup_PickAllNpcs {
             get {
-                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Setup_PickPreset", resourceCulture);
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Setup_PickAllNpcs", resourceCulture);
             }
         }
         
@@ -1875,6 +1695,618 @@ namespace ARealmRepopulated.Data.l10n {
         public static string ScenarioEditor_FileInfo_Unsaved {
             get {
                 return ResourceManager.GetString("ScenarioEditor_FileInfo_Unsaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show a preview.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_ShowPreview {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ShowPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shows this appearance on a temporary actor in front of you while you edit it. Your changes update it after a moment..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_ShowPreview_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ShowPreview_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This model has no character options. They only exist for human models..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_NoCustomize {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_NoCustomize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clan.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Clan {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Clan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Picking another clan resets the face, hair, body and colors to the defaults of that clan..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Clan_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Clan_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gender.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Gender {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Gender", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Male.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Gender_Male {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Gender_Male", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Female.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Gender_Female {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Gender_Female", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Body type.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_BodyType {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_BodyType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The game does not have every body type for every clan, so some can not be picked..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_BodyType_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_BodyType_Desc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Normal.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_BodyType_Normal {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_BodyType_Normal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Old.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_BodyType_Old {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_BodyType_Old", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Young.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_BodyType_Young {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_BodyType_Young", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flip.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_FacePaintFlip {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_FacePaintFlip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lipstick.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Lipstick {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Lipstick", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Highlights.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Highlights {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Highlights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Small iris.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_SmallIris {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_SmallIris", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Legacy mark.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_LegacyTattoo {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_LegacyTattoo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Close visor.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_CloseVisor {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_CloseVisor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hide ears.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_HideVieraEars {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_HideVieraEars", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only works with headgear made for it. Any other headgear decides on its own whether the ears show..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_HideVieraEars_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Nothing.
+        /// </summary>
+        public static string ArrpGuiPicker_Item_None {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Item_None", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Not all gear fits every model. Unsupported combinations result in visual glitches..
+        /// </summary>
+        public static string ArrpGuiPicker_Item_ModelDisclaimer {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Item_ModelDisclaimer", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Items.
+        /// </summary>
+        public static string ArrpGuiPicker_Item_Source_Items {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Item_Source_Items", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to NPC gear.
+        /// </summary>
+        public static string ArrpGuiPicker_Item_Source_NpcGear {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Item_Source_NpcGear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No dye.
+        /// </summary>
+        public static string ArrpGuiPicker_Dye_None {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Dye_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Randomize.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NPC source.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Source {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Where the look comes from. A location with too few NPCs uses all known NPCs instead..
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Source_Desc {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Source_Desc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to All known NPCs.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Source_All {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Source_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lock.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Lock {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Lock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clan.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Lock_Clan {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Lock_Clan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hair.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Lock_Hair {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Lock_Hair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Face.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Lock_Face {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Lock_Face", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Body.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Lock_Body {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Lock_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Outfit.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Randomize_Lock_Outfit {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Randomize_Lock_Outfit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Identity.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Identity {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Identity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Body.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Body {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Body", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hair.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Hair {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Hair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Face.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Face {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Face", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Eyes.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Eyes {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Eyes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mouth.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Mouth {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Mouth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Markings.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Section_Markings {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Section_Markings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Palette.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_ExactColor_PaletteHeader {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ExactColor_PaletteHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Exact color.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_ExactColor_PickerHeader {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ExactColor_PickerHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lip opacity.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_ExactColor_LipOpacity {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ExactColor_LipOpacity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Muscle tone.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_ExactColor_MuscleTone {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_ExactColor_MuscleTone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Source {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All.
+        /// </summary>
+        public static string ArrpGuiPicker_Filter_All {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Filter_All", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event NPCs.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Source_Event {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Source_Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Battle NPCs.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Source_Battle {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Source_Battle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search....
+        /// </summary>
+        public static string ArrpGuiPicker_Search {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Search", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Human.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Type_Human {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Type_Human", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Demihuman.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Type_Demihuman {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Type_Demihuman", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monster.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Type_Monster {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Type_Monster", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Statics.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Type_Statics {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Type_Statics", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parts.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Type_Parts {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Type_Parts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Column_Name {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Column_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base ID.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Column_BaseId {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Column_BaseId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Model ID.
+        /// </summary>
+        public static string ArrpGuiPicker_Npc_Column_ModelId {
+            get {
+                return ResourceManager.GetString("ArrpGuiPicker_Npc_Column_ModelId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Standard.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Options_Standard {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Options_Standard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Special.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Options_Special {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Options_Special", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Left eye.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_EyeColor_Left {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_EyeColor_Left", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Right eye.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_EyeColor_Right {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_EyeColor_Right", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Setup_Generate {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Setup_Generate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Strong.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Palette_Strong {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Palette_Strong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Light.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Palette_Light {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Palette_Light", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Palette {0}.
+        /// </summary>
+        public static string ScenarioEditor_ActorData_Appearance_Palette_Numbered {
+            get {
+                return ResourceManager.GetString("ScenarioEditor_ActorData_Appearance_Palette_Numbered", resourceCulture);
             }
         }
     }

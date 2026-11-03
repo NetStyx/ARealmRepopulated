@@ -152,7 +152,7 @@ public partial class ScenarioEditorWindow {
         => $"{time.Hour:00}:{time.Minute:00}";
 
     private void DrawWeatherCondition(ScenarioWeatherCondition condition) {
-        var weathers = dataCache.GetWeathersForTerritory(ScenarioObject.Location.Territory);
+        var weathers = territoryData.GetWeathersForTerritory(ScenarioObject.Location.Territory);
 
         using (var list = ImRaii.Child("##arrpConditionWeatherList", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * WeatherPickerRows), true)) {
             if (list.Success) {
@@ -245,7 +245,7 @@ public partial class ScenarioEditorWindow {
             return string.Empty;
 
         var weathers = string.Join(", ", condition.WeatherIds
-            .Select(dataCache.GetWeather)
+            .Select(territoryData.GetWeather)
             .Where(w => w != null)
             .Select(w => w!.Value.Name.ToString()));
 

@@ -32,4 +32,24 @@ public class NpcExtendedAppearanceTests {
         json.ShouldNotContain("\"SkinColor\":{}");
         json.ShouldContain("\"SkinColor\":{\"X\":0.25,\"Y\":0.5,\"Z\":0.75}");
     }
+
+    [Fact]
+    public void SetColor_StoresTheColorSquaredLikeTheGame() {
+        var appearance = new NpcExtendedAppearance();
+
+        appearance.SetColor(CustomizeIndex.HairColor, new Vector3(0.5f, 0.5f, 0.5f), 1f);
+
+        appearance.HairColor!.Value.X.ShouldBe(0.25f);
+        appearance.GetColor(CustomizeIndex.HairColor)!.Value.X.ShouldBe(0.5f);
+    }
+
+    [Fact]
+    public void SetExactColor_TurnsOnWhatTheColorNeedsToShow() {
+        var appearance = new NpcAppearanceData { Mouth = 3 };
+
+        appearance.SetExactColor(CustomizeIndex.LipColorFurPattern, new Vector3(1f, 1f, 1f), 0.5f);
+
+        appearance.IsOptionEnabled(CustomizeIndex.Mouth).ShouldBeTrue();
+        appearance.ExtendedAppearance!.MouthColor!.Value.W.ShouldBe(0.5f);
+    }
 }

@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
-public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textureProvider) {
+public class ArrpGuiEmotePicker(ArrpAnimationData animationData, ITextureProvider textureProvider) {
 
     private readonly string _emotePickerName = "EmotePicker";
 
@@ -46,7 +46,7 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
         ArrpGuiHelper.DrawCenteredHeaderCell(2, () => ImGui.Text("Name"));
         ArrpGuiHelper.DrawCenteredHeaderCell(3, () => ImGui.Text("Flags"));
 
-        var emoteSheet = dataCache.GetEmotes();
+        var emoteSheet = animationData.GetEmotes();
         var emoteFilter = string.IsNullOrWhiteSpace(_emoteSearch) ? emoteSheet : emoteSheet.Where(e =>
             e.Name.ToString().Contains(_emoteSearch, StringComparison.OrdinalIgnoreCase)
             || e.RowId.ToString().Contains(_emoteSearch, StringComparison.OrdinalIgnoreCase)
@@ -66,7 +66,7 @@ public class ArrpGuiEmotePicker(ArrpDataCache dataCache, ITextureProvider textur
 
             var iconId = emoteRow.Icon;
             if (iconId == 0) {
-                var alternateEmote = dataCache.GetEmotes().FirstOrDefault(e => e.Icon > 0 && e.Name == emoteName);
+                var alternateEmote = animationData.GetEmotes().FirstOrDefault(e => e.Icon > 0 && e.Name == emoteName);
                 if (alternateEmote.RowId != 0 && alternateEmote.Icon != 0) {
                     iconId = alternateEmote.Icon;
                     emoteName += " (Alt.)";

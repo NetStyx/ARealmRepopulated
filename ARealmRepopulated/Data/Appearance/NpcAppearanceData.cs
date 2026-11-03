@@ -1,5 +1,6 @@
 using ARealmRepopulated.Core.Json;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -27,7 +28,7 @@ public enum CustomizeIndex : int {
     EyeShape = 0x10,
     Nose = 0x11,
     Jaw = 0x12,
-    Lipstick = 0x13,
+    Mouth = 0x13,
     LipColorFurPattern = 0x14,
     MuscleMass = 0x15,
     TailShape = 0x16,
@@ -80,7 +81,7 @@ public enum NpcBodyType : byte {
     Young = 4
 }
 
-public class NpcAppearanceData {
+public record NpcAppearanceData {
 
     // When multiple actors were defined at the same time without saving, then the shared Default would apply to all of them. 
     // Therefore: create a new instance on every read.
@@ -91,6 +92,12 @@ public class NpcAppearanceData {
     public const float ScaleDefault = 1.0f;
     public const float ScaleSoftMin = 0.10f;
     public const float ScaleSoftMax = 5.00f;
+
+    // If this bit is set on the tail byte of a Hyur, it adds 9000 to the model code (insert vegeta.png). See UsesYoungNpcRace.
+    private const int YoungNpcRaceBit = 0x80;
+
+    // Some customize bytes use bit 7 to switch their option on or off. Small iris and lipstick for example.
+    private const int CustomizationEnabledBit = 0x80;
 
     public static readonly JsonSerializerOptions SerializerOptions = new() {
         Converters = { new Vector3Converter(), new Vector4Converter() }
@@ -120,7 +127,7 @@ public class NpcAppearanceData {
     public byte? EyeShape { get; set; }
     public byte? Nose { get; set; }
     public byte? Jaw { get; set; }
-    public byte? Lipstick { get; set; }
+    public byte? Mouth { get; set; }
     public byte? LipColorFurPattern { get; set; }
     public byte? MuscleMass { get; set; }
     public byte? TailShape { get; set; }
@@ -129,7 +136,7 @@ public class NpcAppearanceData {
     public byte? FacePaintColor { get; set; }
 
     public ushort? Glasses { get; set; }
-    
+
     public byte? Voice { get; set; }
 
     public NpcExtendedAppearance? ExtendedAppearance { get; set; }
@@ -149,11 +156,141 @@ public class NpcAppearanceData {
     public EquipmentModel? RightRing { get; set; }
 
     public float? Transparency { get; set; }
-    
+
     public float? Scale { get; set; } = ScaleDefault;
 
     public bool HideWeapons { get; set; } = true;
     public bool HideHeadgear { get; set; } = true;
+    public bool CloseVisor { get; set; } = false;
+    public bool HideVieraEars { get; set; } = false;
+
+    public byte GetOption(CustomizeIndex index)
+        => (byte)(GetCustomize(index) & (SharesByteWithEnabledBit(index) ? ~CustomizationEnabledBit : byte.MaxValue));
+
+    public void SetOption(CustomizeIndex index, byte value) {
+        if (SharesByteWithEnabledBit(index)) {
+            SetCustomize(index, (byte)((GetCustomize(index) & CustomizationEnabledBit) | value));
+            return;
+        }
+
+        SetCustomize(index, value);
+        ExtendedAppearance?.Forget(index);
+    }
+
+    public bool IsOptionEnabled(CustomizeIndex index)
+        => (GetCustomize(index) & CustomizationEnabledBit) != 0;
+
+    public void SetOptionEnabled(CustomizeIndex index, bool enabled) {
+        var current = GetCustomize(index);
+        SetCustomize(index, (byte)(enabled ? current | CustomizationEnabledBit : current & ~CustomizationEnabledBit));
+        ExtendedAppearance?.Forget(index);
+    }
+
+    public void SetExactColor(CustomizeIndex index, Vector3 color, float defaultOpacity) {
+
+        // lip colors and highlights only show while lipstick and highlights are enabled
+        if (index == CustomizeIndex.LipColorFurPattern && !IsOptionEnabled(CustomizeIndex.Mouth)) {
+            SetOptionEnabled(CustomizeIndex.Mouth, true);
+        } else if (index == CustomizeIndex.HighlightsColor && !IsOptionEnabled(CustomizeIndex.Highlights)) {
+            SetOptionEnabled(CustomizeIndex.Highlights, true);
+        }
+
+        ExtendedAppearance ??= new NpcExtendedAppearance();
+        ExtendedAppearance.SetColor(index, color, defaultOpacity);
+    }
+
+    public bool HasFacialFeature(int bit)
+        => (FacialFeatures.GetValueOrDefault() & (1 << bit)) != 0;
+
+    public void SetFacialFeature(int bit, bool enabled) {
+        var current = FacialFeatures.GetValueOrDefault();
+        FacialFeatures = (byte)(enabled ? current | (1 << bit) : current & ~(1 << bit));
+    }
+
+    // A menu holds its features as a mask that starts at its own first bit.
+    public void EnableFacialFeatures(byte features, int firstBit)
+        => FacialFeatures = (byte)(FacialFeatures.GetValueOrDefault() | (features << firstBit));
+
+    /// <summary>
+    /// Yes. Thanks SQX. Because we try to cramp everything into existing structured instead of doing it proper we have the situation that 
+    /// suddently young hyur npcs with bit 7 of the tail byte are a race of their own, with other models than the rest of the young.
+    /// </summary>
+    public bool UsesYoungNpcRace()
+        => Race == NpcRace.Hyur && BodyType == NpcBodyType.Young && HasYoungNpcRaceBit(TailShape.GetValueOrDefault());
+
+    public static bool HasYoungNpcRaceBit(byte tailShape)
+        => (tailShape & YoungNpcRaceBit) != 0;
+
+    public static byte StripYoungNpcRaceBit(byte tailShape)
+        => (byte)(tailShape & ~YoungNpcRaceBit);
+
+    public void ResetModel() {
+        ModelCharaId = 0;
+        ModelSkeletonId = 0;
+    }
+
+    /// <summary>
+    /// The options whose on/off bit is actuall part of the value.
+    /// </summary>
+    private static bool SharesByteWithEnabledBit(CustomizeIndex index)
+        => index is CustomizeIndex.EyeShape or CustomizeIndex.Mouth or CustomizeIndex.FacePaint;
+
+    private byte GetCustomize(CustomizeIndex index) => index switch {
+        CustomizeIndex.Height => Height.GetValueOrDefault(),
+        CustomizeIndex.Face => Face.GetValueOrDefault(),
+        CustomizeIndex.HairStyle => HairStyle.GetValueOrDefault(),
+        CustomizeIndex.Highlights => Highlights.GetValueOrDefault(),
+        CustomizeIndex.SkinColor => SkinColor.GetValueOrDefault(),
+        CustomizeIndex.EyeColorRight => EyeColorRight.GetValueOrDefault(),
+        CustomizeIndex.HairColor => HairColor.GetValueOrDefault(),
+        CustomizeIndex.HighlightsColor => HighlightsColor.GetValueOrDefault(),
+        CustomizeIndex.FacialFeatures => FacialFeatures.GetValueOrDefault(),
+        CustomizeIndex.FacialFeaturesColor => TattooColor.GetValueOrDefault(),
+        CustomizeIndex.Eyebrows => Eyebrows.GetValueOrDefault(),
+        CustomizeIndex.EyeColorLeft => EyeColorLeft.GetValueOrDefault(),
+        CustomizeIndex.EyeShape => EyeShape.GetValueOrDefault(),
+        CustomizeIndex.Nose => Nose.GetValueOrDefault(),
+        CustomizeIndex.Jaw => Jaw.GetValueOrDefault(),
+        CustomizeIndex.Mouth => Mouth.GetValueOrDefault(),
+        CustomizeIndex.LipColorFurPattern => LipColorFurPattern.GetValueOrDefault(),
+        CustomizeIndex.MuscleMass => MuscleMass.GetValueOrDefault(),
+        CustomizeIndex.TailShape => TailShape.GetValueOrDefault(),
+        CustomizeIndex.BustSize => BustSize.GetValueOrDefault(),
+        CustomizeIndex.FacePaint => FacePaint.GetValueOrDefault(),
+        CustomizeIndex.FacePaintColor => FacePaintColor.GetValueOrDefault(),
+        _ => throw new ArgumentOutOfRangeException(nameof(index), index, null)
+    };
+
+    private void SetCustomize(CustomizeIndex index, byte value) {
+        switch (index) {
+            case CustomizeIndex.Height: Height = value; break;
+            case CustomizeIndex.Face: Face = value; break;
+            case CustomizeIndex.HairStyle: HairStyle = value; break;
+            case CustomizeIndex.Highlights: Highlights = value; break;
+            case CustomizeIndex.SkinColor: SkinColor = value; break;
+            case CustomizeIndex.EyeColorRight: EyeColorRight = value; break;
+            case CustomizeIndex.HairColor: HairColor = value; break;
+            case CustomizeIndex.HighlightsColor: HighlightsColor = value; break;
+            case CustomizeIndex.FacialFeatures: FacialFeatures = value; break;
+            case CustomizeIndex.FacialFeaturesColor: TattooColor = value; break;
+            case CustomizeIndex.Eyebrows: Eyebrows = value; break;
+            case CustomizeIndex.EyeColorLeft: EyeColorLeft = value; break;
+            case CustomizeIndex.EyeShape: EyeShape = value; break;
+            case CustomizeIndex.Nose: Nose = value; break;
+            case CustomizeIndex.Jaw: Jaw = value; break;
+            case CustomizeIndex.Mouth: Mouth = value; break;
+            case CustomizeIndex.LipColorFurPattern: LipColorFurPattern = value; break;
+            case CustomizeIndex.MuscleMass: MuscleMass = value; break;
+            case CustomizeIndex.TailShape: TailShape = value; break;
+            case CustomizeIndex.BustSize: BustSize = value; break;
+            case CustomizeIndex.FacePaint: FacePaint = value; break;
+            case CustomizeIndex.FacePaintColor: FacePaintColor = value; break;
+            default: throw new ArgumentOutOfRangeException(nameof(index), index, null);
+        }
+    }
+
+    public NpcAppearanceData Copy()
+        => this with { ExtendedAppearance = ExtendedAppearance is { } extended ? extended with { } : null };
 
     public static NpcAppearanceData? FromResource(string fileName) {
         var assembly = typeof(NpcAppearanceData).Assembly;
@@ -196,20 +333,23 @@ public class NpcAppearanceData {
 }
 
 [Serializable]
-public class WeaponModel {
-    public ushort ModelSetId { get; set; }
-    public ushort Base { get; set; }
-    public ushort Variant { get; set; }
-    public byte Stain0 { get; set; }
-    public byte Stain1 { get; set; }
+public record WeaponModel {
+    public ushort ModelSetId { get; init; }
+    public ushort Base { get; init; }
+    public ushort Variant { get; init; }
+    public byte Stain0 { get; init; }
+    public byte Stain1 { get; init; }
 
     public WeaponModel() { }
     public WeaponModel(ulong modelKey) {
-        var (modelSet, modelBase, modelVariant) = ItemModelData.DecodeModel(modelKey);
-        ModelSetId = modelSet;
-        Base = modelBase;
-        Variant = (byte)modelVariant;
+        var parts = ItemModelData.DecodeWeapon(modelKey);
+        ModelSetId = parts.ModelSet;
+        Base = parts.ModelBase;
+        Variant = parts.ModelVariant;
     }
+
+    public ulong ToModelKey()
+        => ItemModelData.CalculateModel(ModelSetId, Base, Variant);
 
     public unsafe void Apply(Character* actor, bool isMainHand) {
 
@@ -242,19 +382,22 @@ public class WeaponModel {
 }
 
 [Serializable]
-public class EquipmentModel {
+public record EquipmentModel {
 
-    public ushort ModelId { get; set; }
-    public byte Variant { get; set; }
-    public byte Stain0 { get; set; }
-    public byte Stain1 { get; set; }
+    public ushort ModelId { get; init; }
+    public byte Variant { get; init; }
+    public byte Stain0 { get; init; }
+    public byte Stain1 { get; init; }
 
     public EquipmentModel() { }
     public EquipmentModel(ulong modelKey) {
-        var (_, modelBase, modelVariant) = ItemModelData.DecodeModel(modelKey);
-        ModelId = modelBase;
-        Variant = (byte)modelVariant;
+        var parts = ItemModelData.DecodeEquipment(modelKey);
+        ModelId = parts.ModelBase;
+        Variant = (byte)parts.ModelVariant;
     }
+
+    public ulong ToModelKey()
+        => ItemModelData.CalculateModel(0, ModelId, Variant);
 
     public unsafe void Apply(Character* actor, EquipmentSlot index) {
         var item = new EquipmentModelId() {

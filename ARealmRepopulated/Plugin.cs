@@ -47,6 +47,7 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<NpcServices>()
             .AddSingleton<NpcNamePlateService>()
             .AddSingleton<NpcAppearanceService>()
+            .AddSingleton<NpcAppearanceRandomizer>()
             .AddSingleton<NpcAppearanceDataParser>()
             .AddSingleton<ScenarioOrchestrator>()
             .AddSingleton<ScenarioFileManager>()
@@ -60,9 +61,11 @@ public sealed class Plugin : IDalamudPlugin {
             .AddWindow<OnboardingWindow>()
             .AddTransientWindow<ScenarioEditorWindow>()
             .AddTransient<NpcActor>()
+            .AddTransient<NpcActorPreview>()
             .AddTransient<Scenario>()
             .AddTransient<ScenarioNpc>()
-            .AddGuiPickers()
+            .AddGameData()
+            .AddGuiComponents()
             .AddIntegrations();
 
         _services = serviceDescriptors.BuildServiceProvider();
@@ -81,7 +84,8 @@ public sealed class Plugin : IDalamudPlugin {
         pluginInterface.UiBuilder.Draw += _drawAction;
         pluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUI;
 
-        _services.GetRequiredService<ArrpDataCache>().Populate();
+        _services.GetRequiredService<ArrpAnimationData>().Populate();
+        _services.GetRequiredService<ArrpModelData>().Populate();
         _services.GetRequiredService<ArrpCharacterCreationData>().Populate();
         _services.GetRequiredService<ScenarioMigrator>().Initialize();
         _services.GetRequiredService<ArrpDtrControl>().Initialize();

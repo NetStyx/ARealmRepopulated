@@ -43,8 +43,4 @@ public class BNpcLinkParser {
     public List<uint> GetNamesFromBase(uint baseId) {
         return BaseIdToNameIds.TryGetValue(baseId, out var nameIds) ? nameIds : new List<uint>();
     }
-
-    public List<uint> GetBasesFromName(uint nameId) {
-        return NameIdToBaseIds.TryGetValue(nameId, out var baseIds) ? baseIds : new List<uint>();
-    }
 }

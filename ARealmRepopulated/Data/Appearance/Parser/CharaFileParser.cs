@@ -12,7 +12,7 @@ namespace ARealmRepopulated.Data.Appearance.Parser;
 /// These are usually generated from brio and anamnesis as far as i can tell and share the same format ... to an extent.
 /// </summary>
 [AppearanceParser(Priority = 1, Extension = ".chara")]
-public class CharaFileParser(IPluginLog log, ArrpDataCache dataCache) : IAppearanceFileParser {
+public class CharaFileParser(IPluginLog log, ArrpModelData modelData) : IAppearanceFileParser {
 
     public NpcAppearanceData? TryParse(byte[] data) {
 
@@ -30,7 +30,7 @@ public class CharaFileParser(IPluginLog log, ArrpDataCache dataCache) : IAppeara
         }
 
         try {
-            var appearance = CharaFileReader.Read(rawData, dataCache);
+            var appearance = CharaFileReader.Read(rawData, modelData);
             if (appearance.ModelCharaId != 0) {                
                 log.Warning("The character file uses model {Model}, so its customize data may not apply as stored", [appearance.ModelCharaId]);
             }
@@ -53,7 +53,7 @@ public static class CharaFileReader {
         AllowTrailingCommas = true,
     };
 
-    public static NpcAppearanceData Read(string rawData, ArrpDataCache dataCache) {
+    public static NpcAppearanceData Read(string rawData, ArrpModelData modelData) {
 
         JsonObject? json;
         try {
@@ -62,10 +62,10 @@ public static class CharaFileReader {
             throw new InvalidDataException("the file does not contain readable JSON", ex);
         }
 
-        return Read(json ?? throw new InvalidDataException("the file does not contain a JSON object"), dataCache);
+        return Read(json ?? throw new InvalidDataException("the file does not contain a JSON object"), modelData);
     }
 
-    public static NpcAppearanceData Read(JsonObject json, ArrpDataCache dataCache) {
+    public static NpcAppearanceData Read(JsonObject json, ArrpModelData modelData) {
 
         var data = new NpcAppearanceData {
             ModelCharaId = json["ModelType"].GetIntOrNull() ?? 0,
@@ -97,7 +97,7 @@ public static class CharaFileReader {
             EyeShape = json["Eyes"].GetByteOrNull(),
             Nose = json["Nose"].GetByteOrNull(),
             Jaw = json["Jaw"].GetByteOrNull(),
-            Lipstick = json["Mouth"].GetByteOrNull(),
+            Mouth = json["Mouth"].GetByteOrNull(),
             LipColorFurPattern = json["LipsToneFurPattern"].GetByteOrNull(),
             MuscleMass = json["EarMuscleTailSize"].GetByteOrNull(),
             TailShape = json["TailEarsType"].GetByteOrNull(),
@@ -128,7 +128,7 @@ public static class CharaFileReader {
         // Depending on the tool which creates the .chara file, it will contain the calculate model scale as heightmultiplier.
         if (json["HeightMultiplier"].GetFloatOrNull() is { } heightMultiplier 
             && float.IsFinite(heightMultiplier) && heightMultiplier > 0
-            && dataCache.ReverseModelScale(data.ModelCharaId, data.Tribe, data.Sex, data.BodyType, heightMultiplier) is { } components) {
+            && modelData.ReverseModelScale(data.ModelCharaId, data.Tribe, data.Sex, data.BodyType, heightMultiplier) is { } components) {
             data.Height = components.Height;
             data.Scale = (data.Scale ?? NpcAppearanceData.ScaleDefault) * components.ScaleFactor;
         }

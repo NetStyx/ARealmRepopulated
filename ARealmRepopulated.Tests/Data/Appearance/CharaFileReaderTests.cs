@@ -18,8 +18,8 @@ public class CharaFileReaderTests {
     private const string UnknownGenderFile = "unknown-gender.chara";
     private const string NotJsonFile = "not-json.chara";
 
-    private static NpcAppearanceData Read(string fileName, TestArrpDataCache? dataCache = null)
-        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), dataCache ?? new TestArrpDataCache(64, 1f));
+    private static NpcAppearanceData Read(string fileName, TestArrpModelData? modelData = null)
+        => CharaFileReader.Read(TestHelper.ReadEmbeddedResource(fileName), modelData ?? new TestArrpModelData(64, 1f));
 
     [Fact]
     public void Read_WithCompleteFile_ReadsCustomizeValues() {
@@ -51,17 +51,17 @@ public class CharaFileReaderTests {
 
     [Fact]
     public void Read_WithHeightMultiplier_TurnsItIntoTheHeight() {        
-        var dataCache = new TestArrpDataCache(64, 1f);
-        var appearance = Read(ExtendedAppearanceFile, dataCache);
+        var modelData = new TestArrpModelData(64, 1f);
+        var appearance = Read(ExtendedAppearanceFile, modelData);
 
         appearance.Height.ShouldBe((byte)64);
         appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault);
-        dataCache.Lookups.ShouldBe([(0, NpcTribe.KeeperOfTheMoon, NpcSex.Female, NpcBodyType.Normal, 1.02f)]);
+        modelData.Lookups.ShouldBe([(0, NpcTribe.KeeperOfTheMoon, NpcSex.Female, NpcBodyType.Normal, 1.02f)]);
     }
 
     [Fact]
     public void Read_WithHeightMultiplierBeyondTheHeightRange_FoldsTheRestIntoTheScale() {
-        var appearance = Read(ExtendedAppearanceFile, new TestArrpDataCache(100, 1.5f));
+        var appearance = Read(ExtendedAppearanceFile, new TestArrpModelData(100, 1.5f));
 
         appearance.Height.ShouldBe((byte)100);
         appearance.Scale.ShouldBe(NpcAppearanceData.ScaleDefault * 1.5f);

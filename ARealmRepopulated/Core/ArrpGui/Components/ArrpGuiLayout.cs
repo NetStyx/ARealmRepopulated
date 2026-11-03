@@ -7,7 +7,30 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
+public readonly record struct ArrpGuiTab(string Label, Action Draw);
+
 public static class ArrpGuiLayout {
+
+    public static void Tabs(string id, ArrpGuiTab[] tabs, int opensOn) {
+        using var tabBar = ImRaii.TabBar(id);
+        if (!tabBar.Success)
+            return;
+
+        var appearing = ImGui.IsWindowAppearing();
+        for (var tabIndex = 0; tabIndex < tabs.Length; tabIndex++) {
+
+            var tabFlags = tabIndex == opensOn && appearing
+                ? ImGuiTabItemFlags.SetSelected
+                : ImGuiTabItemFlags.None;
+
+            // This abomination was created because ImGui seems to measure tab size on the first frame. SetSelected however lands on the frame later.
+            // Witout this, the layout explodes for one frame until it measures it correctly. So.. we draw the correct tab by hand and dont depend on ImGui. Fun.
+            using var tab = ImRaii.TabItem($"{tabs[tabIndex].Label}###tab{tabIndex}", tabFlags);
+            if (tab.Success) {
+                tabs[appearing && opensOn >= 0 ? opensOn : tabIndex].Draw();
+            }
+        }
+    }
 
     public static ImRaii.PopupDisposable Popup(string id) {
         using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);

@@ -29,6 +29,8 @@ public class ArrpEventService : IDisposable {
         _condition[ConditionFlag.WatchingCutscene78];
 
     public bool IsTerritoryReady => _isTerritoryReady;
+    public bool CanSpawnActors => _isTerritoryReady && !IsBetweenZones && !IsInCutscene && _objectTable.LocalPlayer != null;
+
     public LocationData CurrentLocation { get; private set; } = new LocationData();
 
     public ArrpEventService(IFramework framework, IObjectTable objectTable, IClientState clientState, ICondition condition, IPlayerState player, IPluginLog log) {

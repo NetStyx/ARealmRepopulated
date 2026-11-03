@@ -16,35 +16,23 @@ public readonly record struct ModelScaleComponents(byte Height, float ScaleFacto
 /// </remarks>
 public class HumanHeightTable {
 
-    public const string GamePath = "chara/xls/charaMake/human.cmp";
-
     private const int TableStart = 0x2C800;
     private const int EntrySize = 0x38;
     private const int RaceCount = 8;
     private const int EntriesPerRace = 10;
+    private const int MuscleOffset = 8;
 
     private readonly byte[] _data;
 
     public HumanHeightTable(byte[] cmpData) {
         if (cmpData.Length < TableStart + (RaceCount * EntriesPerRace * EntrySize))
-            throw new InvalidDataException($"{GamePath} ({cmpData.Length} bytes) is smaller then the calculated table size.");
+            throw new InvalidDataException($"human.cmp ({cmpData.Length} bytes) is smaller than the calculated table size.");
 
         _data = cmpData;
     }
 
     public ModelScaleComponents ReverseModelScale(NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, float modelScale) {
-        var tribeIndex = (uint)tribe - 1;
-        var race = tribeIndex >> 1;
-        if (race >= RaceCount)
-            race = 0;
-
-        var body = (uint)bodyType;
-        if (body - 1 >= 5)
-            body = 1;
-
-        var entry = (race * EntriesPerRace) + ((body - 1) * 2) + (tribeIndex & 1);
-        var offset = TableStart + ((int)entry * EntrySize) + (sex == NpcSex.Male ? 0 : 0x10);
-
+        var offset = GetEntryOffset(tribe, sex, bodyType);
         var min = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset));
         var max = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset + 4));
         var step = (max - min) / 100f;
@@ -55,5 +43,29 @@ public class HumanHeightTable {
         var scaleFactor = MathF.Abs(modelScale - fitted) <= step / 2 ? 1f : modelScale / fitted;
 
         return new ModelScaleComponents(height, scaleFactor);
+    }
+
+    public float GetMuscleTone(NpcRace race, NpcTribe tribe, NpcSex sex, NpcBodyType bodyType, byte muscleMass) {
+        if (race is not (NpcRace.Hyur or NpcRace.Roegadyn))
+            return 1f;
+
+        var offset = GetEntryOffset(tribe, sex, bodyType) + MuscleOffset;
+        var min = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset));
+        var max = BinaryPrimitives.ReadSingleLittleEndian(_data.AsSpan(offset + 4));
+        return ((muscleMass > 100 ? 0 : muscleMass) / 100f * (max - min)) + min;
+    }
+
+    private static int GetEntryOffset(NpcTribe tribe, NpcSex sex, NpcBodyType bodyType) {
+        var tribeIndex = (uint)tribe - 1;
+        var race = tribeIndex >> 1;
+        if (race >= RaceCount)
+            race = 0;
+
+        var body = (uint)bodyType;
+        if (body - 1 >= 5)
+            body = 1;
+
+        var entry = (race * EntriesPerRace) + ((body - 1) * 2) + (tribeIndex & 1);
+        return TableStart + ((int)entry * EntrySize) + (sex == NpcSex.Male ? 0 : 0x10);
     }
 }
