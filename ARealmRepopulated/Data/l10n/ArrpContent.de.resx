@@ -1206,7 +1206,7 @@
   <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Outfit" xml:space="preserve">
     <value>a</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Section_Identity" xml:space="preserve">
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Origin" xml:space="preserve">
     <value>a</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Section_Body" xml:space="preserve">
@@ -1291,6 +1291,159 @@
     <value>a</value>
   </data>
   <data name="ArrpGuiPicker_Npc_Column_ModelId" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Search_Placeholder" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Action_Add_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Action_OpenFolder_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Action_Delete_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Used" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Accept" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Decline" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Scenario_MissingCharacter_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_UnnamedCharacter" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Usage_None" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Usage_One" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Usage" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_None" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Missing" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Empty" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Save" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Save_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Edit" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Unlink" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Unlink_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Unsaved" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Linked_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Missing_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_Newer" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_Conflicting" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_UseImported" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_KeepMine" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_ImportAsNew" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_IntegrationName" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_IntegrationName_External" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Input_Group" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Input_Group_Hint" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Input_Group_Help" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Overview_UsedIn" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Overview_UsedIn_None" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="CharacterEditor_Tab_Overview" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Header_Name" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Header_Appearance" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Header_Usage" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Action_Edit_Desc" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ListWnd_Characters_Appearance_Model" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Identity_Title" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_Source" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_Summary" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_Name_Linked" xml:space="preserve">
+    <value>a</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Link_Title" xml:space="preserve">
     <value>a</value>
   </data>
 </root>

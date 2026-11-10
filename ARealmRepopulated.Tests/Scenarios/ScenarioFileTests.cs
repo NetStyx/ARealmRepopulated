@@ -48,10 +48,10 @@ public class ScenarioFileTests {
         var services = new ServiceCollection().AddSingleton<ArrpModelData>(new TestArrpModelData(64, 1f)).BuildServiceProvider();
         var migrator = new ScenarioMigrator(services, NullPluginLog.Instance);
         migrator.Initialize();
-        using var fileManager = new ScenarioFileManager(null!, NullPluginLog.Instance, null!, migrator);
+        using var fileManager = new ScenarioFileManager(null!, NullPluginLog.Instance, null!, migrator, null!);
         var exportString = Convert.ToBase64String(Encoding.UTF8.GetBytes(TestHelper.ReadEmbeddedResource(fileName)));
 
-        var scenario = fileManager.ImportBase64Scenario(exportString);
+        var scenario = fileManager.ImportBase64Scenario(exportString)?.Scenario;
 
         scenario.ShouldNotBeNull();
         scenario.Version.ShouldBe(ScenarioMigrator.CurrentScenarioVersion);

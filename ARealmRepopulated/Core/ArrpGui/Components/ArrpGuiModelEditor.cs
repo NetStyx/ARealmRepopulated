@@ -30,10 +30,13 @@ public class ArrpGuiModelEditor(
         if (clan == null || !creationData.IsCustomizable(appearance)) {
             using (ImRaii.Disabled())
                 ImGui.TextWrapped(loc["ScenarioEditor_ActorData_Appearance_NoCustomize"]);
+
+            ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+            ArrpGuiForm.Draw("##arrpAppearanceModelScale", form => DrawScaleRow(form, appearance));
             return;
         }
 
-        ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Section_Identity"]);
+        ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Section_Origin"]);
         ArrpGuiForm.Draw("##arrpAppearanceModelIdentity", form => {
             DrawClanRow(form, appearance, clan);
             DrawGenderRow(form, appearance);
@@ -50,6 +53,8 @@ public class ArrpGuiModelEditor(
                 var attachedColors = menus.Where(m => GetColorTarget(m, menus) != null).ToList();
                 foreach (var menu in menus.Except(attachedColors)) {
                     DrawMenuRow(form, appearance, clan, menu, attachedColors.FirstOrDefault(c => GetColorTarget(c, menus) == menu));
+                    if (menu.Customize == CustomizeIndex.Height)
+                        DrawScaleRow(form, appearance);
                 }
             });
         }
@@ -87,6 +92,14 @@ public class ArrpGuiModelEditor(
         CustomizeIndex.FacialFeaturesColor or CustomizeIndex.FacePaint or CustomizeIndex.FacePaintColor => ModelSection.Markings,
         _ => ModelSection.Body
     };
+
+    private void DrawScaleRow(ArrpGuiForm form, NpcAppearanceData appearance)
+        => form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_CScale"], () => {
+            var scale = appearance.Scale ?? NpcAppearanceData.ScaleDefault;
+            if (ImGui.SliderFloat("##scale", ref scale, NpcAppearanceData.ScaleSoftMin, NpcAppearanceData.ScaleSoftMax, "%.2f")) {
+                appearance.Scale = Math.Clamp(scale, NpcAppearanceData.ScaleMin, NpcAppearanceData.ScaleMax);
+            }
+        }, loc["ScenarioEditor_ActorData_Appearance_CScale_Desc"]);
 
     private void DrawClanRow(ArrpGuiForm form, NpcAppearanceData appearance, CharacterEditorClan clan) {
         form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_Clan"], () => {

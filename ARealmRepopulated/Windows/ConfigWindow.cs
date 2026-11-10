@@ -4,6 +4,7 @@ using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Changelog;
+using ARealmRepopulated.Core.Services.Characters;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Core.Services.Windows;
 using ARealmRepopulated.Data.Location;
@@ -25,7 +26,7 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Windows;
 
-public class ConfigWindow(
+public partial class ConfigWindow(
     IServiceProvider serviceProvider,
     IDalamudPluginInterface pluginInterface,
     IPluginLog log,
@@ -36,12 +37,16 @@ public class ConfigWindow(
     PluginConfig _config,
     ScenarioFileManager _fileManager,
     ScenarioOrchestrator _orchestrator,
+    CharacterFileManager _characterFileManager,
     DebugOverlay _debugOverlay,
     OnboardingWindow onboardingWindow,
     WindowSystem windowSystem,
+    WindowPlacement windowPlacement,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
-    ArrpTerritoryData territoryData) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
+    ArrpTerritoryData territoryData,
+    ArrpModelData modelData,
+    ArrpCharacterCreationData characterCreationData) : ADalamudWindow("###ARealmRepopulatedConfigWindow"), IDisposable {
 
     protected override void SetWindowOptions() {
         Size = new Vector2(750, 630);
@@ -52,6 +57,7 @@ public class ConfigWindow(
         this.CollapsedCondition = ImGuiCond.None;
         loc.OnLocalizationChanged += UpdateWindowTitle;
         UpdateWindowTitle();
+        this.OnWindowClosed += windowPlacement.Release;
     }
 
     public void Dispose() {
@@ -63,6 +69,7 @@ public class ConfigWindow(
         => this.WindowName = $"{loc["ListWnd_Title", pluginInterface.Manifest.AssemblyVersion]}###ARealmRepopulatedConfigWindow";
 
     public override void Draw() {
+        windowPlacement.Update();
         DrawMainContent();
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -160,6 +167,12 @@ public class ConfigWindow(
                     ImGui.TextColored(ImGuiColors.DalamudRed, $"Error loading scenarios: {ex.Message}");
                     log.Error(ex, "huh");
                 }
+            }
+        }
+
+        using (var charactersTab = ImRaii.TabItem(loc["ListWnd_Characters_Title"], ImGuiTabItemFlags.NoTooltip)) {
+            if (charactersTab.Success) {
+                CharactersTab();
             }
         }
 
@@ -533,6 +546,11 @@ public class ConfigWindow(
         }
 
         ImGui.SameLine();
+        if (!s.IsBroken && s.MetaData.CharacterIds.Any(id => !_characterFileManager.Contains(id))) {
+            ArrpGuiLayout.Badge(FontAwesomeIcon.UserSlash, ArrpGuiColors.ArrpRed, loc["ListWnd_Scenario_MissingCharacter_Desc"]);
+            ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
+        }
+
         if (_orchestrator.Orchestrations.FirstOrDefault(o => o.FilePath.IsSamePath(s.FilePath)) is { Scenario: { Statistics.IsLoopingTooFast: true } fastLoopingScenario }) {
             ArrpGuiLayout.Badge(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow,
                 loc["ListWnd_Scenario_LoopingTooFast", fastLoopingScenario.Statistics.AverageRunTime.TotalSeconds.ToString("0.00")]);
@@ -577,11 +595,7 @@ public class ConfigWindow(
         ImGui.TableNextColumn();
         using (ImRaii.Disabled(s.IsBroken)) {
             if (ImGuiComponents.IconButton("##scenarioEditButton", FontAwesomeIcon.Wrench)) {
-                if (windowSystem.Windows.OfType<ScenarioEditorWindow>().FirstOrDefault(w => w.IsOpen && w.IsEditing(s.FilePath)) is { } openEditor) {
-                    openEditor.BringToFront();
-                } else {
-                    serviceProvider.GetService<ScenarioEditorWindow>()!.EditScenario(s.FilePath);
-                }
+                ScenarioEditorWindow.Open(windowSystem, serviceProvider, s.FilePath);
             }
         }
         if (ImGui.IsItemHovered())

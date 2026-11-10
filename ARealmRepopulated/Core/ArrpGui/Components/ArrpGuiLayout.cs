@@ -32,6 +32,16 @@ public static class ArrpGuiLayout {
         }
     }
 
+    public static void TabBody(string id, Action draw) {
+        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
+
+        using var body = ImRaii.Child(id, new Vector2(0, 0), false);
+        if (!body.Success)
+            return;
+
+        draw();
+    }
+
     public static ImRaii.PopupDisposable Popup(string id) {
         using var borderColor = ImRaii.PushColor(ImGuiCol.Border, ArrpGuiColors.PopupBorderColor);
         using var borderSize = ImRaii.PushStyle(ImGuiStyleVar.PopupBorderSize, 2f);

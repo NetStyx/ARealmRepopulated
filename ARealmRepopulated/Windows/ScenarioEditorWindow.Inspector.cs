@@ -38,12 +38,12 @@ public partial class ScenarioEditorWindow {
 
         using (var general = ImRaii.TabItem($"{loc["ScenarioEditor_BaseData_General_Title"]}##arrpScenarioTabGeneral", ImGuiTabItemFlags.NoTooltip)) {
             if (general.Success)
-                DrawTabBody("##arrpScenarioTabGeneralBody", DrawScenarioGeneralTab);
+                ArrpGuiLayout.TabBody("##arrpScenarioTabGeneralBody", DrawScenarioGeneralTab);
         }
 
         using (var playback = ImRaii.TabItem($"{loc["ScenarioEditor_Playback_Title"]}##arrpScenarioTabPlayback", ImGuiTabItemFlags.NoTooltip)) {
             if (playback.Success)
-                DrawTabBody("##arrpScenarioTabPlaybackBody", DrawScenarioPlaybackTab);
+                ArrpGuiLayout.TabBody("##arrpScenarioTabPlaybackBody", DrawScenarioPlaybackTab);
         }
 
         using var conditions = ImRaii.TabItem($"{loc["ScenarioEditor_Conditions_Title"]}##arrpScenarioTabConditions", ImGuiTabItemFlags.NoTooltip);
@@ -151,14 +151,15 @@ public partial class ScenarioEditorWindow {
         });
     }
 
-    private void DrawActorInspector(ScenarioNpcData npc) {        
+    private void DrawActorInspector(ScenarioNpcData npc) {
+        var definition = ResolveDefinition(npc);
         ArrpGuiLayout.PanelHeader("##arrpActorPanelHeader", FontAwesomeIcon.User, ActorLabel(npc),
             Pluralize(npc.Actions.Count, "ScenarioEditor_Inspector_Actor_SubtitleOne", "ScenarioEditor_Inspector_Actor_Subtitle"),
             trailing: () => {
-                DrawAppearancePreviewToggle(npc);
+                characterEditor.DrawPreviewToggle(definition);
                 DrawDeleteAction("##arrpActorDelete", "ScenarioEditor_Inspector_Actor_Delete");
             },
-            titleSuffix: npc.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName) ? () => DrawActorNameSuffix(actorName) : null);
+            titleSuffix: definition.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName) ? () => DrawActorNameSuffix(actorName) : null);
 
         using var tabBar = ImRaii.TabBar("##arrpActorInspectorTabs");
         if (!tabBar.Success)
@@ -169,29 +170,9 @@ public partial class ScenarioEditorWindow {
                 DrawActorPlacementTab(npc);
         }
 
-        using (var setup = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Setup"]}##arrpActorTabSetup", ImGuiTabItemFlags.NoTooltip)) {
-            if (setup.Success)
-                DrawTabBody("##arrpActorTabSetupBody", DrawNpcSetupTab);
-        }
-
-        if (!IsRemoteAppearanceManagement(npc)) {
-            using (var model = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##arrpActorTabModel", ImGuiTabItemFlags.NoTooltip)) {
-                if (model.Success)
-                    DrawTabBody("##arrpActorTabModelBody", DrawNpcCustomizeAppearanceInfo);
-            }
-
-            using (var equipment = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##arrpActorTabEquipment", ImGuiTabItemFlags.NoTooltip)) {
-                if (equipment.Success)
-                    DrawTabBody("##arrpActorTabEquipmentBody", DrawNpcEquipmentAppearanceInfo);
-            }
-        }
-
-        if (!config.RuntimeConfig.ModdingToolsInstalled)
-            return;
-
-        using var integration = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Integration"]}##arrpActorTabIntegration", ImGuiTabItemFlags.NoTooltip);
-        if (integration.Success)
-            DrawTabBody("##arrpActorTabIntegrationBody", DrawNpcIntegrationInfo);
+        // a linked actor leaves its look to the character
+        if (npc.CharacterId == null)
+            characterEditor.DrawTabs(npc);
     }
     
     private static void DrawActorNameSuffix(string actorName) {
@@ -203,18 +184,11 @@ public partial class ScenarioEditorWindow {
         ImGui.Text("]");
     }
 
-    private static void DrawTabBody(string id, Action draw) {
-        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-
-        using var body = ImRaii.Child(id, new Vector2(0, 0), false);
-        if (!body.Success)
-            return;
-
-        draw();
-    }
-
     private void DrawActorPlacementTab(ScenarioNpcData npc) {
-        DrawTabBody("##arrpActorTabPlacementBody", () => {
+        ArrpGuiLayout.TabBody("##arrpActorTabPlacementBody", () => {
+            ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Link_Title"]);
+            DrawCharacterLinkSection(npc);
+            ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Identity_Title"]);
             DrawActorNameForm(npc);
             DrawActorPlacementSection(npc);
             DrawActorBehaviorSection(npc);
@@ -224,17 +198,22 @@ public partial class ScenarioEditorWindow {
     private void DrawActorNameForm(ScenarioNpcData npc) {
         ArrpGuiForm.Draw("##arrpActorNameForm", form => {
             form.Row(loc["ScenarioEditor_ActorData_General_Input_Name"], () => {
-                using (ImRaii.ItemWidth(-(ImGui.GetFrameHeight() + ImGui.GetTextLineHeight()))) {
-                    var name = npc.Name;
-                    if (ImGui.InputText("##value", ref name)) {
-                        npc.Name = name;
+                var isLinked = npc.CharacterId != null;
+                using (ImRaii.Disabled(isLinked)) {
+                    using (ImRaii.ItemWidth(-(ImGui.GetFrameHeight() + ImGui.GetTextLineHeight()))) {
+                        var name = ResolveDefinition(npc).Name;
+                        if (ImGui.InputText("##value", ref name)) {
+                            npc.Name = name;
+                        }
                     }
-                }
+                    if (isLinked)
+                        ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_General_Input_Name_Linked"]);
 
-                ImGui.SameLine();
-                if (ImGuiComponents.IconButton(FontAwesomeIcon.Random)) {
-                    var newActorName = characterCreationData.GenerateRandomName(npc.Appearance.Race, npc.Appearance.Tribe, npc.Appearance.Sex);
-                    npc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
+                    ImGui.SameLine();
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Random)) {
+                        var newActorName = characterCreationData.GenerateRandomName(npc.Appearance.Race, npc.Appearance.Tribe, npc.Appearance.Sex);
+                        npc.Name = $"{newActorName.FirstName} {newActorName.LastName}";
+                    }
                 }
                 ArrpGuiLayout.Tooltip(loc["ScenarioEditor_ActorData_General_Input_NameRandom"]);
             });

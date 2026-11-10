@@ -108,6 +108,11 @@ public class ArrpItemData(IPluginLog log, IDataManager dataManager) {
     public Stain? GetStain(uint stainId)
         => _stainSheet.GetRowOrDefault(stainId);
 
+    public Item? FindItem(ItemSlots slot, ushort set, ushort modelBase, ushort variant) {
+        var model = GetItemByModel(slot, set, modelBase, variant);
+        return model == ItemModelData.Empty || model.Item == 0 ? null : GetItem(model.Item);
+    }
+
     public ItemModelData GetItemByModel(ItemSlots slot, ushort set, ushort baseValue, ushort variant) {
 
         if (new ItemModelParts(set, baseValue, variant).IsEmpty)

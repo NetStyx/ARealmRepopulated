@@ -2,6 +2,7 @@ using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Native;
+using ARealmRepopulated.Core.Services.Characters;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Core.Services.Scenarios.Conditions;
 using ARealmRepopulated.Data.Location;
@@ -22,6 +23,7 @@ public unsafe class ScenarioOrchestrator(
     INotificationManager notificationManager,
     ArrpTranslation loc,
     ScenarioFileManager fileManager,
+    CharacterFileManager characterFileManager,
     PluginConfig config,
     NpcServices npcServices,
     ArrpEventService eventService,
@@ -91,6 +93,11 @@ public unsafe class ScenarioOrchestrator(
             HasPendingChanges = true;
         }
     }
+
+    private void CharacterFileManager_CharacterChanged(Guid characterId)
+        => fileManager.GetScenarioFiles()
+            .Where(f => !f.IsBroken && f.MetaData.CharacterIds.Contains(characterId))
+            .ToList().ForEach(ScenarioFileManager_ScenarioFileChanged);
 
     private void Framework_Update(IFramework framework)
         => AdvanceScenarios(framework.UpdateDelta);
@@ -169,7 +176,8 @@ public unsafe class ScenarioOrchestrator(
         var scenarioNpcIndex = 0;
         foreach (var scenarioNpc in data.Npcs) {
 
-            var spawnOptions = scenarioNpc.ToSpawnOptions((Character*)objectTable.LocalPlayer!.Address);
+            var definition = characterFileManager.ResolveDefinition(scenarioNpc);
+            var spawnOptions = scenarioNpc.ToSpawnOptions(definition, (Character*)objectTable.LocalPlayer!.Address);
             if (!npcServices.TrySpawnNpc(spawnOptions, out var npc)) {
                 // the actors spawned up until now are orphaned
                 scenario.Npcs.ForEach(n => npcServices.DespawnNpc(n.Actor));
@@ -179,7 +187,7 @@ public unsafe class ScenarioOrchestrator(
             var scenarioNpcObject = serviceProvider.GetRequiredService<ScenarioNpc>();
             scenarioNpcObject.Actor = npc;
             scenarioNpcObject.Id = scenarioNpcIndex;
-            scenarioNpcObject.Name = scenarioNpc.Name;
+            scenarioNpcObject.Name = definition.Name;
             scenarioNpcObject.Behavior = scenarioNpc.Behavior;
             scenarioNpcObject.ScenarioInstance = scenario.ScenarioInstance;
             scenarioNpcObject.SetActions(scenarioNpc.Actions);
@@ -347,6 +355,8 @@ public unsafe class ScenarioOrchestrator(
         framework.Update += Framework_Update;
         fileManager.OnScenarioFileChanged += ScenarioFileManager_ScenarioFileChanged;
         fileManager.OnScenarioFileRemoved += ScenarioFileManager_ScenarioFileRemoved;
+        characterFileManager.OnCharacterChanged += CharacterFileManager_CharacterChanged;
+        characterFileManager.OnCharacterRemoved += CharacterFileManager_CharacterChanged;
     }
 
     public void Dispose() {
@@ -357,6 +367,8 @@ public unsafe class ScenarioOrchestrator(
         framework.Update -= Framework_Update;
         fileManager.OnScenarioFileRemoved -= ScenarioFileManager_ScenarioFileRemoved;
         fileManager.OnScenarioFileChanged -= ScenarioFileManager_ScenarioFileChanged;
+        characterFileManager.OnCharacterChanged -= CharacterFileManager_CharacterChanged;
+        characterFileManager.OnCharacterRemoved -= CharacterFileManager_CharacterChanged;
 
         GC.SuppressFinalize(this);
         Unload();

@@ -1217,8 +1217,8 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="ScenarioEditor_ActorData_Appearance_Randomize_Lock_Outfit" xml:space="preserve">
     <value>Outfit</value>
   </data>
-  <data name="ScenarioEditor_ActorData_Appearance_Section_Identity" xml:space="preserve">
-    <value>Identity</value>
+  <data name="ScenarioEditor_ActorData_Appearance_Section_Origin" xml:space="preserve">
+    <value>Origin</value>
   </data>
   <data name="ScenarioEditor_ActorData_Appearance_Section_Body" xml:space="preserve">
     <value>Body</value>
@@ -1303,5 +1303,158 @@ This might impact performance. Ensure that the actions are valid for the actor o
   </data>
   <data name="ArrpGuiPicker_Npc_Column_ModelId" xml:space="preserve">
     <value>Model ID</value>
+  </data>
+  <data name="ListWnd_Characters_Title" xml:space="preserve">
+    <value>Characters</value>
+  </data>
+  <data name="ListWnd_Characters_Desc" xml:space="preserve">
+    <value>Characters are looks you define once and use in as many scenarios as you like. Link an actor to a character on the Setup tab of the actor, and every change to the character shows up in each scenario that uses it. The characters are stored as files in the 'Characters' subfolder of the plugin configuration directory.</value>
+  </data>
+  <data name="ListWnd_Characters_Search_Placeholder" xml:space="preserve">
+    <value>Search ...</value>
+  </data>
+  <data name="ListWnd_Characters_Action_Add_Desc" xml:space="preserve">
+    <value>Add a new character</value>
+  </data>
+  <data name="ListWnd_Characters_Action_OpenFolder_Desc" xml:space="preserve">
+    <value>Opens the character file folder</value>
+  </data>
+  <data name="ListWnd_Characters_Action_Delete_Desc" xml:space="preserve">
+    <value>Delete this character</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Desc" xml:space="preserve">
+    <value>Are you sure you want to delete the character '{0}'?</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Used" xml:space="preserve">
+    <value>These scenarios use it. Their actors keep the look of the character, but are no longer linked to it:</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Accept" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="ListWnd_Characters_Popup_Delete_Decline" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="ListWnd_Scenario_MissingCharacter_Desc" xml:space="preserve">
+    <value>An actor in this scenario is linked to a character that no longer exists. It spawns with the default look until you pick another character or unlink it.</value>
+  </data>
+  <data name="CharacterEditor_UnnamedCharacter" xml:space="preserve">
+    <value>Unnamed Character</value>
+  </data>
+  <data name="CharacterEditor_Usage_None" xml:space="preserve">
+    <value>Not used in any scenario</value>
+  </data>
+  <data name="CharacterEditor_Usage_One" xml:space="preserve">
+    <value>Used in 1 scenario</value>
+  </data>
+  <data name="CharacterEditor_Usage" xml:space="preserve">
+    <value>Used in {0} scenarios</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character" xml:space="preserve">
+    <value>Character</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Desc" xml:space="preserve">
+    <value>Link the actor to a character to share its name and look with other scenarios.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_None" xml:space="preserve">
+    <value>No character</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Missing" xml:space="preserve">
+    <value>Missing character</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Empty" xml:space="preserve">
+    <value>No characters yet. Save this actor as one, or create one in the Characters tab.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Save" xml:space="preserve">
+    <value>Save as character</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Save_Desc" xml:space="preserve">
+    <value>Turns the name and look of this actor into a new character and links the actor to it.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Edit" xml:space="preserve">
+    <value>Edit character</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Unlink" xml:space="preserve">
+    <value>Unlink</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Unlink_Desc" xml:space="preserve">
+    <value>Keeps the current look in this scenario as an independent actor. The character stays as it is.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Unsaved" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Linked_Desc" xml:space="preserve">
+    <value>Name, look and integration settings come from the character. Edit the character to change them in every scenario that uses it.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Character_Missing_Desc" xml:space="preserve">
+    <value>This actor is linked to a character that no longer exists. It spawns with the default look until you pick another character or unlink it.</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_Newer" xml:space="preserve">
+    <value>The imported scenario brings a newer version of this character than the one you have.</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_Conflicting" xml:space="preserve">
+    <value>The imported scenario brings this character with changes that differ from yours.</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_UseImported" xml:space="preserve">
+    <value>Use the imported one</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_KeepMine" xml:space="preserve">
+    <value>Keep mine</value>
+  </data>
+  <data name="ScenarioEditor_Import_Character_ImportAsNew" xml:space="preserve">
+    <value>Import as a new character</value>
+  </data>
+  <data name="ListWnd_Characters_IntegrationName" xml:space="preserve">
+    <value>Other plugins know this character as '{0}'.</value>
+  </data>
+  <data name="ListWnd_Characters_IntegrationName_External" xml:space="preserve">
+    <value>Its look is left to other plugins.</value>
+  </data>
+  <data name="CharacterEditor_Input_Group" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="CharacterEditor_Input_Group_Hint" xml:space="preserve">
+    <value>e.g. Private Estate/Staff</value>
+  </data>
+  <data name="CharacterEditor_Input_Group_Help" xml:space="preserve">
+    <value>Sorts the character into a group in the character list. Use / to nest groups. The group stays on your computer and does not travel along when you share a scenario.</value>
+  </data>
+  <data name="CharacterEditor_Overview_UsedIn" xml:space="preserve">
+    <value>Used in</value>
+  </data>
+  <data name="CharacterEditor_Overview_UsedIn_None" xml:space="preserve">
+    <value>No scenario uses this character yet.</value>
+  </data>
+  <data name="CharacterEditor_Tab_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="ListWnd_Characters_Header_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ListWnd_Characters_Header_Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="ListWnd_Characters_Header_Usage" xml:space="preserve">
+    <value>Scenarios</value>
+  </data>
+  <data name="ListWnd_Characters_Action_Edit_Desc" xml:space="preserve">
+    <value>Edit this character</value>
+  </data>
+  <data name="ListWnd_Characters_Appearance_Model" xml:space="preserve">
+    <value>Model {0}</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Identity_Title" xml:space="preserve">
+    <value>Identity</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Appearance_Setup_Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_General_Input_Name_Linked" xml:space="preserve">
+    <value>The name comes from the linked character.</value>
+  </data>
+  <data name="ScenarioEditor_ActorData_Link_Title" xml:space="preserve">
+    <value>Link</value>
   </data>
 </root>

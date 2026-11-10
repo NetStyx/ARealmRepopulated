@@ -24,11 +24,10 @@ public class ScenarioMigrator(IServiceProvider serviceProvider, IPluginLog log) 
         }
     }
 
-    public ScenarioMigrationResult? Migrate(string json) {
-        if (JsonNode.Parse(json) is not JsonObject root) {
-            return null;
-        }
+    public ScenarioMigrationResult? Migrate(string json)
+        => JsonNode.Parse(json) is JsonObject root ? Migrate(root) : null;
 
+    public ScenarioMigrationResult Migrate(JsonObject root) {
         var version = root["Version"]?.GetValue<int>() ?? 0;
         if (version >= CurrentScenarioVersion) {
             return new ScenarioMigrationResult(root, false);

@@ -1,57 +1,136 @@
-using ARealmRepopulated.Core.ArrpGui.Components;
+using ARealmRepopulated.Configuration;
 using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.IPC;
+using ARealmRepopulated.Core.l10n;
 using ARealmRepopulated.Core.Services.Npcs;
 using ARealmRepopulated.Data.Appearance;
-using ARealmRepopulated.Data.Scenarios;
+using ARealmRepopulated.Data.Characters;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using System.Numerics;
 
-namespace ARealmRepopulated.Windows;
+namespace ARealmRepopulated.Core.ArrpGui.Components;
 
-public partial class ScenarioEditorWindow {
+/// <summary>
+/// The Setup, Model, Equipment and Integration tabs that edit a character, shared by the scenario and the character editor.
+/// One instance per window, since it keeps the state of its inputs.
+/// </summary>
+public class ArrpGuiCharacterEditor(
+    PluginConfig config,
+    IDalamudPluginInterface pluginInterface,
+    IObjectTable objectTable,
+    ITargetManager targetManager,
+    NpcAppearanceService appearanceService,
+    NpcAppearanceRandomizer appearanceRandomizer,
+    NpcAppearanceDataParser appearanceDataParser,
+    ArrpModelData modelData,
+    ArrpTerritoryData territoryData,
+    ArrpCharacterCreationData characterCreationData,
+    ArrpEventService eventService,
+    ArrpGuiEquipmentEditor equipmentEditor,
+    ArrpGuiModelEditor modelEditor,
+    ArrpGuiNpcListPicker npcListPicker,
+    ArrpGuiNpcPicker npcPicker,
+    FileDialogManager fileDialogManager,
+    ArrpTranslation loc) {
 
     private readonly TransferState _appearanceDataImportState = new() { DefaultIcon = FontAwesomeIcon.ClipboardCheck };
     private readonly TransferState _appearanceFileImportState = new() { DefaultIcon = FontAwesomeIcon.FileImport };
 
-    private ScenarioNpcData? _actorNameOwner = null;
+    private ICharacterDefinition? _actorNameOwner = null;
     private bool _actorNameUsePrefix = true;
-    private bool _showAppearancePreview = false;
     private AppearanceMixLocks _mixLocks = AppearanceMixLocks.None;
     private bool _mixFromResidents = true;
 
-    private static string ComposeActorName(bool usePrefix, string identifier)
-        => string.IsNullOrWhiteSpace(identifier) ? ""
-        : usePrefix ? ActorName.IntegrationPrefix + identifier
-        : identifier;
+    public bool ShowPreview { get; private set; } = false;
 
-    private static bool IsRemoteAppearanceManagement(ScenarioNpcData npc)
-        => npc.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
+    public static bool IsExternallyManaged(ICharacterDefinition character)
+        => character.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
 
-    private static void SetStableActorName(ScenarioNpcData npc, string name) {
-        npc.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, name);
-        if (string.IsNullOrWhiteSpace(name))
-            npc.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, "");
+    public void DrawTabs(ICharacterDefinition character) {
+        using (var setup = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Setup"]}##arrpCharacterTabSetup", ImGuiTabItemFlags.NoTooltip)) {
+            if (setup.Success) {
+                ArrpGuiLayout.TabBody("##arrpCharacterTabSetupBody", () => DrawSetupTab(character));
+            }
+        }
+
+        if (!IsExternallyManaged(character)) {
+            using (var model = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##arrpCharacterTabModel", ImGuiTabItemFlags.NoTooltip)) {
+                if (model.Success)
+                    ArrpGuiLayout.TabBody("##arrpCharacterTabModelBody", () => modelEditor.Draw(character.Appearance));
+            }
+
+            using (var equipment = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Equip"]}##arrpCharacterTabEquipment", ImGuiTabItemFlags.NoTooltip)) {
+                if (equipment.Success)
+                    ArrpGuiLayout.TabBody("##arrpCharacterTabEquipmentBody", () => equipmentEditor.Draw(character.Appearance));
+            }
+        }
+
+        if (!config.RuntimeConfig.ModdingToolsInstalled)
+            return;
+
+        using var integration = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Integration"]}##arrpCharacterTabIntegration", ImGuiTabItemFlags.NoTooltip);
+        if (integration.Success)
+            ArrpGuiLayout.TabBody("##arrpCharacterTabIntegrationBody", () => DrawIntegrationTab(character));
     }
 
-    private void DrawNpcSetupTab() {
-        DrawNpcBaseAppearanceInfo();
+    public void DrawPreviewToggle(ICharacterDefinition character) {
+        if (IsExternallyManaged(character))
+            return;
 
-        if (SelectedScenarioNpc == null || !IsRemoteAppearanceManagement(SelectedScenarioNpc))
+        if (ImGuiComponents.IconButton("##arrpCharacterPreview", FontAwesomeIcon.Eye, ShowPreview ? ArrpGuiColors.ArrpGreen : null)) {
+            ShowPreview = !ShowPreview;
+        }
+        ArrpGuiLayout.Tooltip($"{loc["ScenarioEditor_ActorData_Appearance_ShowPreview"]}\n\n{loc["ScenarioEditor_ActorData_Appearance_ShowPreview_Desc"]}");
+        ImGui.SameLine();
+    }
+
+    private void DrawSetupTab(ICharacterDefinition character) {
+        ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Setup_Source"]);
+        using (ImRaii.Disabled())
+            ImGui.TextWrapped(loc["ScenarioEditor_ActorData_Appearance_Setup_Desc"]);
+
+        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
+
+        var isExternal = IsExternallyManaged(character);
+        using (ImRaii.Disabled(isExternal))
+            DrawAppearanceSources(character);
+
+        if (!isExternal) {
+            ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Setup_Generate"]);
+            DrawAppearanceRandomizer(character);
+        }
+
+        ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Setup_Summary"]);
+
+        var appearance = character.Appearance;
+        ArrpGuiForm.Draw("##npcAppearanceEditorSetupForm", form => {
+            if (!isExternal) {
+                DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CRaceTribeGender"], $"{appearance.Race} / {appearance.Tribe} / {appearance.Sex}");
+                DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CModelSkeleton"], $"{appearance.ModelCharaId} / {appearance.ModelSkeletonId}");
+            }
+
+            // other plugins do not seem to handle voices ... so we still have that responsibility
+            DrawVoiceRow(form, appearance);
+        });
+
+        if (!isExternal)
             return;
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalSectionSpacing);
         ArrpGuiLayout.IconNote(FontAwesomeIcon.ExclamationTriangle, ArrpGuiColors.ArrpYellow, loc["ScenarioEditor_ActorData_Appearance_ManagedExternally"]);
     }
 
-    private unsafe void DrawNpcAppearanceSources() {
-        if (SelectedScenarioNpc == null)
-            return;
-
+    private unsafe void DrawAppearanceSources(ICharacterDefinition character) {
         using var cellPadding = ImRaii.PushStyle(ImGuiStyleVar.CellPadding, ArrpGuiSpacing.TableCellPadding);
         using var table = ImRaii.Table("##npcAppearanceEditorSourceTable", 2, ImGuiTableFlags.NoSavedSettings);
         if (!table.Success)
@@ -63,45 +142,36 @@ public partial class ScenarioEditorWindow {
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
-        if (DrawNpcAppearanceSourceButton(FontAwesomeIcon.PeoplePulling, loc["ScenarioEditor_ActorData_Appearance_Setup_PickNpc"])) {
+        if (DrawAppearanceSourceButton(FontAwesomeIcon.PeoplePulling, loc["ScenarioEditor_ActorData_Appearance_Setup_PickNpc"])) {
             npcPicker.OpenPopup();
         }
         if (npcPicker.Popup(out var npc)) {
-            var currentTargetAppearance = ExportCurrentCharacter(npc);
-            if (currentTargetAppearance != null) {
-                SelectedScenarioNpc.Appearance = currentTargetAppearance;
-            }
+            character.Appearance = ReadAppearance(npc);
         }
 
         ImGui.TableNextColumn();
-        if (DrawNpcAppearanceSourceButton(FontAwesomeIcon.PersonWalkingArrowLoopLeft, loc["ScenarioEditor_ActorData_Appearance_Setup_PickSelf"])) {
-            var currentTargetAppearance = ExportCurrentCharacter();
-            if (currentTargetAppearance != null) {
-                SelectedScenarioNpc.Appearance = currentTargetAppearance;
-            }
+        if (DrawAppearanceSourceButton(FontAwesomeIcon.PersonWalkingArrowLoopLeft, loc["ScenarioEditor_ActorData_Appearance_Setup_PickSelf"]) && objectTable.LocalPlayer != null) {
+            character.Appearance = ReadAppearance((Character*)objectTable.LocalPlayer.Address);
         }
 
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
-        using (ImRaii.Disabled(_targetManager.Target == null)) {
-            if (DrawNpcAppearanceSourceButton(FontAwesomeIcon.PersonRays, loc["ScenarioEditor_ActorData_Appearance_Setup_PickTarget"])) {
-                var currentTargetAppearance = ExportCurrentTarget();
-                if (currentTargetAppearance != null) {
-                    SelectedScenarioNpc.Appearance = currentTargetAppearance;
-                }
+        using (ImRaii.Disabled(targetManager.Target == null)) {
+            if (DrawAppearanceSourceButton(FontAwesomeIcon.PersonRays, loc["ScenarioEditor_ActorData_Appearance_Setup_PickTarget"]) && targetManager.Target is ICharacter target) {
+                character.Appearance = ReadAppearance((Character*)target.Address);
             }
         }
 
         ImGui.TableNextColumn();
-        if (DrawNpcAppearanceSourceButton(FontAwesomeIcon.SearchLocation, loc["ScenarioEditor_ActorData_Appearance_Setup_PickAllNpcs"])) {
+        if (DrawAppearanceSourceButton(FontAwesomeIcon.SearchLocation, loc["ScenarioEditor_ActorData_Appearance_Setup_PickAllNpcs"])) {
             npcListPicker.OpenPopup();
         }
         if (npcListPicker.Popup(out var listedNpc)) {
             var newAppearance = new NpcAppearanceData();
             appearanceService.Read(listedNpc, newAppearance);
 
-            SelectedScenarioNpc.Appearance = newAppearance;
+            character.Appearance = newAppearance;
         }
 
         ImGui.TableNextRow();
@@ -113,12 +183,12 @@ public partial class ScenarioEditorWindow {
         }
 
         ImGui.TableNextColumn();
-        if (DrawNpcAppearanceSourceButton(fileImportIcon, importFileTooltip, fileImportColor)) {
+        if (DrawAppearanceSourceButton(fileImportIcon, importFileTooltip, fileImportColor)) {
             fileDialogManager.OpenFileDialog($"{loc["ScenarioEditor_ActorData_Appearance_Setup_ImportFile_Select"]}##arrpAppearanceFileSelector", "Character Files (.chara){.chara},All Files{.*}", (b, s) => {
                 if (b && s.Count > 0) {
                     var appearanceData = appearanceDataParser.TryParseAppearanceFile(s[0]);
                     if (appearanceData != null) {
-                        SelectedScenarioNpc.Appearance = appearanceData;
+                        character.Appearance = appearanceData;
                         _appearanceFileImportState.SetResult(true);
                     } else {
                         _appearanceFileImportState.SetResult(false);
@@ -135,12 +205,12 @@ public partial class ScenarioEditorWindow {
         }
 
         ImGui.TableNextColumn();
-        if (DrawNpcAppearanceSourceButton(dataImportIcon, importDataTooltip, dataImportColor)) {
+        if (DrawAppearanceSourceButton(dataImportIcon, importDataTooltip, dataImportColor)) {
             var clipboardContents = ImGui.GetClipboardText();
             if (!string.IsNullOrWhiteSpace(clipboardContents)) {
                 var appearanceData = appearanceDataParser.TryParseAppearanceData(clipboardContents);
                 if (appearanceData != null) {
-                    SelectedScenarioNpc.Appearance = appearanceData;
+                    character.Appearance = appearanceData;
                     _appearanceDataImportState.SetResult(true);
                 } else {
                     _appearanceDataImportState.SetResult(false);
@@ -149,51 +219,16 @@ public partial class ScenarioEditorWindow {
         }
     }
 
-    private static bool DrawNpcAppearanceSourceButton(FontAwesomeIcon icon, string label, Vector4? color = null)
-        => ImGuiComponents.IconButtonWithText(icon, label, size: new Vector2(ImGui.GetContentRegionAvail().X, 0), defaultColor: color);
-
-    private unsafe void DrawNpcBaseAppearanceInfo() {
-        if (SelectedScenarioNpc == null)
-            return;
-
-        using (ImRaii.Disabled())
-            ImGui.TextWrapped(loc["ScenarioEditor_ActorData_Appearance_Setup_Desc"]);
-
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-
-        var isExternal = IsRemoteAppearanceManagement(SelectedScenarioNpc);
-        using (ImRaii.Disabled(isExternal))
-            DrawNpcAppearanceSources();
-
-        if (!isExternal) {
-            ArrpGuiLayout.SectionHeader(loc["ScenarioEditor_ActorData_Appearance_Setup_Generate"]);
-            DrawAppearanceRandomizer(SelectedScenarioNpc);
-        }
-
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        ImGui.Separator();
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-
-        var appearance = SelectedScenarioNpc.Appearance;
-        ArrpGuiForm.Draw("##npcAppearanceEditorSetupForm", form => {
-            if (!isExternal) {
-                DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CRaceTribeGender"], $"{appearance.Race} / {appearance.Tribe} / {appearance.Sex}");
-                DrawValueRow(form, loc["ScenarioEditor_ActorData_Appearance_CModelSkeleton"], $"{appearance.ModelCharaId} / {appearance.ModelSkeletonId}");
-
-                form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_CScale"], () => {
-                    var scale = appearance.Scale ?? NpcAppearanceData.ScaleDefault;
-                    if (ImGui.SliderFloat("##npcAppearanceEditorSetupScale", ref scale, NpcAppearanceData.ScaleSoftMin, NpcAppearanceData.ScaleSoftMax, "%.2f")) {
-                        appearance.Scale = Math.Clamp(scale, NpcAppearanceData.ScaleMin, NpcAppearanceData.ScaleMax);
-                    }
-                }, loc["ScenarioEditor_ActorData_Appearance_CScale_Desc"]);
-            }
-
-            // other plugins do not seem to handle voices ... so we still have that responsibility
-            DrawNpcVoiceRow(form, appearance);
-        });
+    private unsafe NpcAppearanceData ReadAppearance(Character* source) {
+        var appearance = new NpcAppearanceData();
+        appearanceService.Read(source, appearance);
+        return appearance;
     }
 
-    private void DrawNpcVoiceRow(ArrpGuiForm form, NpcAppearanceData appearance) {
+    private static bool DrawAppearanceSourceButton(FontAwesomeIcon icon, string label, Vector4? color = null)
+        => ImGuiComponents.IconButtonWithText(icon, label, size: new Vector2(ImGui.GetContentRegionAvail().X, 0), defaultColor: color);
+
+    private void DrawVoiceRow(ArrpGuiForm form, NpcAppearanceData appearance) {
         if (!modelData.IsHumanModel(appearance.ModelCharaId))
             return;
 
@@ -229,21 +264,7 @@ public partial class ScenarioEditorWindow {
             : loc["ScenarioEditor_ActorData_Appearance_Voice_Other", voice.Value];
     }
 
-    private void DrawNpcCustomizeAppearanceInfo() {
-        if (SelectedScenarioNpc == null)
-            return;
-
-        modelEditor.Draw(SelectedScenarioNpc.Appearance);
-    }
-
-    private void DrawNpcEquipmentAppearanceInfo() {
-        if (SelectedScenarioNpc == null)
-            return;
-
-        equipmentEditor.Draw(SelectedScenarioNpc.Appearance);
-    }
-
-    private void DrawAppearanceRandomizer(ScenarioNpcData npc) {
+    private void DrawAppearanceRandomizer(ICharacterDefinition character) {
         ArrpGuiForm.Draw("##npcAppearanceEditorRandomizeForm", form => {
             form.StretchedRow(loc["ScenarioEditor_ActorData_Appearance_Randomize_Source"], () => {
                 var locationName = territoryData.GetPlaceName(eventService.CurrentLocation.TerritoryType);
@@ -262,7 +283,7 @@ public partial class ScenarioEditorWindow {
                 }
             }, loc["ScenarioEditor_ActorData_Appearance_Randomize_Source_Desc"]);
 
-            if (characterCreationData.IsCustomizable(npc.Appearance)) {
+            if (characterCreationData.IsCustomizable(character.Appearance)) {
                 form.Row(loc["ScenarioEditor_ActorData_Appearance_Randomize_Lock"], () => {
                     var clanFollowsLocks = NpcAppearanceMixer.KeepsClan(_mixLocks & ~AppearanceMixLocks.Clan);
                     using (ImRaii.Disabled(clanFollowsLocks))
@@ -278,8 +299,8 @@ public partial class ScenarioEditorWindow {
             form.Row(string.Empty, () => {
                 if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Dice, loc["ScenarioEditor_ActorData_Appearance_Randomize"])) {
                     var options = new AppearanceRandomizationOptions(_mixLocks, _mixFromResidents ? eventService.CurrentLocation.TerritoryType : null);
-                    if (appearanceRandomizer.Randomize(npc.Appearance, options) is { } mixed) {
-                        npc.Appearance = mixed;
+                    if (appearanceRandomizer.Randomize(character.Appearance, options) is { } mixed) {
+                        character.Appearance = mixed;
                     }
                 }
             });
@@ -293,25 +314,21 @@ public partial class ScenarioEditorWindow {
         }
     }
 
-    private void DrawAppearancePreviewToggle(ScenarioNpcData npc) {
-        if (IsRemoteAppearanceManagement(npc))
-            return;
+    private static string ComposeActorName(bool usePrefix, string identifier)
+        => string.IsNullOrWhiteSpace(identifier) ? ""
+        : usePrefix ? ActorName.IntegrationPrefix + identifier
+        : identifier;
 
-        if (ImGuiComponents.IconButton("##arrpActorPreview", FontAwesomeIcon.Eye, _showAppearancePreview ? ArrpGuiColors.ArrpGreen : null)) {
-            _showAppearancePreview = !_showAppearancePreview;
-        }
-        ArrpGuiLayout.Tooltip($"{loc["ScenarioEditor_ActorData_Appearance_ShowPreview"]}\n\n{loc["ScenarioEditor_ActorData_Appearance_ShowPreview_Desc"]}");
-        ImGui.SameLine();
+    private static void SetStableActorName(ICharacterDefinition character, string name) {
+        character.SetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, name);
+        if (string.IsNullOrWhiteSpace(name))
+            character.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, "");
     }
 
-    private void DrawNpcIntegrationInfo() {
-        if (SelectedScenarioNpc == null)
-            return;
-
-        var npc = SelectedScenarioNpc;
-        var currentName = npc.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
-        if (!ReferenceEquals(_actorNameOwner, npc)) {
-            _actorNameOwner = npc;
+    private void DrawIntegrationTab(ICharacterDefinition character) {
+        var currentName = character.AdditionalData.GetValueOrDefault(IntegrationProvider.ActorNameConfigKey, "");
+        if (!ReferenceEquals(_actorNameOwner, character)) {
+            _actorNameOwner = character;
             _actorNameUsePrefix = currentName.Length == 0 || ActorName.HasPrefix(currentName);
         }
 
@@ -323,7 +340,7 @@ public partial class ScenarioEditorWindow {
 
                     var toggledIdentifier = usePrefix ? ActorName.Filter(currentName) : ActorName.WithoutPrefix(currentName);
                     currentName = ComposeActorName(usePrefix, toggledIdentifier);
-                    SetStableActorName(npc, currentName);
+                    SetStableActorName(character, currentName);
                 }
                 ImGui.SameLine();
 
@@ -333,13 +350,13 @@ public partial class ScenarioEditorWindow {
                 if (ImGui.InputTextEx("##npcIntegrationEditorGeneralLink", "", ref currentIdenitfer, maxLength: nameLimit, flags: nameFlags)) {
                     currentIdenitfer = ActorName.TruncateToBytes(usePrefix ? ActorName.Clean(currentIdenitfer) : currentIdenitfer.Trim(), nameLimit);
                     currentName = ComposeActorName(usePrefix, currentIdenitfer);
-                    SetStableActorName(npc, currentName);
+                    SetStableActorName(character, currentName);
                 }
                 ImGui.SameLine();
                 if (ImGuiComponents.IconButton(FontAwesomeIcon.TrowelBricks)) {
                     _actorNameUsePrefix = true;
                     currentName = ActorName.IntegrationPrefix + characterCreationData.GetRandomName();
-                    SetStableActorName(npc, currentName);
+                    SetStableActorName(character, currentName);
                 }
                 if (ImGui.IsItemHovered()) {
                     ImGui.SetTooltip(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ActorName_Random_Hint"]);
@@ -359,8 +376,8 @@ public partial class ScenarioEditorWindow {
             if (string.IsNullOrWhiteSpace(currentName))
                 return;
 
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], IsRemoteAppearanceManagement(npc),
-                isExternal => npc.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, isExternal ? "true" : ""),
+            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], IsExternallyManaged(character),
+                isExternal => character.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, isExternal ? "true" : ""),
                 loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance_Desc"]);
         });
 
@@ -382,5 +399,4 @@ public partial class ScenarioEditorWindow {
             ImGui.AlignTextToFramePadding();
             ImGui.TextDisabled(value);
         });
-
 }
