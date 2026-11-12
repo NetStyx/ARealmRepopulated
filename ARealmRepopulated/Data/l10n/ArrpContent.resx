@@ -1388,21 +1388,6 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="ScenarioEditor_ActorData_Character_Missing_Desc" xml:space="preserve">
     <value>This actor is linked to a character that no longer exists. It spawns with the default look until you pick another character or unlink it.</value>
   </data>
-  <data name="ScenarioEditor_Import_Character_Newer" xml:space="preserve">
-    <value>The imported scenario brings a newer version of this character than the one you have.</value>
-  </data>
-  <data name="ScenarioEditor_Import_Character_Conflicting" xml:space="preserve">
-    <value>The imported scenario brings this character with changes that differ from yours.</value>
-  </data>
-  <data name="ScenarioEditor_Import_Character_UseImported" xml:space="preserve">
-    <value>Use the imported one</value>
-  </data>
-  <data name="ScenarioEditor_Import_Character_KeepMine" xml:space="preserve">
-    <value>Keep mine</value>
-  </data>
-  <data name="ScenarioEditor_Import_Character_ImportAsNew" xml:space="preserve">
-    <value>Import as a new character</value>
-  </data>
   <data name="ListWnd_Characters_IntegrationName" xml:space="preserve">
     <value>Other plugins know this character as '{0}'.</value>
   </data>

@@ -32,13 +32,6 @@ public class CharacterData : ICharacterDefinition {
     }
 }
 
-public enum CharacterImportMatch {
-    New,
-    Known,
-    Newer,
-    Conflicting
-}
-
 public static class CharacterDefinitionExtensions {
 
     public static void CopyCharacterFrom(this ICharacterDefinition target, ICharacterDefinition source) {
@@ -68,15 +61,11 @@ public static class CharacterDefinitionExtensions {
         return missing;
     }
 
-    public static CharacterImportMatch MatchImport(this CharacterData imported, CharacterData? local) {
-        if (local == null)
-            return CharacterImportMatch.New;
-
-        if (imported.Revision > local.Revision)
-            return CharacterImportMatch.Newer;
-
-        return imported.Revision == local.Revision && !imported.HasSameCharacterAs(local)
-            ? CharacterImportMatch.Conflicting
-            : CharacterImportMatch.Known;
-    }
+    /// <summary>
+    /// Whether an imported character replaces the local one: unknown, newer, or the same revision with other content.
+    /// </summary>
+    public static bool ReplacesLocal(this CharacterData imported, CharacterData? local)
+        => local == null
+            || imported.Revision > local.Revision
+            || (imported.Revision == local.Revision && !imported.HasSameCharacterAs(local));
 }

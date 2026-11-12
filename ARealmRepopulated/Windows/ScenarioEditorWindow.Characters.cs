@@ -6,13 +6,10 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
-using System.Numerics;
 
 namespace ARealmRepopulated.Windows;
 
 public partial class ScenarioEditorWindow {
-
-    private readonly record struct PendingCharacterImport(CharacterData Character, CharacterImportMatch Match);
 
     private void CharacterFileManager_CharacterChanged(Guid characterId) {
         if (ScenarioObject == null || characterFileManager.GetCharacter(characterId) is not { } character)
@@ -109,86 +106,12 @@ public partial class ScenarioEditorWindow {
     private string CharacterLabel(CharacterData character)
         => string.IsNullOrWhiteSpace(character.Name) ? loc["CharacterEditor_UnnamedCharacter"] : character.Name;
 
-    private void StartImport(ScenarioExportData importedScenario) {
-        _pendingImport = importedScenario;
-        _pendingCharacters.Clear();
+    private void Import(ScenarioExportData importedScenario) {
+        foreach (var character in importedScenario.Characters.Where(c => c.ReplacesLocal(characterFileManager.GetCharacter(c.Id))))
+            characterFileManager.Adopt(character);
 
-        foreach (var character in importedScenario.Characters) {
-            var match = character.MatchImport(characterFileManager.GetCharacter(character.Id));
-            if (match == CharacterImportMatch.New) {
-                characterFileManager.Adopt(character);
-            } else if (match is CharacterImportMatch.Newer or CharacterImportMatch.Conflicting) {
-                _pendingCharacters.Enqueue(new PendingCharacterImport(character, match));
-            }
-        }
-
-        if (_pendingCharacters.Count == 0)
-            FinishImport();
-    }
-
-    private void FinishImport() {
-        if (_pendingImport is not { } importedScenario)
-            return;
-
-        _pendingImport = null;
         characterFileManager.ApplyCharacters(importedScenario.Scenario, importedScenario.Scenario.Title);
         InitScenarioStructures(importedScenario.Scenario, _scenarioFilePath);
         _importState.SetResult(true);
-    }
-
-    private void DrawImportQuestion() {
-        if (_pendingImport == null || !_pendingCharacters.TryPeek(out var pending))
-            return;
-
-        if (!ImGui.IsPopupOpen(ImportQuestionPopupId))
-            ImGui.OpenPopup(ImportQuestionPopupId);
-
-        ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetCenter(), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
-        using var modal = ArrpGuiLayout.PopupModal(ImportQuestionPopupId, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoTitleBar);
-        if (!modal.Success)
-            return;
-
-        ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-        ImGui.TextColored(ArrpGuiColors.ArrpYellow, CharacterLabel(pending.Character));
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-
-        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 30);
-        ImGui.TextUnformatted(loc[pending.Match == CharacterImportMatch.Newer
-            ? "ScenarioEditor_Import_Character_Newer"
-            : "ScenarioEditor_Import_Character_Conflicting"]);
-        ImGui.PopTextWrapPos();
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-        ImGui.Separator();
-        ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
-
-        var answered = false;
-        if (ImGui.Button(loc["ScenarioEditor_Import_Character_UseImported"])) {
-            pending.Character.Group = characterFileManager.GetCharacter(pending.Character.Id)?.Group ?? "";
-            characterFileManager.Adopt(pending.Character);
-            answered = true;
-        }
-
-        ImGui.SameLine();
-        if (ImGui.Button(loc["ScenarioEditor_Import_Character_KeepMine"])) {
-            answered = true;
-        }
-        ImGui.SetItemDefaultFocus();
-
-        ImGui.SameLine();
-        if (ImGui.Button(loc["ScenarioEditor_Import_Character_ImportAsNew"])) {
-            var newCharacter = pending.Character.Copy();
-            newCharacter.Id = Guid.NewGuid();
-            characterFileManager.Adopt(newCharacter);
-            _pendingImport.Scenario.Npcs.Where(n => n.CharacterId == pending.Character.Id).ToList().ForEach(n => n.CharacterId = newCharacter.Id);
-            answered = true;
-        }
-
-        if (!answered)
-            return;
-
-        _pendingCharacters.Dequeue();
-        ImGui.CloseCurrentPopup();
-        if (_pendingCharacters.Count == 0)
-            FinishImport();
     }
 }

@@ -59,9 +59,6 @@ public partial class ScenarioEditorWindow(
     private readonly NpcActionUiRegistry _actionUiRegistry = new();
     private readonly ConditionUiRegistry _conditionUiRegistry = new();
     private readonly HashSet<ScenarioNpcData> _collapsedActors = new(ReferenceEqualityComparer.Instance);
-    private const string ImportQuestionPopupId = "##arrpScenarioEditorImportCharacter";
-    private ScenarioExportData? _pendingImport = null;
-    private readonly Queue<PendingCharacterImport> _pendingCharacters = new();
 
     private readonly List<CharacterData> _unsavedCharacters = [];
     private readonly Dictionary<ScenarioNpcData, Guid?> _storedLinks = new(ReferenceEqualityComparer.Instance);
@@ -259,8 +256,6 @@ public partial class ScenarioEditorWindow(
         } else {
             appearancePreview.Hide();
         }
-
-        DrawImportQuestion();
     }
 
     private void DrawHeaderBar() {
@@ -366,7 +361,7 @@ public partial class ScenarioEditorWindow(
             if (!string.IsNullOrWhiteSpace(clipBoardText)) {
                 var importedScenarioData = scenarioFileManager.ImportBase64Scenario(clipBoardText);
                 if (importedScenarioData != null) {
-                    StartImport(importedScenarioData);
+                    Import(importedScenarioData);
                 }
             }
         }

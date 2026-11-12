@@ -11,14 +11,12 @@ using System.Threading;
 namespace ARealmRepopulated.Core.Services.Characters;
 
 /// <summary>
-/// Keeps the characters of the Characters folder, one file per character, in sync with the disk.
+/// Handles our character files.
 /// </summary>
 public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework framework) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
-    private readonly Lock _charactersLock = new();
     private readonly Dictionary<Guid, CharacterFile> _characters = [];
-
-    // shared by every actor whose character is missing, so nothing may change it
+    private readonly Lock _charactersLock = new();
     private readonly CharacterData _missingCharacter = new();
 
     public delegate void CharacterChangedDelegate(Guid characterId);
@@ -63,16 +61,9 @@ public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPlug
         return _characters.TryGetValue(characterId, out var file) ? file.Character : null;
     }
 
-    /// <summary>
-    /// What the actor shows: the default while its linked character is missing, its own fields otherwise.
-    /// The actor keeps its stored look, so unlinking brings it back.
-    /// </summary>
     public ICharacterDefinition ResolveDefinition(ScenarioNpcData npc)
         => npc.CharacterId is { } id && !Contains(id) ? _missingCharacter : npc;
 
-    /// <summary>
-    /// Fills the linked actors of a scenario from their characters.
-    /// </summary>
     public void ApplyCharacters(ScenarioData scenario, string scenarioName) {
         Dictionary<Guid, CharacterData> characters;
         using (_charactersLock.EnterScope()) {
@@ -84,19 +75,19 @@ public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPlug
         }
     }
 
-    /// <summary>
-    /// Stores a local edit of the character, which raises its revision.
-    /// </summary>
     public void Save(CharacterData character) {
         character.Revision++;
         Write(character.Copy());
     }
 
     /// <summary>
-    /// Stores a character as it came, revision included. Used for characters that arrive with an import.
+    /// Stores an imported character as it is, keeping the local group of the character it replaces.
     /// </summary>
-    public void Adopt(CharacterData character)
-        => Write(character.Copy());
+    public void Adopt(CharacterData character) {
+        var adopted = character.Copy();
+        adopted.Group = GetCharacter(character.Id)?.Group ?? "";
+        Write(adopted);
+    }
 
     public void Remove(Guid characterId) {
         string? filePath;
@@ -109,7 +100,6 @@ public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPlug
         if (filePath != null && File.Exists(filePath))
             File.Delete(filePath);
 
-        // the watcher finds the character gone from the cache already and stays quiet
         OnCharacterRemoved?.Invoke(characterId);
     }
 

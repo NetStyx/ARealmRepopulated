@@ -17,42 +17,42 @@ public class ScenarioCharacterTests {
     }
 
     [Fact]
-    public void MatchImport_NoLocalCharacter_IsNew()
-        => Shopkeeper().MatchImport(null).ShouldBe(CharacterImportMatch.New);
+    public void ReplacesLocal_NoLocalCharacter_Replaces()
+        => Shopkeeper().ReplacesLocal(null).ShouldBeTrue();
 
     [Fact]
-    public void MatchImport_LowerRevision_IsKnownEvenWhenChanged() {
+    public void ReplacesLocal_LowerRevision_KeepsLocalEvenWhenChanged() {
         var local = Shopkeeper(revision: 5);
         var imported = local.Copy();
         imported.Revision = 4;
         imported.Name = "Mira";
 
-        imported.MatchImport(local).ShouldBe(CharacterImportMatch.Known);
+        imported.ReplacesLocal(local).ShouldBeFalse();
     }
 
     [Fact]
-    public void MatchImport_SameRevisionAndContent_IsKnown() {
+    public void ReplacesLocal_SameRevisionAndContent_KeepsLocal() {
         var local = Shopkeeper();
 
-        local.Copy().MatchImport(local).ShouldBe(CharacterImportMatch.Known);
+        local.Copy().ReplacesLocal(local).ShouldBeFalse();
     }
 
     [Fact]
-    public void MatchImport_HigherRevision_IsNewer() {
+    public void ReplacesLocal_HigherRevision_Replaces() {
         var local = Shopkeeper();
         var imported = local.Copy();
         imported.Revision++;
 
-        imported.MatchImport(local).ShouldBe(CharacterImportMatch.Newer);
+        imported.ReplacesLocal(local).ShouldBeTrue();
     }
 
     [Fact]
-    public void MatchImport_SameRevisionWithOtherAppearance_IsConflicting() {
+    public void ReplacesLocal_SameRevisionWithOtherAppearance_Replaces() {
         var local = Shopkeeper();
         var imported = local.Copy();
         imported.Appearance.Scale = 1.2f;
 
-        imported.MatchImport(local).ShouldBe(CharacterImportMatch.Conflicting);
+        imported.ReplacesLocal(local).ShouldBeTrue();
     }
 
     [Fact]
