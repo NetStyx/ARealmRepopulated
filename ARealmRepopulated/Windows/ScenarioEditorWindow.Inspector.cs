@@ -3,6 +3,7 @@ using ARealmRepopulated.Core.ArrpGui.Style;
 using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -96,7 +97,7 @@ public partial class ScenarioEditorWindow {
                     return;
 
                 var existingGroups = scenarioFileManager.GetScenarioFiles()
-                    .Select(f => string.Join('/', f.MetaData.GroupSegments()))
+                    .Select(f => ArrpEntityExtensions.Normalize(f.MetaData.Group))
                     .Where(g => g.Length > 0)
                     .Distinct(StringComparer.InvariantCultureIgnoreCase)
                     .Order(StringComparer.InvariantCultureIgnoreCase)

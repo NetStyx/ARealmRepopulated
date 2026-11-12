@@ -710,7 +710,7 @@ public partial class ScenarioEditorWindow(
             characterFileManager.Save(character);
         _unsavedCharacters.Clear();
 
-        ScenarioObject.Group = string.Join('/', ScenarioObject.GroupSegments());
+        ScenarioObject.Group = ArrpEntityExtensions.Normalize(ScenarioObject.Group);
         if (string.IsNullOrWhiteSpace(_scenarioFilePath)) {
             _scenarioFilePath = scenarioFileManager.StoreScenarioFile(ScenarioObject).FullName;
         } else {

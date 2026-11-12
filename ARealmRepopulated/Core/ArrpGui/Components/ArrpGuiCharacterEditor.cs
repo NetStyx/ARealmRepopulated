@@ -20,10 +20,6 @@ using System.Numerics;
 
 namespace ARealmRepopulated.Core.ArrpGui.Components;
 
-/// <summary>
-/// The Setup, Model, Equipment and Integration tabs that edit a character, shared by the scenario and the character editor.
-/// One instance per window, since it keeps the state of its inputs.
-/// </summary>
 public class ArrpGuiCharacterEditor(
     PluginConfig config,
     IDalamudPluginInterface pluginInterface,

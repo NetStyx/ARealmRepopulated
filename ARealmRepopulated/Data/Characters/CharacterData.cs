@@ -22,9 +22,6 @@ public class CharacterData : ICharacterDefinition {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string Group { get; set; } = "";
 
-    public string[] GroupSegments()
-        => Group.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
     public CharacterData Copy() {
         var copy = new CharacterData { Id = Id, Revision = Revision, Group = Group };
         copy.CopyCharacterFrom(this);

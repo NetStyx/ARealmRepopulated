@@ -4,6 +4,7 @@ using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Characters;
+using ARealmRepopulated.Infrastructure;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -86,8 +87,8 @@ public partial class ConfigWindow {
 
     private void DrawCharacterGroupLevel(List<CharacterData> characters, int depth, List<ScenarioFileData> scenarioFiles) {
         var groups = characters
-            .Where(c => c.GroupSegments().Length > depth)
-            .GroupBy(c => c.GroupSegments()[depth], StringComparer.InvariantCultureIgnoreCase)
+            .Where(c => ArrpEntityExtensions.Segments(c.Group).Length > depth)
+            .GroupBy(c => ArrpEntityExtensions.Segments(c.Group)[depth], StringComparer.InvariantCultureIgnoreCase)
             .OrderBy(g => g.Key, StringComparer.InvariantCultureIgnoreCase);
 
         foreach (var group in groups) {
@@ -100,7 +101,7 @@ public partial class ConfigWindow {
             DrawCharacterGroupLevel(groupCharacters, depth + 1, scenarioFiles);
         }
 
-        foreach (var character in characters.Where(c => c.GroupSegments().Length == depth)) {
+        foreach (var character in characters.Where(c => ArrpEntityExtensions.Segments(c.Group).Length == depth)) {
             DrawCharacterRow(character, [.. scenarioFiles.Where(f => f.MetaData.CharacterIds.Contains(character.Id))]);
         }
     }

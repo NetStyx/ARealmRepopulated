@@ -456,7 +456,7 @@ public partial class ConfigWindow(
                 .OrderBy(s => s.MetaData.Location.Territory == state.TerritoryType ? 0 : 1)
                 .ThenBy(s => s.MetaData.Location.Territory)
                 .ThenBy(s => s.MetaData.Title)
-                .Select(s => new GroupedScenarioFile(s, s.MetaData.GroupSegments()))
+                .Select(s => new GroupedScenarioFile(s, ArrpEntityExtensions.Segments(s.MetaData.Group)))
                 .Where(f => f.File.MetaData.Title.Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase)
                     || string.Join('/', f.Segments).Contains(_searchScenarioText, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();

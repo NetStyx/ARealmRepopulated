@@ -66,11 +66,6 @@ public interface IScenarioMetaData {
     bool Enabled { get; }
 }
 
-public static class ScenarioMetaDataExtensions {
-    public static string[] GroupSegments(this IScenarioMetaData data)
-        => (data.Group ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-}
-
 public class ScenarioNpcData : ICharacterDefinition {
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

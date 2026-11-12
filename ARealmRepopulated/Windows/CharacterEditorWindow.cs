@@ -168,7 +168,7 @@ public class CharacterEditorWindow(
                     return;
 
                 var existingGroups = characterFileManager.GetCharacters()
-                    .Select(c => string.Join('/', c.GroupSegments()))
+                    .Select(c => ArrpEntityExtensions.Normalize(c.Group))
                     .Where(g => g.Length > 0)
                     .Distinct(StringComparer.InvariantCultureIgnoreCase)
                     .Order(StringComparer.InvariantCultureIgnoreCase)
@@ -270,7 +270,7 @@ public class CharacterEditorWindow(
     }
 
     private void Save(CharacterData character) {
-        character.Group = string.Join('/', character.GroupSegments());
+        character.Group = ArrpEntityExtensions.Normalize(character.Group);
         characterFileManager.Save(character);
     }
 

@@ -10,9 +10,6 @@ using System.Threading;
 
 namespace ARealmRepopulated.Core.Services.Characters;
 
-/// <summary>
-/// Handles our character files.
-/// </summary>
 public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework framework) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     private readonly Dictionary<Guid, CharacterFile> _characters = [];
@@ -80,9 +77,6 @@ public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPlug
         Write(character.Copy());
     }
 
-    /// <summary>
-    /// Stores an imported character as it is, keeping the local group of the character it replaces.
-    /// </summary>
     public void Adopt(CharacterData character) {
         var adopted = character.Copy();
         adopted.Group = GetCharacter(character.Id)?.Group ?? "";
