@@ -1308,7 +1308,7 @@ This might impact performance. Ensure that the actions are valid for the actor o
     <value>Characters</value>
   </data>
   <data name="ListWnd_Characters_Desc" xml:space="preserve">
-    <value>Characters are looks you define once and use in as many scenarios as you like. Link an actor to a character on the Setup tab of the actor, and every change to the character shows up in each scenario that uses it. The characters are stored as files in the 'Characters' subfolder of the plugin configuration directory.</value>
+    <value>Characters are looks you define once and use in as many scenarios as you like. Link an actor to a character on its Setup tab and every change to the character shows up in each scenario that uses it. The characters are stored as files in the 'Characters' subfolder of the plugin configuration directory.</value>
   </data>
   <data name="ListWnd_Characters_Search_Placeholder" xml:space="preserve">
     <value>Search ...</value>
@@ -1326,7 +1326,7 @@ This might impact performance. Ensure that the actions are valid for the actor o
     <value>Are you sure you want to delete the character '{0}'?</value>
   </data>
   <data name="ListWnd_Characters_Popup_Delete_Used" xml:space="preserve">
-    <value>These scenarios use it. Their actors keep the look of the character, but are no longer linked to it:</value>
+    <value>Scenarios are using this character. Their actors keep the look of the character, but are no longer linked to it.</value>
   </data>
   <data name="ListWnd_Characters_Popup_Delete_Accept" xml:space="preserve">
     <value>Yes</value>
@@ -1420,6 +1420,9 @@ This might impact performance. Ensure that the actions are valid for the actor o
   </data>
   <data name="ListWnd_Characters_Header_Usage" xml:space="preserve">
     <value>Scenarios</value>
+  </data>
+  <data name="ListWnd_Characters_Usage_More" xml:space="preserve">
+    <value>... and {0} more</value>
   </data>
   <data name="ListWnd_Characters_Action_Edit_Desc" xml:space="preserve">
     <value>Edit this character</value>

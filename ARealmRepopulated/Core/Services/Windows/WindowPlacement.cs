@@ -6,7 +6,7 @@ using System.Numerics;
 namespace ARealmRepopulated.Core.Services.Windows;
 
 /// <summary>
-/// Helper to opens editor windows beside the main window
+/// Helper to open editor windows beside the main window
 /// </summary>
 public class WindowPlacement {
 

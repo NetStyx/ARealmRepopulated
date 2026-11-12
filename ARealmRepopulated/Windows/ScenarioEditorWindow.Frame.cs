@@ -705,9 +705,9 @@ public partial class ScenarioEditorWindow(
         => JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(source, ScenarioFileManager.ScenarioLoadSerializerOptions), ScenarioFileManager.ScenarioLoadSerializerOptions);
 
     private void SaveScenario() {
-        // before the scenario, so its reload finds them
-        foreach (var character in _unsavedCharacters.Where(c => ScenarioObject.Npcs.Any(n => n.CharacterId == c.Id)))
+        foreach (var character in _unsavedCharacters.Where(c => ScenarioObject.Npcs.Any(n => n.CharacterId == c.Id))) {
             characterFileManager.Save(character);
+        }
         _unsavedCharacters.Clear();
 
         ScenarioObject.Group = ArrpEntityExtensions.Normalize(ScenarioObject.Group);

@@ -160,8 +160,12 @@ public partial class ConfigWindow {
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
         ImGui.TextDisabled(usedBy.Count.ToString());
-        if (usedBy.Count > 0 && ImGui.IsItemHovered())
-            ImGui.SetTooltip(string.Join(Environment.NewLine, usedByTitles));
+        if (usedBy.Count > 0 && ImGui.IsItemHovered()) {
+            var shownTitles = usedByTitles.Take(10).ToList();
+            if (usedByTitles.Count > shownTitles.Count)
+                shownTitles.Add(loc["ListWnd_Characters_Usage_More", usedByTitles.Count - shownTitles.Count]);
+            ImGui.SetTooltip(string.Join(Environment.NewLine, shownTitles));
+        }
 
         ImGui.TableNextColumn();
         if (ImGuiComponents.IconButton("##characterEditButton", FontAwesomeIcon.Wrench)) {
@@ -186,17 +190,12 @@ public partial class ConfigWindow {
         if (usedByTitles.Count > 0) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             ImGui.Text(loc["ListWnd_Characters_Popup_Delete_Used"]);
-            foreach (var title in usedByTitles) {
-                ImGui.Bullet();
-                ImGui.Text(title);
-            }
         }
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
         ImGui.Separator();
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
         if (ImGui.Button(loc["ListWnd_Characters_Popup_Delete_Accept"], new Vector2(120, 0))) {
-            // the scenarios are written while the character still exists, so their actors keep its look
             _fileManager.UnlinkCharacter(character.Id);
             windowSystem.Windows.OfType<CharacterEditorWindow>().Where(w => w.IsEditing(character.Id)).ToList().ForEach(w => w.IsOpen = false);
             _characterFileManager.Remove(character.Id);

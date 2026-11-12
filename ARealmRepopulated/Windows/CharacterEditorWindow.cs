@@ -40,9 +40,6 @@ public class CharacterEditorWindow(
     private static float FooterHeight
         => ImGui.GetStyle().ItemSpacing.Y + 1f + ImGui.GetFrameHeightWithSpacing() + (ArrpGuiSpacing.FooterCellPadding.Y * 2f);
 
-    /// <summary>
-    /// Brings the open editor of the character to the front, or opens a new one.
-    /// </summary>
     public static void Open(WindowSystem windowSystem, IServiceProvider serviceProvider, Guid characterId) {
         if (windowSystem.Windows.OfType<CharacterEditorWindow>().FirstOrDefault(w => w.IsOpen && w.IsEditing(characterId)) is { } openEditor) {
             openEditor.BringToFront();
