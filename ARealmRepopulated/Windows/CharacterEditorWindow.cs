@@ -101,7 +101,7 @@ public class CharacterEditorWindow(
     }
 
     private void DrawBody(CharacterData character) {
-        using var body = ImRaii.Child("##arrpCharacterEditorBody", new Vector2(0, -FooterHeight), true);
+        using var body = ImRaii.Child("##arrpCharacterEditorBody", new Vector2(0, -FooterHeight), false);
         if (!body.Success)
             return;
 
