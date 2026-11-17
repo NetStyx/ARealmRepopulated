@@ -10,7 +10,8 @@ public static class WindowPlacement {
     /// <summary>
     /// Opens an editor window beside the main window.
     /// </summary>
-    public static void PlaceBesideMainWindow(this WindowSystem windowSystem, Window window) {
+    public static void OpenBesideMainWindow(this WindowSystem windowSystem, Window window) {
+        window.IsOpen = true;
         if (windowSystem.Windows.OfType<ConfigWindow>().FirstOrDefault() is not { IsOpen: true } mainWindow)
             return;
 

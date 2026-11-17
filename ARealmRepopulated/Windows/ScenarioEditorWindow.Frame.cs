@@ -210,8 +210,7 @@ public partial class ScenarioEditorWindow(
         ResetSelectedNpc(ScenarioObject.Npcs.FirstOrDefault());
 
         debugOverlay.AddEditor(this);
-        IsOpen = true;
-        windowSystem.PlaceBesideMainWindow(this);
+        windowSystem.OpenBesideMainWindow(this);
     }
 
     private void DrawFrameTooltip() {
