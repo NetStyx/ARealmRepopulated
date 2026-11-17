@@ -41,7 +41,6 @@ public partial class ConfigWindow(
     DebugOverlay _debugOverlay,
     OnboardingWindow onboardingWindow,
     WindowSystem windowSystem,
-    WindowPlacement windowPlacement,
     ArrpEventService eventService,
     ArrpDtrControl dtrControl,
     ArrpTerritoryData territoryData,
@@ -57,7 +56,6 @@ public partial class ConfigWindow(
         this.CollapsedCondition = ImGuiCond.None;
         loc.OnLocalizationChanged += UpdateWindowTitle;
         UpdateWindowTitle();
-        this.OnWindowClosed += windowPlacement.Release;
     }
 
     public void Dispose() {
@@ -69,7 +67,6 @@ public partial class ConfigWindow(
         => this.WindowName = $"{loc["ListWnd_Title", pluginInterface.Manifest.AssemblyVersion]}###ARealmRepopulatedConfigWindow";
 
     public override void Draw() {
-        windowPlacement.Update();
         DrawMainContent();
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);

@@ -33,7 +33,6 @@ public partial class ScenarioEditorWindow(
     CharacterFileManager characterFileManager,
     IServiceProvider serviceProvider,
     WindowSystem windowSystem,
-    WindowPlacement windowPlacement,
     ArrpAnimationData animationData,
     ArrpTerritoryData territoryData,
     ArrpCharacterCreationData characterCreationData,
@@ -212,7 +211,7 @@ public partial class ScenarioEditorWindow(
 
         debugOverlay.AddEditor(this);
         IsOpen = true;
-        windowPlacement.Place(this);
+        windowSystem.PlaceBesideMainWindow(this);
     }
 
     private void DrawFrameTooltip() {

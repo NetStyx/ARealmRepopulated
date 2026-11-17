@@ -30,7 +30,6 @@ public class CharacterEditorWindow(
     ArrpEventService eventService,
     IServiceProvider serviceProvider,
     WindowSystem windowSystem,
-    WindowPlacement windowPlacement,
     ArrpTranslation loc) : ADalamudWindow("Character Editor###ARealmRepopulatedCharacterEditorWindow") {
 
     private CharacterData? _character = null;
@@ -71,7 +70,7 @@ public class CharacterEditorWindow(
         var randomName = characterCreationData.GenerateRandomName(_character.Appearance.Race, _character.Appearance.Tribe, _character.Appearance.Sex);
         _character.Name = $"{randomName.FirstName} {randomName.LastName}";
         IsOpen = true;
-        windowPlacement.Place(this, matchHeight: true);
+        windowSystem.PlaceBesideMainWindow(this, matchHeight: true);
     }
 
     public void EditCharacter(Guid characterId) {
@@ -80,7 +79,7 @@ public class CharacterEditorWindow(
 
         _character = character.Copy();
         IsOpen = true;
-        windowPlacement.Place(this, matchHeight: true);
+        windowSystem.PlaceBesideMainWindow(this, matchHeight: true);
     }
 
     public bool IsEditing(Guid characterId)

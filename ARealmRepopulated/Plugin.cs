@@ -58,7 +58,6 @@ public sealed class Plugin : IDalamudPlugin {
             .AddSingleton<PluginConfigMigration>()
             .AddSingleton<DebugOverlay>()
             .AddSingleton<FileDialogManager>()
-            .AddSingleton<WindowPlacement>()
             .AddSingleton<ChangelogService>()
             .AddWindow<ConfigWindow>()
             .AddWindow<OnboardingWindow>()
