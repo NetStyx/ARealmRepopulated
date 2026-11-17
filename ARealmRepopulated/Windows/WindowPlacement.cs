@@ -8,13 +8,13 @@ namespace ARealmRepopulated.Windows;
 public static class WindowPlacement {
 
     /// <summary>
-    /// Opens an editor window beside the main window, one step down per editor already open.
+    /// Opens an editor window beside the main window.
     /// </summary>
-    public static void PlaceBesideMainWindow(this WindowSystem windowSystem, Window window, bool matchHeight = false) {
+    public static void PlaceBesideMainWindow(this WindowSystem windowSystem, Window window) {
         if (windowSystem.Windows.OfType<ConfigWindow>().FirstOrDefault() is not { IsOpen: true } mainWindow)
             return;
 
-        // apparently window.Location is only the requested pos and not the actual pos.
+        // apparently window.Position is only the requested pos and not the actual pos.
         var anchor = ImGuiP.FindWindowByName(mainWindow.WindowName);
         if (anchor.IsNull || anchor.Viewport.IsNull)
             return;

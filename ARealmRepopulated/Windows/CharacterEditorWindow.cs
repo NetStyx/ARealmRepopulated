@@ -70,7 +70,7 @@ public class CharacterEditorWindow(
         var randomName = characterCreationData.GenerateRandomName(_character.Appearance.Race, _character.Appearance.Tribe, _character.Appearance.Sex);
         _character.Name = $"{randomName.FirstName} {randomName.LastName}";
         IsOpen = true;
-        windowSystem.PlaceBesideMainWindow(this, matchHeight: true);
+        windowSystem.PlaceBesideMainWindow(this);
     }
 
     public void EditCharacter(Guid characterId) {
@@ -79,7 +79,7 @@ public class CharacterEditorWindow(
 
         _character = character.Copy();
         IsOpen = true;
-        windowSystem.PlaceBesideMainWindow(this, matchHeight: true);
+        windowSystem.PlaceBesideMainWindow(this);
     }
 
     public bool IsEditing(Guid characterId)
