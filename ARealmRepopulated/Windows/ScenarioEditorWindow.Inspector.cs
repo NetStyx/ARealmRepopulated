@@ -171,11 +171,10 @@ public partial class ScenarioEditorWindow {
                 DrawActorPlacementTab(npc);
         }
 
-        // a linked actor leaves its look to the character
         if (npc.CharacterId == null)
             characterEditor.DrawTabs(npc);
     }
-    
+
     private static void DrawActorNameSuffix(string actorName) {
         ImGui.SameLine(0, 0);
         ImGui.Text(" [");
@@ -336,14 +335,14 @@ public partial class ScenarioEditorWindow {
         using var body = ImRaii.Child("##arrpActionInspectorBody", new Vector2(0, 0), false);
         if (!body.Success)
             return;
-        
+
         if (action.CanHaveTalk || action.CanHaveDuration) {
             DrawActionCommonForm(action);
         }
 
         _actionUiRegistry.Draw(action);
     }
-    
+
     private void DrawActionEnabledToggle(ScenarioNpcAction action) {
         var enabled = action.Enabled;
         if (ImGui.Checkbox("##arrpActionEnabledToggle", ref enabled)) {

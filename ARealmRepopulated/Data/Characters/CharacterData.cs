@@ -58,9 +58,6 @@ public static class CharacterDefinitionExtensions {
         return missing;
     }
 
-    /// <summary>
-    /// Whether an imported character replaces the local one: unknown, newer, or the same revision with other content.
-    /// </summary>
     public static bool ReplacesLocal(this CharacterData imported, CharacterData? local)
         => local == null
             || imported.Revision > local.Revision
