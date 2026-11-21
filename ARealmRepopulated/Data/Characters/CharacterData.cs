@@ -1,3 +1,4 @@
+using ARealmRepopulated.Core.IPC;
 using ARealmRepopulated.Data.Appearance;
 using ARealmRepopulated.Data.Scenarios;
 using System.ComponentModel;
@@ -42,6 +43,9 @@ public static class CharacterDefinitionExtensions {
             && definition.Appearance == other.Appearance
             && definition.AdditionalData.Count == other.AdditionalData.Count
             && definition.AdditionalData.All(e => other.AdditionalData.TryGetValue(e.Key, out var value) && value == e.Value);
+
+    public static bool IsExternallyManaged(this ICharacterDefinition definition)
+        => definition.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
 
     public static List<Guid> ApplyCharacters(this ScenarioData scenario, IReadOnlyDictionary<Guid, CharacterData> characters) {
         var missing = new List<Guid>();

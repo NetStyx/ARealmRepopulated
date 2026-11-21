@@ -90,7 +90,7 @@ public class CharacterEditorWindow(
         DrawBody(_character);
         DrawFooter(_character);
 
-        if (characterEditor.ShowPreview && !ArrpGuiCharacterEditor.IsExternallyManaged(_character)) {
+        if (characterEditor.ShowPreview && !_character.IsExternallyManaged()) {
             appearancePreview.Show(_character.Appearance);
         } else {
             appearancePreview.Hide();

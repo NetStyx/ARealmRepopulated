@@ -212,7 +212,7 @@ public partial class ConfigWindow {
         => string.IsNullOrWhiteSpace(character.Name) ? loc["CharacterEditor_UnnamedCharacter"] : character.Name;
 
     private string DescribeIntegration(CharacterData character, string integrationName)
-        => ArrpGuiCharacterEditor.IsExternallyManaged(character)
+        => character.IsExternallyManaged()
             ? $"{loc["ListWnd_Characters_IntegrationName", integrationName]}\n\n{loc["ListWnd_Characters_IntegrationName_External"]}"
             : loc["ListWnd_Characters_IntegrationName", integrationName];
 

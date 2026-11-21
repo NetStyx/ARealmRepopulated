@@ -249,7 +249,7 @@ public partial class ScenarioEditorWindow(
         DrawFooter();
 
         var previewed = SelectedScenarioNpc != null ? ResolveDefinition(SelectedScenarioNpc) : null;
-        if (characterEditor.ShowPreview && previewed != null && SelectedScenarioNpcAction == null && !ArrpGuiCharacterEditor.IsExternallyManaged(previewed)) {
+        if (characterEditor.ShowPreview && previewed != null && SelectedScenarioNpcAction == null && !previewed.IsExternallyManaged()) {
             appearancePreview.Show(previewed.Appearance);
         } else {
             appearancePreview.Hide();

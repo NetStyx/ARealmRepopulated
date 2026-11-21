@@ -26,10 +26,10 @@ public static class ScenarioNpcDataExtensions {
             options.Name = actorName;
             options.HomeWorld = localPlayer->HomeWorld;
             options.CurrentWorld = localPlayer->CurrentWorld;
+        }
 
-            if (definition.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal) {
-                options.AppearanceManagement = AppearanceManagement.External;
-            }
+        if (definition.IsExternallyManaged()) {
+            options.AppearanceManagement = AppearanceManagement.External;
         }
 
         return options;

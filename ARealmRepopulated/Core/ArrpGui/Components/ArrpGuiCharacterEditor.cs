@@ -49,9 +49,6 @@ public class ArrpGuiCharacterEditor(
 
     public bool ShowPreview { get; private set; } = false;
 
-    public static bool IsExternallyManaged(ICharacterDefinition character)
-        => character.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
-
     public void DrawTabs(ICharacterDefinition character) {
         using (var setup = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Setup"]}##arrpCharacterTabSetup", ImGuiTabItemFlags.NoTooltip)) {
             if (setup.Success) {
@@ -59,7 +56,7 @@ public class ArrpGuiCharacterEditor(
             }
         }
 
-        if (!IsExternallyManaged(character)) {
+        if (!character.IsExternallyManaged()) {
             using (var model = ImRaii.TabItem($"{loc["ScenarioEditor_ActorData_Appearance_Model"]}##arrpCharacterTabModel", ImGuiTabItemFlags.NoTooltip)) {
                 if (model.Success)
                     ArrpGuiLayout.TabBody("##arrpCharacterTabModelBody", () => modelEditor.Draw(character.Appearance));
@@ -80,7 +77,7 @@ public class ArrpGuiCharacterEditor(
     }
 
     public void DrawPreviewToggle(ICharacterDefinition character) {
-        if (IsExternallyManaged(character))
+        if (character.IsExternallyManaged())
             return;
 
         if (ImGuiComponents.IconButton("##arrpCharacterPreview", FontAwesomeIcon.Eye, ShowPreview ? ArrpGuiColors.ArrpGreen : null)) {
@@ -97,7 +94,7 @@ public class ArrpGuiCharacterEditor(
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
 
-        var isExternal = IsExternallyManaged(character);
+        var isExternal = character.IsExternallyManaged();
         using (ImRaii.Disabled(isExternal))
             DrawAppearanceSources(character);
 
@@ -372,7 +369,7 @@ public class ArrpGuiCharacterEditor(
             if (string.IsNullOrWhiteSpace(currentName))
                 return;
 
-            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], IsExternallyManaged(character),
+            form.CheckboxRow(loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance"], character.IsExternallyManaged(),
                 isExternal => character.SetIntegrationProperty(IntegrationProvider.ExternalAppearanceConfigKey, isExternal ? "true" : ""),
                 loc["ScenarioEditor_ActorData_Appearance_Integration_Input_ExternalAppearance_Desc"]);
         });
