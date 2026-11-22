@@ -14,7 +14,9 @@ public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPlug
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     private readonly Dictionary<Guid, CharacterFile> _characters = [];
     private readonly Lock _charactersLock = new();
-    private readonly CharacterData _missingCharacter = new();
+    private readonly CharacterData _missingCharacterTemplate = new();
+
+    private CharacterData MissingCharacter => _missingCharacterTemplate.Copy();
 
     public delegate void CharacterChangedDelegate(Guid characterId);
     public event CharacterChangedDelegate? OnCharacterChanged;
@@ -59,7 +61,7 @@ public class CharacterFileManager(IDalamudPluginInterface pluginInterface, IPlug
     }
 
     public ICharacterDefinition ResolveDefinition(ScenarioNpcData npc)
-        => npc.CharacterId is { } id && !Contains(id) ? _missingCharacter : npc;
+        => npc.CharacterId is { } id && !Contains(id) ? MissingCharacter : npc;
 
     public void ApplyCharacters(ScenarioData scenario, string scenarioName) {
         Dictionary<Guid, CharacterData> characters;

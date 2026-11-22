@@ -160,7 +160,7 @@ public partial class ScenarioEditorWindow {
                 characterEditor.DrawPreviewToggle(definition);
                 DrawDeleteAction("##arrpActorDelete", "ScenarioEditor_Inspector_Actor_Delete");
             },
-            titleSuffix: definition.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName) ? () => DrawActorNameSuffix(actorName) : null);
+            titleSuffix: definition.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var actorName) ? () => ArrpGuiLayout.TitleSuffix(actorName) : null);
 
         using var tabBar = ImRaii.TabBar("##arrpActorInspectorTabs");
         if (!tabBar.Success)
@@ -173,15 +173,6 @@ public partial class ScenarioEditorWindow {
 
         if (npc.CharacterId == null)
             characterEditor.DrawTabs(npc);
-    }
-
-    private static void DrawActorNameSuffix(string actorName) {
-        ImGui.SameLine(0, 0);
-        ImGui.Text(" [");
-        ImGui.SameLine(0, 0);
-        ImGui.TextColored(ArrpGuiColors.ArrpGreen, actorName);
-        ImGui.SameLine(0, 0);
-        ImGui.Text("]");
     }
 
     private void DrawActorPlacementTab(ScenarioNpcData npc) {

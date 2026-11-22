@@ -102,6 +102,10 @@ public record NpcAppearanceData {
         Converters = { new Vector3Converter(), new Vector4Converter() }
     };
 
+    public const int CurrentVersion = 1;
+
+    public int Version { get; set; } = CurrentVersion;
+
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
     public int ModelCharaId { get; set; } = 0;

@@ -1337,9 +1337,6 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="ListWnd_Scenario_MissingCharacter_Desc" xml:space="preserve">
     <value>An actor in this scenario is linked to a character that no longer exists. It spawns with the default look until you pick another character or unlink it.</value>
   </data>
-  <data name="CharacterEditor_UnnamedCharacter" xml:space="preserve">
-    <value>Unnamed Character</value>
-  </data>
   <data name="CharacterEditor_Usage_None" xml:space="preserve">
     <value>Not used in any scenario</value>
   </data>

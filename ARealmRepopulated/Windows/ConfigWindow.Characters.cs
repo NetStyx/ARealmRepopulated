@@ -77,9 +77,9 @@ public partial class ConfigWindow {
 
         var scenarioFiles = _fileManager.GetScenarioFiles().Where(f => !f.IsBroken).ToList();
         var characters = _characterFileManager.GetCharacters()
-            .Where(c => CharacterLabel(c).Contains(_searchCharacterText, StringComparison.InvariantCultureIgnoreCase)
+            .Where(c => c.GetNameOrDefault().Contains(_searchCharacterText, StringComparison.InvariantCultureIgnoreCase)
                 || c.Group.Contains(_searchCharacterText, StringComparison.InvariantCultureIgnoreCase))
-            .OrderBy(CharacterLabel, StringComparer.InvariantCultureIgnoreCase)
+            .OrderBy(c => c.GetNameOrDefault(), StringComparer.InvariantCultureIgnoreCase)
             .ToList();
 
         DrawCharacterGroupLevel(characters, 0, scenarioFiles);
@@ -151,7 +151,7 @@ public partial class ConfigWindow {
             ArrpGuiLayout.Badge(FontAwesomeIcon.InfoCircle, ArrpGuiColors.ArrpGreen, DescribeIntegration(character, integrationName));
             ImGui.SameLine(0, ArrpGuiSpacing.InlineIconSpacing);
         }
-        ImGui.Text(CharacterLabel(character));
+        ImGui.Text(character.GetNameOrDefault());
 
         ImGui.TableNextColumn();
         ImGui.AlignTextToFramePadding();
@@ -186,7 +186,7 @@ public partial class ConfigWindow {
             return;
 
         ImGui.Dummy(ArrpGuiSpacing.VerticalHeaderSpacing);
-        ImGui.Text(loc["ListWnd_Characters_Popup_Delete_Desc", CharacterLabel(character)]);
+        ImGui.Text(loc["ListWnd_Characters_Popup_Delete_Desc", character.GetNameOrDefault()]);
         if (usedByTitles.Count > 0) {
             ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
             ImGui.Text(loc["ListWnd_Characters_Popup_Delete_Used"]);
@@ -207,9 +207,6 @@ public partial class ConfigWindow {
             ImGui.CloseCurrentPopup();
         }
     }
-
-    private string CharacterLabel(CharacterData character)
-        => string.IsNullOrWhiteSpace(character.Name) ? loc["CharacterEditor_UnnamedCharacter"] : character.Name;
 
     private string DescribeIntegration(CharacterData character, string integrationName)
         => character.IsExternallyManaged()

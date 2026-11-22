@@ -11,6 +11,9 @@ public readonly record struct ArrpGuiTab(string Label, Action Draw);
 
 public static class ArrpGuiLayout {
 
+    public static float FooterHeight
+        => ImGui.GetStyle().ItemSpacing.Y + 1f + ImGui.GetFrameHeightWithSpacing() + (ArrpGuiSpacing.FooterCellPadding.Y * 2f);
+
     public static void Tabs(string id, ArrpGuiTab[] tabs, int opensOn) {
         using var tabBar = ImRaii.TabBar(id);
         if (!tabBar.Success)
@@ -106,6 +109,15 @@ public static class ArrpGuiLayout {
             ImGui.SameLine(0, ArrpGuiSpacing.HeadingPartSpacing);
             ImGui.TextDisabled(subtitle);
         }
+    }
+
+    public static void TitleSuffix(string text) {
+        ImGui.SameLine(0, 0);
+        ImGui.Text(" [");
+        ImGui.SameLine(0, 0);
+        ImGui.TextColored(ArrpGuiColors.ArrpGreen, text);
+        ImGui.SameLine(0, 0);
+        ImGui.Text("]");
     }
 
     public static void SectionHeader(string title) {

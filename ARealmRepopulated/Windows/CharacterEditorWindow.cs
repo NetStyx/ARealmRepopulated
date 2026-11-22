@@ -36,9 +36,6 @@ public class CharacterEditorWindow(
 
     public Guid UniqueWindowId { get; } = Guid.NewGuid();
 
-    private static float FooterHeight
-        => ImGui.GetStyle().ItemSpacing.Y + 1f + ImGui.GetFrameHeightWithSpacing() + (ArrpGuiSpacing.FooterCellPadding.Y * 2f);
-
     public static void Open(WindowSystem windowSystem, IServiceProvider serviceProvider, Guid characterId) {
         if (windowSystem.Windows.OfType<CharacterEditorWindow>().FirstOrDefault(w => w.IsOpen && w.IsEditing(characterId)) is { } openEditor) {
             openEditor.BringToFront();
@@ -98,7 +95,7 @@ public class CharacterEditorWindow(
     }
 
     private void DrawBody(CharacterData character) {
-        using var body = ImRaii.Child("##arrpCharacterEditorBody", new Vector2(0, -FooterHeight), false);
+        using var body = ImRaii.Child("##arrpCharacterEditorBody", new Vector2(0, -ArrpGuiLayout.FooterHeight), false);
         if (!body.Success)
             return;
 
@@ -108,9 +105,9 @@ public class CharacterEditorWindow(
             .ToList();
 
         var hasIntegrationName = character.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var integrationName);
-        ArrpGuiLayout.PanelHeader("##arrpCharacterPanelHeader", FontAwesomeIcon.User, CharacterLabel(character), DescribeUsage(usedBy.Count),
+        ArrpGuiLayout.PanelHeader("##arrpCharacterPanelHeader", FontAwesomeIcon.User, character.GetNameOrDefault(), DescribeUsage(usedBy.Count),
             trailing: () => characterEditor.DrawPreviewToggle(character),
-            titleSuffix: hasIntegrationName ? () => DrawIntegrationNameSuffix(integrationName) : null);
+            titleSuffix: hasIntegrationName ? () => ArrpGuiLayout.TitleSuffix(integrationName) : null);
 
         DrawNameForm(character);
         ImGui.Dummy(ArrpGuiSpacing.VerticalComponentSpacing);
@@ -178,15 +175,6 @@ public class CharacterEditorWindow(
                 }
             }, loc["CharacterEditor_Input_Group_Help"]);
         });
-    }
-
-    private static void DrawIntegrationNameSuffix(string integrationName) {
-        ImGui.SameLine(0, 0);
-        ImGui.Text(" [");
-        ImGui.SameLine(0, 0);
-        ImGui.TextColored(ArrpGuiColors.ArrpGreen, integrationName);
-        ImGui.SameLine(0, 0);
-        ImGui.Text("]");
     }
 
     private void DrawUsageSection(List<ScenarioFileData> usedBy) {
@@ -267,9 +255,6 @@ public class CharacterEditorWindow(
         character.Group = ArrpEntityExtensions.Normalize(character.Group);
         characterFileManager.Save(character);
     }
-
-    private string CharacterLabel(CharacterData character)
-        => string.IsNullOrWhiteSpace(character.Name) ? loc["CharacterEditor_UnnamedCharacter"] : character.Name;
 
     private string DescribeUsage(int usage) => usage switch {
         0 => loc["CharacterEditor_Usage_None"],

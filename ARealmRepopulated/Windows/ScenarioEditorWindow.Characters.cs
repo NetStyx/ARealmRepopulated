@@ -83,28 +83,25 @@ public partial class ScenarioEditorWindow {
     private void DrawCharacterPicker(ScenarioNpcData npc, CharacterData? linkedCharacter) {
         var preview = npc.CharacterId == null ? loc["ScenarioEditor_ActorData_Character_None"]
             : linkedCharacter == null ? loc["ScenarioEditor_ActorData_Character_Missing"]
-            : CharacterLabel(linkedCharacter);
+            : linkedCharacter.GetNameOrDefault();
 
         using var combo = ImRaii.Combo("##value", preview);
         if (!combo.Success)
             return;
 
-        var characters = characterFileManager.GetCharacters().OrderBy(CharacterLabel, StringComparer.InvariantCultureIgnoreCase).ToList();
+        var characters = characterFileManager.GetCharacters().OrderBy(c => c.GetNameOrDefault(), StringComparer.InvariantCultureIgnoreCase).ToList();
         if (characters.Count == 0) {
             ImGui.TextDisabled(loc["ScenarioEditor_ActorData_Character_Empty"]);
             return;
         }
 
         foreach (var character in characters) {
-            if (ImGui.Selectable($"{CharacterLabel(character)}##{character.Id}", npc.CharacterId == character.Id)) {
+            if (ImGui.Selectable($"{character.GetNameOrDefault()}##{character.Id}", npc.CharacterId == character.Id)) {
                 npc.CharacterId = character.Id;
                 npc.CopyCharacterFrom(character);
             }
         }
     }
-
-    private string CharacterLabel(CharacterData character)
-        => string.IsNullOrWhiteSpace(character.Name) ? loc["CharacterEditor_UnnamedCharacter"] : character.Name;
 
     private void Import(ScenarioExportData importedScenario) {
         foreach (var character in importedScenario.Characters.Where(c => c.ReplacesLocal(characterFileManager.GetCharacter(c.Id))))

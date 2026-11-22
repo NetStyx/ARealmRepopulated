@@ -44,6 +44,9 @@ public static class CharacterDefinitionExtensions {
             && definition.AdditionalData.Count == other.AdditionalData.Count
             && definition.AdditionalData.All(e => other.AdditionalData.TryGetValue(e.Key, out var value) && value == e.Value);
 
+    public static string GetNameOrDefault(this CharacterData character, string defaultName = "Unnamed Character")
+        => string.IsNullOrWhiteSpace(character.Name) ? defaultName : character.Name;
+
     public static bool IsExternallyManaged(this ICharacterDefinition definition)
         => definition.TryGetIntegrationProperty<bool>(IntegrationProvider.ExternalAppearanceConfigKey, out var isExternal) && isExternal;
 

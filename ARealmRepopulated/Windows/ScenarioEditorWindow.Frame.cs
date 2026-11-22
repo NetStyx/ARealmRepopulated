@@ -23,6 +23,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 namespace ARealmRepopulated.Windows;
 
@@ -61,9 +62,6 @@ public partial class ScenarioEditorWindow(
 
     private readonly List<CharacterData> _unsavedCharacters = [];
     private readonly Dictionary<ScenarioNpcData, Guid?> _storedLinks = new(ReferenceEqualityComparer.Instance);
-
-    private static float FooterHeight
-        => ImGui.GetStyle().ItemSpacing.Y + 1f + ImGui.GetFrameHeightWithSpacing() + (ArrpGuiSpacing.FooterCellPadding.Y * 2f);
 
     public ScenarioData ScenarioObject { get; private set; } = null!;
     public ScenarioNpcData? SelectedScenarioNpc { get; private set; } = null;
@@ -306,7 +304,7 @@ public partial class ScenarioEditorWindow(
     }
 
     private void DrawBody() {
-        using var body = ImRaii.Child("##arrpScenarioEditorBody", new Vector2(0, -FooterHeight), true);
+        using var body = ImRaii.Child("##arrpScenarioEditorBody", new Vector2(0, -ArrpGuiLayout.FooterHeight), true);
         if (!body.Success)
             return;
 
@@ -412,9 +410,8 @@ public partial class ScenarioEditorWindow(
             return;
         }
 
-        var actors = ScenarioObject.Npcs.ToList();
-        for (var actorIndex = 0; actorIndex < actors.Count; actorIndex++) {
-            DrawOutlineActorNode(actors[actorIndex], actorIndex);
+        foreach (var actor in ScenarioObject.Npcs.ToList()) {
+            DrawOutlineActorNode(actor);
         }
     }
 
@@ -471,8 +468,8 @@ public partial class ScenarioEditorWindow(
         ArrpGuiLayout.Tooltip(loc["ScenarioEditor_Outline_ScenarioNodeHint"]);
     }
 
-    private void DrawOutlineActorNode(ScenarioNpcData npc, int actorIndex) {
-        using var id = ImRaii.PushId($"arrpOutlineActor{actorIndex}");
+    private void DrawOutlineActorNode(ScenarioNpcData npc) {
+        using var id = ImRaii.PushId(RuntimeHelpers.GetHashCode(npc));
 
         var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.SpanAvailWidth;
         if (!_collapsedActors.Contains(npc))
