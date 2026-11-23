@@ -105,7 +105,8 @@ public class CharacterEditorWindow(
             .ToList();
 
         var hasIntegrationName = character.TryGetIntegrationProperty(IntegrationProvider.ActorNameConfigKey, out var integrationName);
-        ArrpGuiLayout.PanelHeader("##arrpCharacterPanelHeader", FontAwesomeIcon.User, character.GetNameOrDefault(), DescribeUsage(usedBy.Count),
+        ArrpGuiLayout.PanelHeader("##arrpCharacterPanelHeader", FontAwesomeIcon.User, character.GetNameOrDefault(),
+            usedBy.Count == 0 ? loc["CharacterEditor_Usage_None"] : loc["CharacterEditor_Usage", usedBy.Count],
             trailing: () => characterEditor.DrawPreviewToggle(character),
             titleSuffix: hasIntegrationName ? () => ArrpGuiLayout.TitleSuffix(integrationName) : null);
 
@@ -255,10 +256,4 @@ public class CharacterEditorWindow(
         character.Group = ArrpEntityExtensions.Normalize(character.Group);
         characterFileManager.Save(character);
     }
-
-    private string DescribeUsage(int usage) => usage switch {
-        0 => loc["CharacterEditor_Usage_None"],
-        1 => loc["CharacterEditor_Usage_One"],
-        _ => loc["CharacterEditor_Usage", usage]
-    };
 }

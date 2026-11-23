@@ -1340,9 +1340,6 @@ This might impact performance. Ensure that the actions are valid for the actor o
   <data name="CharacterEditor_Usage_None" xml:space="preserve">
     <value>Not used in any scenario</value>
   </data>
-  <data name="CharacterEditor_Usage_One" xml:space="preserve">
-    <value>Used in 1 scenario</value>
-  </data>
   <data name="CharacterEditor_Usage" xml:space="preserve">
     <value>Used in {0} scenarios</value>
   </data>
