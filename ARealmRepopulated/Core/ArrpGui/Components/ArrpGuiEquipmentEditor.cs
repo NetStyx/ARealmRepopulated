@@ -73,7 +73,7 @@ public class ArrpGuiEquipmentEditor(
     private void DrawWeaponRow(ArrpGuiForm form, string label, ItemSlots slot, NpcAppearanceData appearance, Func<WeaponModel?> getSelectedWeaponModel, Action<WeaponModel?> setSelectedWeaponModel) {
         form.Row(label, () => {
             var model = getSelectedWeaponModel();
-            var item = FindItem(slot, model?.ModelSetId ?? 0, model?.Base ?? 0, model?.Variant ?? 0);
+            var item = itemData.FindItem(slot, model?.ModelSetId ?? 0, model?.Base ?? 0, model?.Variant ?? 0);
 
             var modelKey = model?.ToModelKey() ?? 0;
             if (DrawItemButton(item?.Icon ?? 0, DescribeItem(slot, item, modelKey), DyeChannels)) {
@@ -103,7 +103,7 @@ public class ArrpGuiEquipmentEditor(
     private void DrawEquipmentRow(ArrpGuiForm form, string label, ItemSlots slot, NpcAppearanceData appearance, Func<EquipmentModel?> getSelectedEquipmentModel, Action<EquipmentModel?> setSelectedEquipmentModel) {
         form.Row(label, () => {
             var model = getSelectedEquipmentModel();
-            var item = FindItem(slot, 0, model?.ModelId ?? 0, model?.Variant ?? 0);
+            var item = itemData.FindItem(slot, 0, model?.ModelId ?? 0, model?.Variant ?? 0);
 
             var modelKey = model?.ToModelKey() ?? 0;
             if (DrawItemButton(item?.Icon ?? 0, DescribeItem(slot, item, modelKey), DyeChannels)) {
@@ -174,11 +174,6 @@ public class ArrpGuiEquipmentEditor(
 
         stain = picked;
         return true;
-    }
-
-    private Item? FindItem(ItemSlots slot, ushort set, ushort modelBase, ushort variant) {
-        var model = itemData.GetItemByModel(slot, set, modelBase, variant);
-        return model == ItemModelData.Empty || model.Item == 0 ? null : itemData.GetItem(model.Item);
     }
 
     private string DescribeItem(ItemSlots slot, Item? item, ulong modelKey) {

@@ -1,7 +1,6 @@
 using ARealmRepopulated.Core.Json;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Common.Math;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using static FFXIVClientStructs.FFXIV.Client.Game.Character.DrawDataContainer;
@@ -102,6 +101,10 @@ public record NpcAppearanceData {
     public static readonly JsonSerializerOptions SerializerOptions = new() {
         Converters = { new Vector3Converter(), new Vector4Converter() }
     };
+
+    public const int CurrentVersion = 1;
+
+    public int Version { get; set; } = CurrentVersion;
 
     public Guid AppearanceId { get; set; } = Guid.NewGuid();
 
@@ -311,24 +314,6 @@ public record NpcAppearanceData {
 
     public string ToBase64() {
         return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(this, SerializerOptions)));
-    }
-
-    public void Save(string configDirectory, SaveFormat format = SaveFormat.Json) {
-        var filePath = Path.Combine(configDirectory, "appearance", this.AppearanceId.ToString() + ".arrpc");
-
-        string exportData;
-        if (format == SaveFormat.Base64) {
-            exportData = ToBase64();
-        } else {
-            exportData = JsonSerializer.Serialize(this, SerializerOptions);
-
-        }
-        File.WriteAllText(filePath, exportData);
-    }
-
-    public enum SaveFormat {
-        Json,
-        Base64
     }
 }
 

@@ -1,6 +1,6 @@
-using ARealmRepopulated.Core.Native;
 using ARealmRepopulated.Core.Services.Scenarios;
 using ARealmRepopulated.Data.Appearance;
+using ARealmRepopulated.Data.Characters;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
@@ -27,6 +27,11 @@ public class ScenarioData : IScenarioMetaData {
     public List<ScenarioCondition> Conditions { get; set; } = [];
 }
 
+public class ScenarioExportData {
+    public ScenarioData Scenario { get; set; } = new();
+    public List<CharacterData> Characters { get; set; } = [];
+}
+
 public class ScenarioFileMetaData : IScenarioMetaData {
     public int Version { get; set; } = 1;
     public bool Enabled { get; set; } = true;
@@ -34,6 +39,14 @@ public class ScenarioFileMetaData : IScenarioMetaData {
     public string Description { get; set; } = "";
     public string Group { get; set; } = "";
     public ScenarioLocation Location { get; set; } = new();
+    public List<ScenarioFileNpcMetaData> Npcs { get; set; } = [];
+
+    [JsonIgnore]
+    public IEnumerable<Guid> CharacterIds => Npcs.Select(n => n.CharacterId).OfType<Guid>();
+}
+
+public class ScenarioFileNpcMetaData {
+    public Guid? CharacterId { get; set; }
 }
 
 public class ScenarioLocation {
@@ -53,13 +66,11 @@ public interface IScenarioMetaData {
     bool Enabled { get; }
 }
 
-public static class ScenarioMetaDataExtensions {
-    public static string[] GroupSegments(this IScenarioMetaData data)
-        => (data.Group ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-}
+public class ScenarioNpcData : ICharacterDefinition {
 
-public class ScenarioNpcData {
-    public string Identifier { get; set; } = Guid.NewGuid().AsHexString();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? CharacterId { get; set; }
+
     public string Name { get; set; } = "";
     public NpcNameDisplay DisplayNameSetting { get; set; } = NpcNameDisplay.Never;
     public NpcAppearanceData Appearance { get; set; } = NpcAppearanceData.Default;

@@ -1,11 +1,14 @@
 using ARealmRepopulated.Core.Files;
 using ARealmRepopulated.Core.Json;
+using ARealmRepopulated.Core.Services.Characters;
+using ARealmRepopulated.Data.Characters;
 using ARealmRepopulated.Data.Location;
 using ARealmRepopulated.Data.Scenarios;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
@@ -16,7 +19,7 @@ public sealed record ScenarioFileData(string FileName, string FilePath, Scenario
     public bool IsBroken => Error != null;
 }
 
-public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, ScenarioMigrator migrator) : IDisposable {
+public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPluginLog log, IFramework dalamudFramework, ScenarioMigrator migrator, CharacterFileManager characterFileManager) : IDisposable {
     private readonly FileSystemWatcherDebouncer _fileSystemWatcher = new();
     public static readonly JsonSerializerOptions ScenarioMetaSerializerOptions = new() { };
     public static readonly JsonSerializerOptions ScenarioLoadSerializerOptions = new() { Converters = { new Vector3Converter(), new Vector4Converter(), new JsonStringEnumConverter() }, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { NullStringModifier.Instance, DefaultValueModifier.Instance } } };
@@ -27,6 +30,9 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
     public delegate void ScenarioFileChangedDelegate(ScenarioFileData metaData);
     public event ScenarioFileChangedDelegate? OnScenarioFileChanged;
     public event ScenarioFileChangedDelegate? OnScenarioFileRemoved;
+
+    public delegate void CharacterUnlinkedDelegate(Guid characterId);
+    public event CharacterUnlinkedDelegate? OnCharacterUnlinked;
 
     public string ScenarioPath => Path.Combine(pluginInterface.GetPluginConfigDirectory(), "Scenarios");
     public void StartMonitoring() {
@@ -69,7 +75,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         _fileSystemWatcher.EnableRaisingEvents = true;
     }
 
-    private void _fileSystemWatcherFired(FileSystemEventArgs e) {        
+    private void _fileSystemWatcherFired(FileSystemEventArgs e) {
         if (Path.GetExtension(e.FullPath).Equals(".json", StringComparison.OrdinalIgnoreCase))
             TryReadScenarioFile(e.FullPath, raiseEvents: true);
     }
@@ -116,7 +122,7 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
 
         UpdateFileEntry(new ScenarioFileData(fileInfo.Name, fileInfo.FullName, fileMetaData), raiseEvents);
     }
-    
+
     private void UpdateFileEntry(ScenarioFileData fileData, bool raiseEvents) {
         using var _ = _filesLock.EnterScope();
         var index = _currentFiles.FindIndex(x => x.FilePath.IsSamePath(fileData.FilePath));
@@ -148,7 +154,11 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         log.Debug($"Reading scenario file {fileInfo.Name}");
         try {
             var jsonString = File.ReadAllText(fileInfo.FullName);
-            return JsonSerializer.Deserialize<ScenarioData>(jsonString, ScenarioLoadSerializerOptions);
+            if (JsonSerializer.Deserialize<ScenarioData>(jsonString, ScenarioLoadSerializerOptions) is not { } scenario)
+                return null;
+
+            characterFileManager.ApplyCharacters(scenario, fileInfo.Name);
+            return scenario;
         } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) {
             log.Warning("Could not read scenario file {FileName}: {IoError}", [fileInfo.Name, ex.Message]);
         } catch (JsonException jex) {
@@ -159,10 +169,18 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         return null;
     }
 
-    public ScenarioData? ImportBase64Scenario(string base64Data) {
+    public ScenarioExportData? ImportBase64Scenario(string base64Data) {
         try {
             var jsonString = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(base64Data));
-            return migrator.Migrate(jsonString)?.Scenario.Deserialize<ScenarioData>(ScenarioLoadSerializerOptions);
+            if (JsonNode.Parse(jsonString) is not JsonObject root)
+                return null;
+
+            var scenarioJson = root[nameof(ScenarioExportData.Scenario)] as JsonObject;
+            migrator.Migrate(scenarioJson ?? root);
+            if (scenarioJson != null)
+                return root.Deserialize<ScenarioExportData>(ScenarioLoadSerializerOptions);
+
+            return root.Deserialize<ScenarioData>(ScenarioLoadSerializerOptions) is { } scenario ? new ScenarioExportData { Scenario = scenario } : null;
         } catch (FormatException fex) {
             log.Warning("Could not import scenario from base64 data. Invalid base64 format: {Base64Error}", [fex.Message]);
         } catch (JsonException jex) {
@@ -173,9 +191,19 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         return null;
     }
 
-    public static string ExportBase64Scenario(ScenarioData data) {
-        var jsonString = JsonSerializer.Serialize(data, ScenarioLoadSerializerOptions);
-        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(jsonString));
+    public string ExportBase64Scenario(ScenarioData data) {
+        var characters = data.Npcs
+            .Select(n => n.CharacterId).OfType<Guid>().Distinct()
+            .Select(characterFileManager.GetCharacter).OfType<CharacterData>()
+            .Select(c => {
+                var exported = c.Copy();
+                exported.Group = "";
+                return exported;
+            })
+            .ToList();
+
+        var json = JsonSerializer.Serialize(new ScenarioExportData { Scenario = data, Characters = characters }, ScenarioLoadSerializerOptions);
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(json));
     }
 
     public FileInfo StoreScenarioFile(ScenarioData data)
@@ -200,6 +228,17 @@ public class ScenarioFileManager(IDalamudPluginInterface pluginInterface, IPlugi
         }
 
         return fileInfo;
+    }
+
+    public void UnlinkCharacter(Guid characterId) {
+        foreach (var file in GetScenarioFiles().Where(f => f.MetaData.CharacterIds.Contains(characterId))) {
+            if (LoadScenarioFile(file) is not { } scenario)
+                continue;
+
+            scenario.Npcs.Where(n => n.CharacterId == characterId).ToList().ForEach(n => n.CharacterId = null);
+            StoreScenarioFile(scenario, file.FilePath);
+        }
+        OnCharacterUnlinked?.Invoke(characterId);
     }
 
     public void RemoveScenarioFile(string filePath) {
